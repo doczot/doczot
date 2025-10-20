@@ -37,3 +37,12 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Golden dataset files (keep private)
+rating_pairs.json
+rating_pairs_*.json
+golden_dataset.json
+*.dataset.json
+
+# Research/development tools and data (internal use only)
+research/

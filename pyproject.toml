@@ -5,14 +5,35 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "doczot-analyzer"
 version = "0.1.0"
-description = "LLM-powered documentation coverage analysis for FastAPI projects"
-authors = [{name = "Your Name", email = "your.email@example.com"}]
-license = "Apache-2.0"
+description = "Open source documentation coverage analysis for FastAPI projects - like Codecov for API docs"
+readme = "README.md"
+authors = [{name = "Sharon", email = "sharon@doczot.com"}]
+license = {text = "Apache-2.0"}
+keywords = ["documentation", "coverage", "fastapi", "api", "docs", "testing", "quality"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Framework :: FastAPI",
+]
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0.0",
     "markdown-it-py>=3.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/doczot"
+Documentation = "https://docs.doczot.com"
+Repository = "https://github.com/yourusername/doczot"
+"Bug Tracker" = "https://github.com/yourusername/doczot/issues"
+Changelog = "https://github.com/yourusername/doczot/releases"
 
 [project.optional-dependencies]
 dev = [
