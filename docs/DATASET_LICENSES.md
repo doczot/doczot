@@ -44,6 +44,33 @@ We only include repositories with permissive licenses that allow research/analys
 - **Date Added**: 2025-10-20
 - **Notes**: Permissive MIT license allows analysis, research, and dataset creation
 
+### 2. FastAPI RealWorld Example App (nsidnev/fastapi-realworld-example-app)
+- **License**: MIT License
+- **Copyright**: Nikita Sidnev
+- **URL**: https://github.com/nsidnev/fastapi-realworld-example-app
+- **Status**: ✅ Approved
+- **Date Added**: 2025-10-22
+- **Stars**: 2.9k
+- **Notes**: RealWorld spec implementation (blog/social platform). Includes auth, users, articles, comments, tags. Archived but stable with 90 tests. Has comprehensive API docs.
+
+### 3. FastAPI Social Media App (mvarrone/fastapi-social-media-app)
+- **License**: MIT License
+- **Copyright**: Mariano Varrone
+- **URL**: https://github.com/mvarrone/fastapi-social-media-app
+- **Status**: ✅ Approved
+- **Date Added**: 2025-10-22
+- **Stars**: 6
+- **Notes**: Social media backend with posts, users, OAuth2 authentication. Smaller focused scope, good for dataset diversity.
+
+### 4. Full Stack FastAPI Template (fastapi/full-stack-fastapi-template)
+- **License**: MIT License
+- **Copyright**: Sebastián Ramírez (FastAPI)
+- **URL**: https://github.com/fastapi/full-stack-fastapi-template
+- **Status**: ✅ Approved
+- **Date Added**: 2025-10-22
+- **Stars**: 38.5k
+- **Notes**: Official FastAPI template. Production-ready patterns with user management, auth, CRUD operations. Highly popular template.
+
 ---
 
 ## License Compliance

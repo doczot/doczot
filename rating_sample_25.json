@@ -1,0 +1,1181 @@
+[
+  {
+    "id": "fullstack-template_POST__password-recovery_{email}",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "POST",
+      "path": "/password-recovery/{email}",
+      "function_name": "recover_password",
+      "file": "backend/app/api/routes/login.py",
+      "line": 55,
+      "docstring": "Password Recovery",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "email",
+          "type": "str",
+          "location": "path",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "session",
+          "type": "SessionDep",
+          "location": "body",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_PATCH__me",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "PATCH",
+      "path": "/me",
+      "function_name": "update_user_me",
+      "file": "backend/app/api/routes/users.py",
+      "line": 79,
+      "docstring": "Update own user.",
+      "has_docstring": true,
+      "parameters": [],
+      "response_model": "UserPublic",
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "social-media_GET__docs",
+    "repo": "social-media",
+    "endpoint": {
+      "method": "GET",
+      "path": "/docs",
+      "function_name": "get_swagger_documentation",
+      "file": "app/routers/docs.py",
+      "line": 14,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "username",
+          "type": "str",
+          "location": "query",
+          "required": false,
+          "default": "Depends(oauth2.get_swagger_access)"
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "realworld-nsidnev_PUT_",
+    "repo": "realworld-nsidnev",
+    "endpoint": {
+      "method": "PUT",
+      "path": "",
+      "function_name": "update_current_user",
+      "file": "app/api/routes/users.py",
+      "line": 39,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "user_update",
+          "type": "UserInUpdate",
+          "location": "body",
+          "required": false,
+          "default": "Body(..., embed=True, alias='user')"
+        },
+        {
+          "name": "current_user",
+          "type": "User",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_current_user_authorizer())"
+        },
+        {
+          "name": "users_repo",
+          "type": "UsersRepository",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_repository(UsersRepository))"
+        },
+        {
+          "name": "settings",
+          "type": "AppSettings",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_app_settings)"
+        }
+      ],
+      "response_model": "UserInResponse",
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_DELETE__me",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "DELETE",
+      "path": "/me",
+      "function_name": "delete_user_me",
+      "file": "backend/app/api/routes/users.py",
+      "line": 129,
+      "docstring": "Delete own user.",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "session",
+          "type": "SessionDep",
+          "location": "body",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "current_user",
+          "type": "CurrentUser",
+          "location": "body",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": "Message",
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "realworld-nsidnev_GET__feed",
+    "repo": "realworld-nsidnev",
+    "endpoint": {
+      "method": "GET",
+      "path": "/feed",
+      "function_name": "get_articles_for_user_feed",
+      "file": "app/api/routes/articles/articles_common.py",
+      "line": 27,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "limit",
+          "type": "int",
+          "location": "query",
+          "required": false,
+          "default": "Query(DEFAULT_ARTICLES_LIMIT, ge=1)"
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "location": "query",
+          "required": false,
+          "default": "Query(DEFAULT_ARTICLES_OFFSET, ge=0)"
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_current_user_authorizer())"
+        },
+        {
+          "name": "articles_repo",
+          "type": "ArticlesRepository",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_repository(ArticlesRepository))"
+        }
+      ],
+      "response_model": "ListOfArticlesInResponse",
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_POST__test-email_",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "POST",
+      "path": "/test-email/",
+      "function_name": "test_email",
+      "file": "backend/app/api/routes/utils.py",
+      "line": 16,
+      "docstring": "Test emails.",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "email_to",
+          "type": "EmailStr",
+          "location": "body",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "realworld-nsidnev_GET_",
+    "repo": "realworld-nsidnev",
+    "endpoint": {
+      "method": "GET",
+      "path": "",
+      "function_name": "list_articles",
+      "file": "app/api/routes/articles/articles_resource.py",
+      "line": 31,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "articles_filters",
+          "type": "ArticlesFilters",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_articles_filters)"
+        },
+        {
+          "name": "user",
+          "type": "Optional[User]",
+          "location": "query",
+          "required": false,
+          "default": "Depends(get_current_user_authorizer(required=False))"
+        },
+        {
+          "name": "articles_repo",
+          "type": "ArticlesRepository",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_repository(ArticlesRepository))"
+        }
+      ],
+      "response_model": "ListOfArticlesInResponse",
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_PATCH__{user_id}",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "PATCH",
+      "path": "/{user_id}",
+      "function_name": "update_user",
+      "file": "backend/app/api/routes/users.py",
+      "line": 181,
+      "docstring": "Update a user.",
+      "has_docstring": true,
+      "parameters": [],
+      "response_model": "UserPublic",
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_POST__login_test-token",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "POST",
+      "path": "/login/test-token",
+      "function_name": "test_token",
+      "file": "backend/app/api/routes/login.py",
+      "line": 47,
+      "docstring": "Test access token",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "current_user",
+          "type": "CurrentUser",
+          "location": "body",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": "UserPublic",
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_GET__me",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "GET",
+      "path": "/me",
+      "function_name": "read_user_me",
+      "file": "backend/app/api/routes/users.py",
+      "line": 121,
+      "docstring": "Get current user.",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "current_user",
+          "type": "CurrentUser",
+          "location": "body",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": "UserPublic",
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "realworld-nsidnev_DELETE__{slug}",
+    "repo": "realworld-nsidnev",
+    "endpoint": {
+      "method": "DELETE",
+      "path": "/{slug}",
+      "function_name": "delete_article_by_slug",
+      "file": "app/api/routes/articles/articles_resource.py",
+      "line": 116,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "article",
+          "type": "Article",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_article_by_slug_from_path)"
+        },
+        {
+          "name": "articles_repo",
+          "type": "ArticlesRepository",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_repository(ArticlesRepository))"
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "realworld-nsidnev_POST__{slug}_favorite",
+    "repo": "realworld-nsidnev",
+    "endpoint": {
+      "method": "POST",
+      "path": "/{slug}/favorite",
+      "function_name": "mark_article_as_favorite",
+      "file": "app/api/routes/articles/articles_common.py",
+      "line": 52,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "article",
+          "type": "Article",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_article_by_slug_from_path)"
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_current_user_authorizer())"
+        },
+        {
+          "name": "articles_repo",
+          "type": "ArticlesRepository",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_repository(ArticlesRepository))"
+        }
+      ],
+      "response_model": "ArticleInResponse",
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_POST__login_access-token",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "POST",
+      "path": "/login/access-token",
+      "function_name": "login_access_token",
+      "file": "backend/app/api/routes/login.py",
+      "line": 25,
+      "docstring": "OAuth2 compatible token login, get an access token for future requests",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "session",
+          "type": "SessionDep",
+          "location": "body",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "form_data",
+          "type": "Annotated[OAuth2PasswordRequestForm, Depends()]",
+          "location": "body",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_POST__reset-password_",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "POST",
+      "path": "/reset-password/",
+      "function_name": "reset_password",
+      "file": "backend/app/api/routes/login.py",
+      "line": 79,
+      "docstring": "Reset password",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "session",
+          "type": "SessionDep",
+          "location": "body",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "body",
+          "type": "NewPassword",
+          "location": "body",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "realworld-nsidnev_POST__login",
+    "repo": "realworld-nsidnev",
+    "endpoint": {
+      "method": "POST",
+      "path": "/login",
+      "function_name": "login",
+      "file": "app/api/routes/authentication.py",
+      "line": 23,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "user_login",
+          "type": "UserInLogin",
+          "location": "body",
+          "required": false,
+          "default": "Body(..., embed=True, alias='user')"
+        },
+        {
+          "name": "users_repo",
+          "type": "UsersRepository",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_repository(UsersRepository))"
+        },
+        {
+          "name": "settings",
+          "type": "AppSettings",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_app_settings)"
+        }
+      ],
+      "response_model": "UserInResponse",
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_POST__password-recovery-html-content_{email}",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "POST",
+      "path": "/password-recovery-html-content/{email}",
+      "function_name": "recover_password_html_content",
+      "file": "backend/app/api/routes/login.py",
+      "line": 106,
+      "docstring": "HTML Content for Password Recovery",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "email",
+          "type": "str",
+          "location": "path",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "session",
+          "type": "SessionDep",
+          "location": "body",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_GET__",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "GET",
+      "path": "/",
+      "function_name": "read_users",
+      "file": "backend/app/api/routes/users.py",
+      "line": 37,
+      "docstring": "Retrieve users.",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "session",
+          "type": "SessionDep",
+          "location": "body",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "skip",
+          "type": "int",
+          "location": "query",
+          "required": false,
+          "default": "0"
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "location": "query",
+          "required": false,
+          "default": "100"
+        }
+      ],
+      "response_model": "UsersPublic",
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "social-media_GET__openapi.json",
+    "repo": "social-media",
+    "endpoint": {
+      "method": "GET",
+      "path": "/openapi.json",
+      "function_name": "get_openapi_json_file",
+      "file": "app/routers/docs.py",
+      "line": 24,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "username",
+          "type": "str",
+          "location": "query",
+          "required": false,
+          "default": "Depends(oauth2.get_swagger_access)"
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "social-media_GET__",
+    "repo": "social-media",
+    "endpoint": {
+      "method": "GET",
+      "path": "/",
+      "function_name": "get_all_users",
+      "file": "app/routers/user.py",
+      "line": 35,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "db",
+          "type": "Session",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_db)"
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_PATCH__me_password",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "PATCH",
+      "path": "/me/password",
+      "function_name": "update_password_me",
+      "file": "backend/app/api/routes/users.py",
+      "line": 101,
+      "docstring": "Update own password.",
+      "has_docstring": true,
+      "parameters": [],
+      "response_model": "Message",
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "realworld-nsidnev_POST_",
+    "repo": "realworld-nsidnev",
+    "endpoint": {
+      "method": "POST",
+      "path": "",
+      "function_name": "create_comment_for_article",
+      "file": "app/api/routes/comments.py",
+      "line": 46,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "comment_create",
+          "type": "CommentInCreate",
+          "location": "body",
+          "required": false,
+          "default": "Body(..., embed=True, alias='comment')"
+        },
+        {
+          "name": "article",
+          "type": "Article",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_article_by_slug_from_path)"
+        },
+        {
+          "name": "user",
+          "type": "User",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_current_user_authorizer())"
+        },
+        {
+          "name": "comments_repo",
+          "type": "CommentsRepository",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_repository(CommentsRepository))"
+        }
+      ],
+      "response_model": "CommentInResponse",
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "fullstack-template_GET__{id}",
+    "repo": "fullstack-template",
+    "endpoint": {
+      "method": "GET",
+      "path": "/{id}",
+      "function_name": "read_item",
+      "file": "backend/app/api/routes/items.py",
+      "line": 45,
+      "docstring": "Get item by ID.",
+      "has_docstring": true,
+      "parameters": [
+        {
+          "name": "session",
+          "type": "SessionDep",
+          "location": "body",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "current_user",
+          "type": "CurrentUser",
+          "location": "body",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "id",
+          "type": "uuid.UUID",
+          "location": "path",
+          "required": true,
+          "default": null
+        }
+      ],
+      "response_model": "ItemPublic",
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "realworld-nsidnev_POST_",
+    "repo": "realworld-nsidnev",
+    "endpoint": {
+      "method": "POST",
+      "path": "",
+      "function_name": "register",
+      "file": "app/api/routes/authentication.py",
+      "line": 62,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "user_create",
+          "type": "UserInCreate",
+          "location": "body",
+          "required": false,
+          "default": "Body(..., embed=True, alias='user')"
+        },
+        {
+          "name": "users_repo",
+          "type": "UsersRepository",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_repository(UsersRepository))"
+        },
+        {
+          "name": "settings",
+          "type": "AppSettings",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_app_settings)"
+        }
+      ],
+      "response_model": "UserInResponse",
+      "is_deprecated": false,
+      "is_async": true
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  },
+  {
+    "id": "social-media_POST__",
+    "repo": "social-media",
+    "endpoint": {
+      "method": "POST",
+      "path": "/",
+      "function_name": "create_a_post",
+      "file": "app/routers/post.py",
+      "line": 40,
+      "docstring": null,
+      "has_docstring": false,
+      "parameters": [
+        {
+          "name": "post",
+          "type": "schemas.PostCreate",
+          "location": "query",
+          "required": true,
+          "default": null
+        },
+        {
+          "name": "db",
+          "type": "Session",
+          "location": "body",
+          "required": false,
+          "default": "Depends(get_db)"
+        },
+        {
+          "name": "current_user",
+          "type": "int",
+          "location": "query",
+          "required": false,
+          "default": "Depends(oauth2.get_current_user)"
+        }
+      ],
+      "response_model": null,
+      "is_deprecated": false,
+      "is_async": false
+    },
+    "doc_stats": {
+      "total_docs": 0,
+      "potential_matches": 0
+    },
+    "potential_matches": [],
+    "rating": {
+      "is_documented": null,
+      "confidence": null,
+      "category": null,
+      "technical_completeness": null,
+      "semantic_completeness": null,
+      "matched_doc_file": null,
+      "matched_doc_section": null,
+      "notes": ""
+    }
+  }
+]

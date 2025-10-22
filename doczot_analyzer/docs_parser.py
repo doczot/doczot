@@ -24,6 +24,13 @@ SKIP_FILES = {
     "CONTRIBUTING.md",
 }
 
+# Translation directories to skip (common language codes)
+TRANSLATION_DIRS = {
+    "zh", "ja", "pt", "de", "fr", "ru", "es", "ko", "vi", "uk", "em",
+    "fa", "tr", "it", "nl", "pl", "ar", "hi", "id", "th", "cs", "sv",
+    "zh-hant", "zh-hans", "pt-br", "es-es", "en-gb",
+}
+
 
 def parse_markdown_file(markdown_content: str, file_path: str) -> List[DocReference]:
     """Parse markdown file for API endpoint references.
@@ -169,9 +176,10 @@ def find_markdown_files(directory: str) -> List[str]:
     """Find all markdown files in directory following R1 rules.
 
     Searches in:
-    - README.md (root)
+    - All README*.md files (recursively)
     - /docs/**/*.md
     - /documentation/**/*.md
+    - Common doc files (development.md, deployment.md, API.md, etc.)
     - *api*.md files
 
     Skips:
@@ -179,6 +187,7 @@ def find_markdown_files(directory: str) -> List[str]:
     - LICENSE.md
     - CONTRIBUTING.md
     - Hidden files (starting with .)
+    - Translation directories (zh/, ja/, pt/, etc.)
 
     Args:
         directory: Root directory to search
@@ -193,10 +202,12 @@ def find_markdown_files(directory: str) -> List[str]:
 
     markdown_files = []
 
-    # Find README.md in root
-    readme = directory_path / "README.md"
-    if readme.exists():
-        markdown_files.append(str(readme))
+    # Common documentation filenames to always include
+    COMMON_DOC_FILES = {
+        'development.md', 'deployment.md', 'api.md', 'guide.md',
+        'tutorial.md', 'setup.md', 'install.md', 'installation.md',
+        'getting-started.md', 'quickstart.md', 'usage.md'
+    }
 
     # Find all .md files recursively
     for md_file in directory_path.rglob("*.md"):
@@ -208,24 +219,36 @@ def find_markdown_files(directory: str) -> List[str]:
         if md_file.name in SKIP_FILES:
             continue
 
-        # Skip if already added (README.md)
-        if str(md_file) in markdown_files:
+        # Skip translation directories (e.g., docs/zh/, docs/ja/, etc.)
+        # Check if any part of the path is a translation directory
+        parts = md_file.parts
+        if any(part in TRANSLATION_DIRS for part in parts):
             continue
 
         # Accept files if they match any of these criteria:
-        # 1. In docs/ or documentation/ directories
-        parts = md_file.parts
+
+        # 1. All README files (README.md, backend/README.md, etc.)
+        if md_file.name.upper().startswith('README'):
+            markdown_files.append(str(md_file))
+            continue
+
+        # 2. In docs/ or documentation/ directories
         if 'docs' in parts or 'documentation' in parts:
             markdown_files.append(str(md_file))
             continue
 
-        # 2. Filename contains 'api'
+        # 3. Common documentation files (case-insensitive)
+        if md_file.name.lower() in COMMON_DOC_FILES:
+            markdown_files.append(str(md_file))
+            continue
+
+        # 4. Filename contains 'api'
         if 'api' in md_file.name.lower():
             markdown_files.append(str(md_file))
             continue
 
-        # 3. Direct child of root directory (not in subdirectories, except docs/)
-        # This catches files like visible.md in the root
+        # 5. Direct child of root directory (not in subdirectories, except docs/)
+        # This catches other files like visible.md in the root
         try:
             relative = md_file.relative_to(directory_path)
             # If file is directly in root (no parent dirs except root)

@@ -364,10 +364,14 @@ def scan_directory(directory_path: str) -> List[Endpoint]:
 
     # Recursively find all .py files
     for py_file in directory.rglob("*.py"):
-        # Skip common non-source directories
+        # Skip common non-source directories and example/doc code
         parts = py_file.parts
-        skip_dirs = {"__pycache__", ".venv", "venv", ".git", "node_modules"}
+        skip_dirs = {"__pycache__", ".venv", "venv", ".git", "node_modules", "tests", "test", "docs_src", "examples", "example"}
         if any(skip_dir in parts for skip_dir in skip_dirs):
+            continue
+
+        # Skip test files (test_*.py, *_test.py)
+        if py_file.name.startswith("test_") or py_file.name.endswith("_test.py"):
             continue
 
         try:
