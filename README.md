@@ -1,6 +1,6 @@
 # DocZot - Open Source Documentation Coverage for APIs
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Tests](https://img.shields.io/badge/tests-56%20passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)](tests/)
 
@@ -178,12 +178,26 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines (coming soon).
 
 ## License
 
-DocZot is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+DocZot is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See [LICENSE](LICENSE) for details.
 
-This means you can:
-- ✅ Use it commercially
-- ✅ Modify it
-- ✅ Distribute it
-- ✅ Use it privately
+### What this means:
 
-With minimal restrictions. Full freedom.
+**You can freely:**
+- ✅ Use it for personal projects
+- ✅ Use it for open source projects
+- ✅ Modify and distribute it
+- ✅ Run it as a service (with one requirement below)
+
+**The key requirement:**
+- 📢 If you run a modified version as a network service, you must make your source code available to users
+
+### Why AGPL?
+
+We chose AGPL to keep DocZot truly open source while ensuring that improvements benefit the entire community. If you build a hosted service using DocZot, your users deserve access to the code - just like you had access to ours.
+
+**This protects:**
+- The open source community from proprietary forks
+- Your freedom to inspect and modify the tools you use
+- Fair competition (everyone plays by the same rules)
+
+**For businesses:** If you need to keep your modifications private, contact us about commercial licensing options (coming soon).
