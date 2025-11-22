@@ -68,6 +68,9 @@ class Endpoint(BaseModel):
     is_deprecated: bool = False
     is_async: bool = False
     is_documented: bool = False
+    semantic_signature: Optional[str] = None
+    analysis_method: Optional[str] = None  # 'exact', 'vector', 'llm'
+    confidence_score: Optional[float] = None
 
     def __str__(self) -> str:
         """String representation of endpoint."""
@@ -170,6 +173,8 @@ class AnalysisReport(BaseModel):
     endpoints: List[Endpoint] = Field(default_factory=list)
     repository: Optional[str] = None
     commit_sha: Optional[str] = None
+    analysis_method: Optional[str] = None  # 'exact', 'vector', 'llm'
+    confidence_score: Optional[float] = None
 
     def __str__(self) -> str:
         """String representation of analysis report."""
@@ -198,3 +203,30 @@ class AnalysisReport(BaseModel):
     def documented_endpoint_list(self) -> List[Endpoint]:
         """Get list of endpoints that have documentation."""
         return [ep for ep in self.endpoints if ep.is_documented]
+
+
+class DocChunk(BaseModel):
+    """Represents a semantic chunk of documentation.
+
+    Attributes:
+        file_path: Path to the markdown file
+        content: The text content of the chunk
+        section_header: The hierarchical section header (H1 > H2 > H3)
+        line_number: Line number where the chunk starts
+        token_count: Approximate token count
+        content_hash: SHA256 hash of the content for caching
+        embedding: Vector embedding of the content (optional, for storage)
+    """
+    file_path: str
+    content: str
+    section_header: Optional[str] = None
+    line_number: int = 1
+    token_count: int = 0
+    content_hash: Optional[str] = None
+    embedding: Optional[List[float]] = None
+
+    def __str__(self) -> str:
+        """String representation of doc chunk."""
+        header = f" [{self.section_header}]" if self.section_header else ""
+        return f"{self.file_path}:{self.line_number}{header} ({len(self.content)} chars)"
+
