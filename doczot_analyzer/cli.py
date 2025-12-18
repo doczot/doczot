@@ -27,6 +27,7 @@ from doczot_analyzer.manifest import (
     ConfidenceLevel,
 )
 from doczot_analyzer.storage import ManifestStore
+from doczot_analyzer.visualizer import generate_visualization
 
 
 def extract_nouns_from_path(path: str) -> list[str]:
@@ -313,6 +314,28 @@ def cmd_report(args):
     return 0
 
 
+def cmd_visualize(args):
+    """Generate interactive HTML visualization."""
+    import webbrowser
+
+    repo_path = args.repo_path or "."
+    repo_path = str(Path(repo_path).resolve())
+
+    print(f"Analyzing: {repo_path}")
+    manifest = build_manifest(repo_path, args.name)
+
+    output_path = Path(args.output)
+    generate_visualization(manifest, output_path)
+
+    print(f"Visualization saved to: {output_path}")
+
+    if args.open:
+        webbrowser.open(f"file://{output_path.resolve()}")
+        print("Opened in browser")
+
+    return 0
+
+
 def cmd_history(args):
     """Show coverage history for a product."""
     store = ManifestStore(args.db)
@@ -436,6 +459,33 @@ def main():
         help="Number of entries to show",
     )
     history_parser.set_defaults(func=cmd_history)
+
+    # visualize command
+    viz_parser = subparsers.add_parser(
+        "visualize",
+        help="Generate interactive HTML visualization of product surface",
+    )
+    viz_parser.add_argument(
+        "repo_path",
+        nargs="?",
+        default=".",
+        help="Path to the repository to visualize",
+    )
+    viz_parser.add_argument(
+        "--name",
+        help="Product name",
+    )
+    viz_parser.add_argument(
+        "--output", "-o",
+        default="doczot-viz.html",
+        help="Output HTML file (default: doczot-viz.html)",
+    )
+    viz_parser.add_argument(
+        "--open",
+        action="store_true",
+        help="Open visualization in browser",
+    )
+    viz_parser.set_defaults(func=cmd_visualize)
 
     args = parser.parse_args()
 
