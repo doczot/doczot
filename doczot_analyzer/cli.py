@@ -26,6 +26,7 @@ from doczot_analyzer.manifest import (
     NodeClass,
     ConfidenceLevel,
 )
+from doczot_analyzer.storage import ManifestStore
 
 
 def extract_nouns_from_path(path: str) -> list[str]:
@@ -271,6 +272,11 @@ def cmd_analyze(args):
             json.dump(manifest.model_dump(), f, indent=2, default=str)
         print(f"\nSaved manifest to: {output_path}")
 
+    if args.save:
+        store = ManifestStore(args.db)
+        row_id = store.save(manifest)
+        print(f"\nSaved to database (id={row_id}): {store.db_path}")
+
     return 0
 
 
@@ -303,6 +309,44 @@ def cmd_report(args):
                 print(f"\n{category.replace('_', ' ').title()}:")
                 for item in items:
                     print(f"  - {item['name']}: {item['action']}")
+
+    return 0
+
+
+def cmd_history(args):
+    """Show coverage history for a product."""
+    store = ManifestStore(args.db)
+
+    if not args.product_name:
+        # List all products
+        products = store.list_products()
+        if not products:
+            print("No products found in database.")
+            print(f"Run: doczot analyze <path> --save")
+            return 0
+
+        print("Products in database:")
+        for product in products:
+            manifests = store.list_manifests(product_name=product, limit=1)
+            if manifests:
+                latest = manifests[0]
+                print(f"  {product}: {latest['coverage_percentage']:.1f}% coverage")
+        return 0
+
+    # Show history for specific product
+    history = store.get_history(args.product_name, limit=args.limit)
+    if not history:
+        print(f"No history found for: {args.product_name}")
+        return 1
+
+    print(f"Coverage history for: {args.product_name}")
+    print("-" * 50)
+    print(f"{'Date':<25} {'Coverage':>10} {'Documented':>12}")
+    print("-" * 50)
+
+    for entry in history:
+        date = entry['date'][:19]  # Trim microseconds
+        print(f"{date:<25} {entry['coverage']:>9.1f}% {entry['documented']:>5}/{entry['total']}")
 
     return 0
 
@@ -343,6 +387,15 @@ def main():
         action="store_true",
         help="Include sprint plan in output",
     )
+    analyze_parser.add_argument(
+        "--save",
+        action="store_true",
+        help="Save manifest to SQLite database",
+    )
+    analyze_parser.add_argument(
+        "--db",
+        help="Path to SQLite database (default: .doczot/manifests.db)",
+    )
     analyze_parser.set_defaults(func=cmd_analyze)
 
     # report command
@@ -361,6 +414,28 @@ def main():
         help="Report format",
     )
     report_parser.set_defaults(func=cmd_report)
+
+    # history command
+    history_parser = subparsers.add_parser(
+        "history",
+        help="Show coverage history for a product",
+    )
+    history_parser.add_argument(
+        "product_name",
+        nargs="?",
+        help="Product name to show history for (omit to list all products)",
+    )
+    history_parser.add_argument(
+        "--db",
+        help="Path to SQLite database",
+    )
+    history_parser.add_argument(
+        "--limit", "-n",
+        type=int,
+        default=20,
+        help="Number of entries to show",
+    )
+    history_parser.set_defaults(func=cmd_history)
 
     args = parser.parse_args()
 
