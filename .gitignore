@@ -46,3 +46,10 @@ golden_dataset.json
 
 # Research/development tools and data (internal use only)
 research/
+
+# Node.js
+node_modules/
+
+# Local test data
+test_repos/
+review_session_*.json

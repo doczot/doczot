@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import List
 
 from markdown_it import MarkdownIt
-from doczot_analyzer.models import DocReference
+from doczot_analyzer.models import DocReference, DocChunk
+import hashlib
 
 
 # HTTP methods to detect (R2)
@@ -297,3 +298,77 @@ def scan_documentation(directory: str) -> List[DocReference]:
             continue
 
     return all_references
+
+def parse_markdown_chunks(markdown_content: str, file_path: str) -> List[DocChunk]:
+    """Parse markdown file into semantic chunks.
+    
+    Splits content by headers (H1, H2, H3) and preserves hierarchy.
+    """
+    if not markdown_content or not markdown_content.strip():
+        return []
+        
+    chunks = []
+    lines = markdown_content.split('\n')
+    
+    current_h1 = ""
+    current_h2 = ""
+    current_h3 = ""
+    
+    current_chunk_lines = []
+    current_header_context = ""
+    
+    for line in lines:
+        # Check for headers
+        if line.startswith('# '):
+            # Flush previous chunk
+            if current_chunk_lines:
+                _add_chunk(chunks, current_chunk_lines, current_header_context, file_path)
+                current_chunk_lines = []
+            
+            current_h1 = line.lstrip('#').strip()
+            current_h2 = ""
+            current_h3 = ""
+            current_header_context = current_h1
+            
+        elif line.startswith('## '):
+            if current_chunk_lines:
+                _add_chunk(chunks, current_chunk_lines, current_header_context, file_path)
+                current_chunk_lines = []
+                
+            current_h2 = line.lstrip('#').strip()
+            current_h3 = ""
+            current_header_context = f"{current_h1} > {current_h2}" if current_h1 else current_h2
+            
+        elif line.startswith('### '):
+            if current_chunk_lines:
+                _add_chunk(chunks, current_chunk_lines, current_header_context, file_path)
+                current_chunk_lines = []
+                
+            current_h3 = line.lstrip('#').strip()
+            current_header_context = f"{current_h1} > {current_h2} > {current_h3}"
+            
+        else:
+            current_chunk_lines.append(line)
+            
+    # Flush last chunk
+    if current_chunk_lines:
+        _add_chunk(chunks, current_chunk_lines, current_header_context, file_path)
+        
+    return chunks
+
+def _add_chunk(chunks: List[DocChunk], lines: List[str], header: str, file_path: str):
+    """Helper to create and add a DocChunk."""
+    content = "\n".join(lines).strip()
+    if not content:
+        return
+        
+    # Calculate hash
+    content_hash = hashlib.sha256(content.encode()).hexdigest()
+    
+    chunks.append(DocChunk(
+        file_path=file_path,
+        content=content,
+        section_header=header,
+        content_hash=content_hash,
+        token_count=len(content.split()) # Rough approximation
+    ))

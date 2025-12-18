@@ -77,6 +77,11 @@ def _extract_endpoint_from_function(
             # Determine if function is async
             is_async = isinstance(func_node, ast.AsyncFunctionDef)
 
+            # Generate semantic signature
+            semantic_signature = _generate_semantic_signature(
+                method, path, docstring, parameters, response_model, func_node
+            )
+
             return Endpoint(
                 method=method,
                 path=path,
@@ -89,6 +94,7 @@ def _extract_endpoint_from_function(
                 response_model=response_model,
                 is_deprecated=is_deprecated,
                 is_async=is_async,
+                semantic_signature=semantic_signature,
             )
 
     return None
@@ -385,3 +391,36 @@ def scan_directory(directory_path: str) -> List[Endpoint]:
             continue
 
     return all_endpoints
+
+def _generate_semantic_signature(
+    method: str,
+    path: str,
+    docstring: Optional[str],
+    parameters: List[Parameter],
+    response_model: Optional[str],
+    func_node: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> str:
+    """Generate a natural language signature for the endpoint.
+    
+    Combines method, path, docstring, and parameters into a descriptive string.
+    Format: "{docstring}. Method: {method} {path}. Parameters: {params}."
+    """
+    signature = ""
+    
+    # Prioritize docstring as it contains the semantic intent
+    if docstring:
+        # Clean up docstring (remove newlines, extra spaces)
+        clean_doc = " ".join(docstring.split())
+        signature += f"{clean_doc}"
+    else:
+        signature += "Undocumented endpoint"
+        
+    # Add technical details
+    signature += f". Method: {method} {path}"
+        
+    # Add parameter info (simplified)
+    if parameters:
+        param_names = [p.name for p in parameters]
+        signature += f". Parameters: {', '.join(param_names)}"
+        
+    return signature
