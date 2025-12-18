@@ -26,7 +26,12 @@ requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0.0",
     "markdown-it-py>=3.0.0",
+    "sentence-transformers>=2.2.0",
+    "networkx>=3.0",
 ]
+
+[project.scripts]
+doczot = "doczot_analyzer.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/yourusername/doczot"
