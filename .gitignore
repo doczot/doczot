@@ -49,6 +49,7 @@ research/
 
 # Node.js
 node_modules/
+.vite/
 
 # Local test data
 test_repos/
