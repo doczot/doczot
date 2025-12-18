@@ -38,10 +38,14 @@ from doczot_analyzer.manifest import (
 def extract_nouns_from_path(path: str) -> list[str]:
     """Extract noun candidates from an API path.
 
+    Only extracts likely entity nouns, not action words.
+
     Examples:
         /users/{user_id} -> ["user"]
         /projects/{project_id}/tasks/{task_id} -> ["project", "task"]
         /api/v1/invoices -> ["invoice"]
+        /register -> []  (action, not entity)
+        /forgot-password -> []  (action, not entity)
     """
     nouns = []
 
@@ -49,22 +53,68 @@ def extract_nouns_from_path(path: str) -> list[str]:
     path = re.sub(r'/api/v\d+', '', path)
     path = re.sub(r'/v\d+', '', path)
 
+    # Common action words that should NOT be extracted as nouns
+    # These are typically verb phrases used as endpoints
+    action_words = {
+        # Auth actions
+        'login', 'logout', 'signin', 'signout', 'signup', 'register',
+        'authenticate', 'authorize', 'auth', 'oauth', 'callback',
+        # Password actions
+        'forgot-password', 'reset-password', 'change-password', 'recover',
+        'password', 'forgot', 'reset', 'recover-password',
+        # Verification actions
+        'verify', 'confirm', 'validate', 'activate', 'request-verify-token',
+        'request-verify', 'verify-email', 'verify-token',
+        # Common API actions
+        'search', 'filter', 'export', 'import', 'download', 'upload',
+        'refresh', 'revoke', 'sync', 'batch', 'bulk',
+        # Meta endpoints
+        'health', 'healthz', 'ready', 'readyz', 'live', 'livez',
+        'metrics', 'status', 'ping', 'version', 'info',
+        'docs', 'openapi', 'swagger', 'redoc', 'schema',
+        # Other common non-entities
+        'me', 'self', 'current', 'api', 'v1', 'v2', 'v3',
+    }
+
     # Extract path segments (excluding parameters)
     segments = [s for s in path.split('/') if s and not s.startswith('{')]
 
-    for segment in segments:
+    for i, segment in enumerate(segments):
+        segment_lower = segment.lower()
+
+        # Skip if it's an action word
+        if segment_lower in action_words:
+            continue
+
+        # Skip if it contains hyphens and looks like an action (verb-noun pattern)
+        if '-' in segment_lower:
+            # Things like "forgot-password", "reset-token" are actions
+            # But "user-profiles" might be a noun - check if it's plural
+            if not segment_lower.endswith('s'):
+                continue
+
+        # Heuristic: segments that precede a path parameter are likely entities
+        # e.g., /users/{user_id} -> "users" is before {user_id}
+        is_before_param = (i + 1 < len(path.split('/')) and
+                          '{' in path.split('/')[i + 1] if i + 1 < len(path.split('/')) else False)
+
+        # Heuristic: plural segments are likely entity collections
+        is_plural = segment_lower.endswith('s') and len(segment_lower) > 2
+
+        # Only extract if it looks like an entity (plural or before param)
+        if not (is_plural or is_before_param):
+            continue
+
         # Singularize common plurals
-        noun = segment.lower()
+        noun = segment_lower
         if noun.endswith('ies'):
             noun = noun[:-3] + 'y'  # categories -> category
-        elif noun.endswith('es') and not noun.endswith('ses'):
-            noun = noun[:-2]  # boxes -> box (but not addresses)
+        elif noun.endswith('es') and len(noun) > 3 and noun[-3] not in 'aeiou':
+            noun = noun[:-2]  # boxes -> box
         elif noun.endswith('s') and len(noun) > 2:
             noun = noun[:-1]  # users -> user
 
-        # Skip common non-nouns
-        skip_words = {'api', 'auth', 'login', 'logout', 'me', 'health', 'docs', 'openapi'}
-        if noun not in skip_words and len(noun) > 1:
+        if len(noun) > 1:
             nouns.append(noun)
 
     return list(set(nouns))  # Deduplicate
