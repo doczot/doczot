@@ -71,6 +71,7 @@ class Endpoint(BaseModel):
     semantic_signature: Optional[str] = None
     analysis_method: Optional[str] = None  # 'exact', 'vector', 'llm'
     confidence_score: Optional[float] = None
+    matched_doc_chunk: Optional[str] = None  # The actual documentation text that was matched
 
     def __str__(self) -> str:
         """String representation of endpoint."""

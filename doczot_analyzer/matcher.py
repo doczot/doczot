@@ -53,10 +53,13 @@ class Matcher:
             total_endpoints=len(endpoints)
         )
         
-    def _check_exact_match(self, endpoint: Endpoint, references: List[DocReference]) -> bool:
-        """Check for exact method/path matches in references."""
-        for ref in references:
+    def _check_exact_match(self, endpoint: Endpoint, doc_references: List[DocReference]) -> bool:
+        """Check if endpoint exactly matches any doc reference."""
+        for ref in doc_references:
             if ref.matches_endpoint(endpoint):
+                # Store the matched documentation
+                section = f"## {ref.section_heading}\n\n" if ref.section_heading else ""
+                endpoint.matched_doc_chunk = f"[{ref.file_path}]\n\n{section}{ref.content}"
                 return True
         return False
         
@@ -75,6 +78,8 @@ class Matcher:
         HIGH_CONFIDENCE_THRESHOLD = 0.55
         
         if score >= HIGH_CONFIDENCE_THRESHOLD:
+            # Store the matched documentation
+            endpoint.matched_doc_chunk = f"[{best_chunk.file_path}]\n\n{best_chunk.section_header}\n\n{best_chunk.content}"
             return True, score
             
         return False, score

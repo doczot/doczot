@@ -8,10 +8,11 @@ from pathlib import Path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from doczot_analyzer.scanner import scan_directory
-from doczot_analyzer.docs_parser import scan_documentation, parse_markdown_chunks
+from doczot_analyzer.docs_parser import scan_documentation, parse_markdown_chunks, find_markdown_files
 from doczot_analyzer.matcher import Matcher
 from doczot_analyzer.vector_store import LocalVectorStore
 from doczot_analyzer.models import DocChunk
+import json
 
 def run_analysis(repo_path: str):
     print(f"Analyzing repository: {repo_path}")
@@ -31,8 +32,6 @@ def run_analysis(repo_path: str):
     print("Generating documentation chunks...")
     doc_chunks = []
     # Find all markdown files again to chunk them
-    # (Reusing find_markdown_files logic would be better, but for now we just re-scan)
-    from doczot_analyzer.docs_parser import find_markdown_files
     md_files = find_markdown_files(repo_path)
     print(f"Found {len(md_files)} markdown files: {md_files}")
     
@@ -91,6 +90,58 @@ def run_analysis(repo_path: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run DocZot on a repo")
     parser.add_argument("repo_path", help="Path to the repository to analyze")
+    parser.add_argument("--save-for-review", action="store_true",
+                        help="Save analysis results for expert review")
     args = parser.parse_args()
     
-    run_analysis(args.repo_path)
+    if args.save_for_review:
+        # Run analysis and save for review
+        import sys
+        from datetime import datetime
+        
+        print(f"Analyzing repository: {args.repo_path}")
+        
+        # Capture analysis
+        endpoints = scan_directory(args.repo_path)
+        doc_references = scan_documentation(args.repo_path)
+        
+        md_files = find_markdown_files(args.repo_path)
+        doc_chunks = []
+        for md_file in md_files:
+            try:
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                try:
+                    rel_path = str(Path(md_file).relative_to(args.repo_path))
+                except ValueError:
+                    rel_path = md_file
+                chunks = parse_markdown_chunks(content, rel_path)
+                doc_chunks.extend(chunks)
+            except Exception:
+                pass
+                
+        vector_store = LocalVectorStore(model_name="all-mpnet-base-v2")
+        matcher = Matcher(vector_store)
+        report = matcher.analyze(endpoints, doc_references, doc_chunks)
+        
+        # Save for review
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = f"review_session_{timestamp}.json"
+        
+        review_data = {
+            "repo_path": args.repo_path,
+            "timestamp": datetime.now().isoformat(),
+            "report": report.dict()
+        }
+        
+        with open(output_file, 'w') as f:
+            json.dump(review_data, f, indent=2)
+            
+        print(f"\n✓ Saved analysis results to: {output_file}")
+        print(f"\nTo start review session:")
+        print(f"  1. Start backend: cd doczot_reviewer/backend && uvicorn app:app --reload --port 8001")
+        print(f"  2. Create session: POST http://localhost:8001/sessions")
+        print(f"     with body: {{\"repo_path\": \"{args.repo_path}\", \"results_file\": \"{output_file}\"}}")
+    else:
+        # Normal run
+        run_analysis(args.repo_path)
