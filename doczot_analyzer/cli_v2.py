@@ -440,6 +440,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .container {{ display: flex; height: 100vh; width: 100vw; }}
         #graph {{ flex: 1; min-width: 400px; height: 100vh; background: #1e293b; position: relative; overflow: hidden; }}
         #graph svg {{ width: 100%; height: 100%; }}
+        .graph-hint {{ position: fixed; bottom: 10px; left: 10px; font-size: 0.75rem; color: #64748b; pointer-events: none; z-index: 100; }}
         .node {{ cursor: pointer; }}
         .node rect, .node ellipse {{ stroke-width: 3; }}
         .node text {{ font-size: 12px; font-weight: 500; pointer-events: none; }}
@@ -497,8 +498,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </style>
 </head>
 <body>
+    <div id="tooltip" style="display:none; position:fixed; background:#1e293b; border:1px solid #3b82f6; padding:8px 12px; border-radius:6px; font-size:12px; z-index:1000; pointer-events:none; max-width:300px;">
+        <div id="tooltip-name" style="font-weight:600; color:#e2e8f0;"></div>
+        <div id="tooltip-sig" style="color:#94a3b8; font-family:monospace; font-size:11px; margin-top:4px;"></div>
+    </div>
     <div class="container">
         <div id="graph"></div>
+        <div class="graph-hint">Scroll to zoom · Shift+drag to pan · Hover for details</div>
         <div class="sidebar">
             <div class="panel">
                 <h1>{product_name}</h1>
@@ -629,6 +635,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             svg.appendChild(nodeGroup);
 
+            // Smart label truncation: keep start and end, ellipsis in middle
+            function truncateLabel(name, maxLen = 18) {{
+                if (name.length <= maxLen) return name;
+                const keep = Math.floor((maxLen - 2) / 2);
+                return name.slice(0, keep) + '..' + name.slice(-keep);
+            }}
+
             nodes.forEach(n => {{
                 const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                 g.setAttribute('class', 'node');
@@ -638,9 +651,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const bgColor = n.is_covered ? '#22c55e' : '#ef4444';
                 const borderColor = n.type === 'verb' ? '#3b82f6' : '#8b5cf6';
 
-                // Calculate width based on text length (approx 7px per char + padding)
-                const textWidth = n.name.length * 7 + 20;
-                const nodeWidth = Math.max(80, textWidth);
+                // Calculate width based on truncated text (max 18 chars)
+                const displayName = truncateLabel(n.name);
+                const textWidth = displayName.length * 7 + 20;
+                const nodeWidth = Math.max(80, Math.min(160, textWidth));  // Cap at 160px
                 const nodeHeight = 32;
 
                 if (n.type === 'noun') {{
@@ -670,8 +684,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 text.setAttribute('fill', '#1e293b');
                 text.setAttribute('font-size', '11');
                 text.setAttribute('font-weight', '600');
-                text.textContent = n.name;  // Show full name
+                text.textContent = displayName;  // Show truncated name
                 g.appendChild(text);
+
+                // Hover tooltip
+                g.addEventListener('mouseenter', e => {{
+                    const tooltip = document.getElementById('tooltip');
+                    document.getElementById('tooltip-name').textContent = n.name;
+                    document.getElementById('tooltip-sig').textContent = n.signature || '';
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.clientX + 15) + 'px';
+                    tooltip.style.top = (e.clientY + 15) + 'px';
+                }});
+                g.addEventListener('mousemove', e => {{
+                    const tooltip = document.getElementById('tooltip');
+                    tooltip.style.left = (e.clientX + 15) + 'px';
+                    tooltip.style.top = (e.clientY + 15) + 'px';
+                }});
+                g.addEventListener('mouseleave', () => {{
+                    document.getElementById('tooltip').style.display = 'none';
+                }});
 
                 g.addEventListener('click', () => showDetails(n));
                 nodeGroup.appendChild(g);
@@ -679,17 +711,66 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 n.nodeWidth = nodeWidth;  // Store for collision detection
             }});
 
+            // Zoom and pan state
+            let scale = 1;
+            let translateX = 0;
+            let translateY = 0;
+            const graphGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            graphGroup.setAttribute('id', 'graph-transform');
+            svg.appendChild(graphGroup);
+            graphGroup.appendChild(edgeGroup);
+            graphGroup.appendChild(nodeGroup);
+
+            function updateTransform() {{
+                graphGroup.setAttribute('transform', `translate(${{translateX}}, ${{translateY}}) scale(${{scale}})`);
+            }}
+
+            // Mouse wheel zoom
+            svg.addEventListener('wheel', e => {{
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.max(0.3, Math.min(3, scale * delta));
+                // Zoom toward mouse position
+                const rect = svg.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+                translateX = mx - (mx - translateX) * (newScale / scale);
+                translateY = my - (my - translateY) * (newScale / scale);
+                scale = newScale;
+                updateTransform();
+            }});
+
+            // Pan with middle mouse or shift+drag
+            let panning = false;
+            let panStart = {{x: 0, y: 0}};
+            svg.addEventListener('mousedown', e => {{
+                if (e.button === 1 || (e.button === 0 && e.shiftKey)) {{
+                    panning = true;
+                    panStart = {{x: e.clientX - translateX, y: e.clientY - translateY}};
+                    e.preventDefault();
+                }}
+            }});
+            svg.addEventListener('mousemove', e => {{
+                if (panning) {{
+                    translateX = e.clientX - panStart.x;
+                    translateY = e.clientY - panStart.y;
+                    updateTransform();
+                }}
+            }});
+            svg.addEventListener('mouseup', () => {{ panning = false; }});
+            svg.addEventListener('mouseleave', () => {{ panning = false; }});
+
             // Simple force simulation
             function simulate() {{
-                // Repulsion between nodes (stronger to account for wider labels)
+                // Repulsion between nodes (much stronger for clusters)
                 for (let i = 0; i < nodes.length; i++) {{
                     for (let j = i + 1; j < nodes.length; j++) {{
                         const dx = nodes[j].x - nodes[i].x;
                         const dy = nodes[j].y - nodes[i].y;
                         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                        // Increase repulsion based on combined node widths
-                        const minDist = (nodes[i].nodeWidth + nodes[j].nodeWidth) / 2 + 20;
-                        const force = 8000 / (dist * dist);
+                        // Stronger repulsion, especially when close
+                        const minDist = (nodes[i].nodeWidth + nodes[j].nodeWidth) / 2 + 30;
+                        const force = dist < minDist ? 15000 / (dist * dist) : 8000 / (dist * dist);
                         const fx = (dx / dist) * force;
                         const fy = (dy / dist) * force;
                         nodes[i].vx -= fx;
