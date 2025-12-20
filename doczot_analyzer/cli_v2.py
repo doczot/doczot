@@ -319,6 +319,17 @@ def generate_visualization_html(
 ) -> str:
     """Generate interactive HTML visualization."""
 
+    # Build edge lookup for finding which verbs reference each noun
+    noun_to_verbs: dict[str, list[str]] = {}
+    for edge in surface.edges:
+        if edge.target_id.startswith("noun:"):
+            if edge.target_id not in noun_to_verbs:
+                noun_to_verbs[edge.target_id] = []
+            # Find the verb name
+            verb_node = next((n for n in surface.nodes if n.id == edge.source_id), None)
+            if verb_node:
+                noun_to_verbs[edge.target_id].append(verb_node.name)
+
     # Build graph data
     nodes_data = []
     for node in surface.nodes:
@@ -326,12 +337,23 @@ def generate_visualization_html(
         itm_topics = itm.topics_covering(node.id)
         atm_topics = atm.topics_covering(node.id)
 
+        # For nouns, show which verbs reference them
+        if node.type.value == "noun":
+            referencing_verbs = noun_to_verbs.get(node.id, [])
+            signature = f"Referenced by {len(referencing_verbs)} endpoints"
+            source = ", ".join(referencing_verbs[:5])
+            if len(referencing_verbs) > 5:
+                source += f" (+{len(referencing_verbs) - 5} more)"
+        else:
+            signature = node.code_signature
+            source = f"{node.source_file}:{node.source_line}" if node.source_file else None
+
         nodes_data.append({
             "id": node.id,
             "name": node.name,
             "type": node.type.value,
-            "signature": node.code_signature,
-            "source": f"{node.source_file}:{node.source_line}" if node.source_file else None,
+            "signature": signature,
+            "source": source,
             "itm_topics": [t.name for t in itm_topics],
             "atm_topics": [t.name for t in atm_topics],
             "is_covered": node.id in atm.covered_surface_ids(),
@@ -460,6 +482,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         #details.visible {{ display: block; }}
         .detail-row {{ margin: 5px 0; }}
         .detail-label {{ color: #94a3b8; }}
+        .surface-item {{ background: #334155; padding: 8px 10px; border-radius: 6px; margin: 6px 0; border-left: 3px solid; cursor: pointer; }}
+        .surface-item:hover {{ background: #3b4a5e; }}
+        .surface-item.verb {{ border-color: #3b82f6; }}
+        .surface-item.noun {{ border-color: #8b5cf6; }}
+        .surface-item.covered {{ opacity: 1; }}
+        .surface-item.uncovered {{ opacity: 0.7; }}
+        .surface-item .name {{ font-weight: 600; font-size: 0.9rem; }}
+        .surface-item .signature {{ font-family: monospace; font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }}
+        .surface-item .source {{ font-size: 0.7rem; color: #64748b; margin-top: 2px; }}
+        .surface-item .coverage-dot {{ display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }}
+        .surface-item .coverage-dot.covered {{ background: #22c55e; }}
+        .surface-item .coverage-dot.uncovered {{ background: #ef4444; }}
     </style>
 </head>
 <body>
@@ -508,11 +542,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <div id="details">
                     <h3 id="detail-name">-</h3>
                     <div class="detail-row"><span class="detail-label">Type:</span> <span id="detail-type">-</span></div>
-                    <div class="detail-row"><span class="detail-label">Signature:</span> <span id="detail-sig">-</span></div>
-                    <div class="detail-row"><span class="detail-label">Source:</span> <span id="detail-source">-</span></div>
+                    <div class="detail-row"><span class="detail-label" id="sig-label">Signature:</span> <span id="detail-sig">-</span></div>
+                    <div class="detail-row"><span class="detail-label" id="source-label">Source:</span> <span id="detail-source">-</span></div>
                     <div class="detail-row"><span class="detail-label">ITM Topics:</span> <span id="detail-itm">-</span></div>
                     <div class="detail-row"><span class="detail-label">ATM Topics:</span> <span id="detail-atm">-</span></div>
                 </div>
+                <h3 style="margin-top:20px">Nouns ({total_nouns})</h3>
+                <div id="noun-list"></div>
+                <h3 style="margin-top:15px">Verbs ({total_verbs})</h3>
+                <div id="verb-list"></div>
             </div>
 
             <div id="tab-itm" class="tab-content">
@@ -600,20 +638,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const bgColor = n.is_covered ? '#22c55e' : '#ef4444';
                 const borderColor = n.type === 'verb' ? '#3b82f6' : '#8b5cf6';
 
+                // Calculate width based on text length (approx 7px per char + padding)
+                const textWidth = n.name.length * 7 + 20;
+                const nodeWidth = Math.max(80, textWidth);
+                const nodeHeight = 32;
+
                 if (n.type === 'noun') {{
                     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
-                    circle.setAttribute('rx', '50');
-                    circle.setAttribute('ry', '25');
+                    circle.setAttribute('rx', String(nodeWidth / 2));
+                    circle.setAttribute('ry', String(nodeHeight / 2 + 4));
                     circle.setAttribute('fill', bgColor);
                     circle.setAttribute('stroke', borderColor);
                     circle.setAttribute('stroke-width', '3');
                     g.appendChild(circle);
                 }} else {{
                     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                    rect.setAttribute('width', '100');
-                    rect.setAttribute('height', '40');
-                    rect.setAttribute('x', '-50');
-                    rect.setAttribute('y', '-20');
+                    rect.setAttribute('width', String(nodeWidth));
+                    rect.setAttribute('height', String(nodeHeight));
+                    rect.setAttribute('x', String(-nodeWidth / 2));
+                    rect.setAttribute('y', String(-nodeHeight / 2));
                     rect.setAttribute('rx', '5');
                     rect.setAttribute('fill', bgColor);
                     rect.setAttribute('stroke', borderColor);
@@ -623,27 +666,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
                 const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('dy', '5');
+                text.setAttribute('dy', '4');
                 text.setAttribute('fill', '#1e293b');
                 text.setAttribute('font-size', '11');
                 text.setAttribute('font-weight', '600');
-                text.textContent = n.name.length > 12 ? n.name.slice(0, 10) + '..' : n.name;
+                text.textContent = n.name;  // Show full name
                 g.appendChild(text);
 
                 g.addEventListener('click', () => showDetails(n));
                 nodeGroup.appendChild(g);
                 n.element = g;
+                n.nodeWidth = nodeWidth;  // Store for collision detection
             }});
 
             // Simple force simulation
             function simulate() {{
-                // Repulsion between nodes
+                // Repulsion between nodes (stronger to account for wider labels)
                 for (let i = 0; i < nodes.length; i++) {{
                     for (let j = i + 1; j < nodes.length; j++) {{
                         const dx = nodes[j].x - nodes[i].x;
                         const dy = nodes[j].y - nodes[i].y;
                         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                        const force = 5000 / (dist * dist);
+                        // Increase repulsion based on combined node widths
+                        const minDist = (nodes[i].nodeWidth + nodes[j].nodeWidth) / 2 + 20;
+                        const force = 8000 / (dist * dist);
                         const fx = (dx / dist) * force;
                         const fy = (dy / dist) * force;
                         nodes[i].vx -= fx;
@@ -683,9 +729,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     n.vy *= 0.9;
                     n.x += n.vx;
                     n.y += n.vy;
-                    // Keep in bounds
-                    n.x = Math.max(60, Math.min(width - 60, n.x));
-                    n.y = Math.max(30, Math.min(height - 30, n.y));
+                    // Keep in bounds (account for node width)
+                    const halfWidth = (n.nodeWidth || 80) / 2 + 10;
+                    n.x = Math.max(halfWidth, Math.min(width - halfWidth, n.x));
+                    n.y = Math.max(25, Math.min(height - 25, n.y));
                 }});
 
                 // Update positions
@@ -745,6 +792,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             document.getElementById('details').classList.add('visible');
             document.getElementById('detail-name').textContent = node.name;
             document.getElementById('detail-type').textContent = node.type;
+
+            // Update labels based on node type
+            if (node.type === 'noun') {{
+                document.getElementById('sig-label').textContent = 'Usage:';
+                document.getElementById('source-label').textContent = 'Endpoints:';
+            }} else {{
+                document.getElementById('sig-label').textContent = 'Signature:';
+                document.getElementById('source-label').textContent = 'Source:';
+            }}
+
             document.getElementById('detail-sig').textContent = node.signature || '-';
             document.getElementById('detail-source').textContent = node.source || '-';
             document.getElementById('detail-itm').textContent = node.itm_topics.join(', ') || 'None';
@@ -805,6 +862,50 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     `;
                 }}
             }});
+        }}
+
+        // Populate surface lists (nouns and verbs)
+        const nounList = document.getElementById('noun-list');
+        const verbList = document.getElementById('verb-list');
+
+        data.surface.nodes.filter(n => n.type === 'noun').forEach(n => {{
+            const coveredClass = n.is_covered ? 'covered' : 'uncovered';
+            nounList.innerHTML += `
+                <div class="surface-item noun ${{coveredClass}}" onclick="highlightNode('${{n.id}}')">
+                    <div class="name"><span class="coverage-dot ${{coveredClass}}"></span>${{n.name}}</div>
+                </div>
+            `;
+        }});
+
+        data.surface.nodes.filter(n => n.type === 'verb').forEach(n => {{
+            const coveredClass = n.is_covered ? 'covered' : 'uncovered';
+            verbList.innerHTML += `
+                <div class="surface-item verb ${{coveredClass}}" onclick="highlightNode('${{n.id}}')">
+                    <div class="name"><span class="coverage-dot ${{coveredClass}}"></span>${{n.name}}</div>
+                    <div class="signature">${{n.signature || ''}}</div>
+                    <div class="source">${{n.source || 'Unknown'}}</div>
+                </div>
+            `;
+        }});
+
+        // Highlight node in graph when clicking list item
+        function highlightNode(nodeId) {{
+            const nodeEl = document.querySelector(`.node[data-id="${{nodeId}}"]`);
+            if (nodeEl) {{
+                // Flash effect
+                const shape = nodeEl.querySelector('rect, ellipse');
+                const origStroke = shape.getAttribute('stroke');
+                shape.setAttribute('stroke', '#fbbf24');
+                shape.setAttribute('stroke-width', '5');
+                setTimeout(() => {{
+                    shape.setAttribute('stroke', origStroke);
+                    shape.setAttribute('stroke-width', '3');
+                }}, 1500);
+
+                // Show details
+                const node = data.surface.nodes.find(n => n.id === nodeId);
+                if (node) showDetails(node);
+            }}
         }}
     </script>
 </body>

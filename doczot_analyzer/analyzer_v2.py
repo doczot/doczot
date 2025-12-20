@@ -163,9 +163,27 @@ def build_surface_graph(
         )
         nodes.append(verb_node)
 
-        # Extract nouns and create edges
-        nouns = extract_nouns_from_path(ep.path)
-        for noun in nouns:
+        # Extract nouns from path AND from code analysis
+        path_nouns = extract_nouns_from_path(ep.path)
+
+        # Filter code nouns: skip plurals, compound types, and infrastructure
+        skip_code_nouns = {'items', 'users', 'access', 'userregister', 'privateuser',
+                          'userbase', 'usercreate', 'userupdate', 'userpublic',
+                          'itembase', 'itemcreate', 'itemupdate', 'itempublic'}
+        code_nouns = [n for n in ep.entity_references if n not in skip_code_nouns]
+
+        # Combine and dedupe, preferring singularized forms
+        all_nouns = set(path_nouns)
+        for noun in code_nouns:
+            # Singularize if needed
+            singular = noun
+            if singular.endswith('s') and not singular.endswith('ss'):
+                singular = singular[:-1]
+            # Skip compound names (more than one word run together)
+            if len(singular) <= 10:  # Simple entity names are short
+                all_nouns.add(singular)
+
+        for noun in all_nouns:
             noun_id = f"noun:{noun}"
 
             if noun not in seen_nouns:

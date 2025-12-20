@@ -8,10 +8,162 @@ Uses Python's built-in ast module for parsing - no external dependencies.
 
 import ast
 import os
+import re
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from doczot_analyzer.models import Endpoint, Parameter
+
+
+# Common entity patterns to detect in code
+ENTITY_PATTERN = re.compile(r'^([A-Z][a-z]+)+$')  # PascalCase like User, UserCreate
+
+
+def _singularize(name: str) -> str:
+    """Convert a name to singular lowercase form."""
+    name = name.lower()
+    if name.endswith('ies'):
+        return name[:-3] + 'y'
+    elif name.endswith('es') and len(name) > 3:
+        return name[:-2]
+    elif name.endswith('s') and not name.endswith('ss'):
+        return name[:-1]
+    return name
+
+
+def _extract_entity_from_type(type_name: str) -> Optional[str]:
+    """Extract base entity from a type name like UserCreate, UserPublic, etc."""
+    if not type_name or not ENTITY_PATTERN.match(type_name):
+        return None
+
+    # Common suffixes to strip
+    suffixes = ['Create', 'Update', 'Public', 'Private', 'Base', 'Response',
+                'Request', 'Schema', 'Model', 'DTO', 'In', 'Out', 'Read', 'Write']
+
+    result = type_name
+    for suffix in suffixes:
+        if result.endswith(suffix) and len(result) > len(suffix):
+            result = result[:-len(suffix)]
+            break
+
+    # Skip common non-entity types (infrastructure, not domain)
+    skip_types = {'Any', 'List', 'Dict', 'Set', 'Tuple', 'Optional', 'Union',
+                  'Annotated', 'Depends', 'Query', 'Path', 'Body', 'Header',
+                  'Message', 'Token', 'Session', 'Response', 'Request', 'HTML',
+                  'SessionDep', 'CurrentUser', 'Str', 'Int', 'Bool', 'Float',
+                  'HTTPException', 'EmailStr', 'NewPassword', 'Form', 'File',
+                  'UploadFile', 'BackgroundTasks', 'Callable', 'Coroutine'}
+
+    if result in skip_types:
+        return None
+
+    return result.lower()
+
+
+def _extract_entities_from_body(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> Set[str]:
+    """Extract entity references from function body.
+
+    Detects patterns like:
+    - user = crud.get_user_by_email(...)
+    - user = crud.authenticate(...)
+    - item = session.get(Item, id)
+    """
+    entities = set()
+
+    for node in ast.walk(func_node):
+        # Pattern 1: Variable assignments with entity-like names
+        # e.g., user = ..., item = ..., post = ...
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    var_name = target.id.lower()
+                    # Skip common non-entity variables (infrastructure, not domain)
+                    skip_vars = {'session', 'db', 'result', 'data', 'response', 'request',
+                                 'form', 'body', 'token', 'email', 'password', 'query',
+                                 'params', 'config', 'settings', 'count', 'statement',
+                                 'items', 'users', 'results', 'access', 'hashed', 'expires',
+                                 'content', 'subject', 'html', 'text', 'message', 'error',
+                                 'exception', 'status', 'code', 'headers', 'cookies',
+                                 'key', 'value', 'obj', 'model', 'schema', 'payload'}
+                    if var_name not in skip_vars:
+                        # Check if it looks like an entity (short, noun-like)
+                        if len(var_name) > 2 and len(var_name) < 15 and var_name.isalpha():
+                            entities.add(var_name)
+
+        # Pattern 2: CRUD-style function calls
+        # e.g., crud.get_user_by_email, crud.create_item
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Attribute):
+                attr_name = node.func.attr
+                # Match patterns like get_user, create_user, get_user_by_email
+                for prefix in ['get_', 'create_', 'update_', 'delete_', 'authenticate_']:
+                    if attr_name.startswith(prefix):
+                        remainder = attr_name[len(prefix):]
+                        # Extract entity: get_user_by_email -> user
+                        entity = remainder.split('_')[0] if '_' in remainder else remainder
+                        if entity and len(entity) > 2:
+                            entities.add(_singularize(entity))
+                        break
+
+        # Pattern 3: session.get(Model, id) or db.query(Model)
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Attribute):
+                if node.func.attr in ('get', 'query', 'add', 'delete'):
+                    if node.args and isinstance(node.args[0], ast.Name):
+                        model_name = node.args[0].id
+                        entity = _extract_entity_from_type(model_name)
+                        if entity:
+                            entities.add(entity)
+
+    return entities
+
+
+def _extract_entities_from_types(
+    func_node: ast.FunctionDef | ast.AsyncFunctionDef,
+    response_model: Optional[str] = None
+) -> Set[str]:
+    """Extract entity references from type hints and response_model."""
+    entities = set()
+
+    # From response_model
+    if response_model:
+        entity = _extract_entity_from_type(response_model)
+        if entity:
+            entities.add(entity)
+
+    # From return type annotation
+    if func_node.returns:
+        return_type = _get_type_name(func_node.returns)
+        if return_type:
+            entity = _extract_entity_from_type(return_type)
+            if entity:
+                entities.add(entity)
+
+    # From parameter type hints
+    for arg in func_node.args.args:
+        if arg.annotation:
+            type_name = _get_type_name(arg.annotation)
+            if type_name:
+                entity = _extract_entity_from_type(type_name)
+                if entity:
+                    entities.add(entity)
+
+    return entities
+
+
+def _get_type_name(annotation: ast.expr) -> Optional[str]:
+    """Extract type name from an annotation node."""
+    if isinstance(annotation, ast.Name):
+        return annotation.id
+    elif isinstance(annotation, ast.Subscript):
+        # Handle List[User], Optional[User], etc.
+        if isinstance(annotation.slice, ast.Name):
+            return annotation.slice.id
+        elif isinstance(annotation.slice, ast.Subscript):
+            return _get_type_name(annotation.slice)
+    elif isinstance(annotation, ast.Attribute):
+        return annotation.attr
+    return None
 
 
 def _extract_router_prefixes(tree: ast.Module) -> dict[str, str]:
@@ -147,6 +299,11 @@ def _extract_endpoint_from_function(
                 method, path, docstring, parameters, response_model, func_node
             )
 
+            # Extract entity references from code analysis
+            entity_refs = set()
+            entity_refs.update(_extract_entities_from_body(func_node))
+            entity_refs.update(_extract_entities_from_types(func_node, response_model))
+
             return Endpoint(
                 method=method,
                 path=path,
@@ -160,6 +317,7 @@ def _extract_endpoint_from_function(
                 is_deprecated=is_deprecated,
                 is_async=is_async,
                 semantic_signature=semantic_signature,
+                entity_references=sorted(entity_refs),
             )
 
     return None
