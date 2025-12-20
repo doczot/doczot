@@ -412,12 +412,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <html>
 <head>
     <title>DocZot - {product_name}</title>
-    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{ font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }}
-        .container {{ display: flex; height: 100vh; }}
-        #graph {{ flex: 1; background: #1e293b; }}
+        .container {{ display: flex; height: 100vh; width: 100vw; }}
+        #graph {{ flex: 1; min-width: 400px; height: 100vh; background: #1e293b; position: relative; overflow: hidden; }}
+        #graph svg {{ width: 100%; height: 100%; }}
+        .node {{ cursor: pointer; }}
+        .node rect, .node ellipse {{ stroke-width: 3; }}
+        .node text {{ font-size: 12px; font-weight: 500; pointer-events: none; }}
+        .node:hover rect, .node:hover ellipse {{ stroke: #fbbf24; stroke-width: 4; }}
+        .edge {{ stroke: #64748b; stroke-width: 2; fill: none; }}
+        .edge-arrow {{ fill: #64748b; }}
         .sidebar {{ width: 400px; background: #1e293b; border-left: 2px solid #3b82f6; overflow-y: auto; }}
         .panel {{ padding: 20px; border-bottom: 1px solid #334155; }}
         h1 {{ font-size: 1.4rem; color: #3b82f6; margin-bottom: 15px; }}
@@ -535,42 +541,205 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <script>
         const data = {graph_data_json};
 
-        // Build vis.js nodes
-        const visNodes = new vis.DataSet(data.surface.nodes.map(n => ({{
-            id: n.id,
-            label: n.name,
-            shape: n.type === 'verb' ? 'box' : n.type === 'noun' ? 'ellipse' : 'diamond',
-            color: {{
-                background: n.is_covered ? '#22c55e' : '#ef4444',
-                border: n.type === 'verb' ? '#3b82f6' : '#8b5cf6',
-            }},
-            borderWidth: 2,
-            font: {{ color: '#1e293b', size: 12 }},
-            data: n,
-        }})));
+        // Simple force-directed layout (no external dependencies)
+        function initGraph() {{
+            const container = document.getElementById('graph');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
 
-        const visEdges = new vis.DataSet(data.surface.edges.map(e => ({{
-            from: e.source,
-            to: e.target,
-            arrows: 'to',
-            color: {{ color: '#475569' }},
-        }})));
+            // Create SVG
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            svg.setAttribute('viewBox', `0 0 ${{width}} ${{height}}`);
+            container.innerHTML = '';
+            container.appendChild(svg);
 
-        const network = new vis.Network(
-            document.getElementById('graph'),
-            {{ nodes: visNodes, edges: visEdges }},
-            {{
-                physics: {{ barnesHut: {{ gravitationalConstant: -2000, springLength: 120 }} }},
-                interaction: {{ hover: true }},
+            // Initialize node positions in a circle
+            const nodes = data.surface.nodes;
+            const edges = data.surface.edges;
+            const nodeMap = {{}};
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) * 0.35;
+
+            nodes.forEach((n, i) => {{
+                const angle = (2 * Math.PI * i) / nodes.length;
+                n.x = centerX + radius * Math.cos(angle);
+                n.y = centerY + radius * Math.sin(angle);
+                n.vx = 0;
+                n.vy = 0;
+                nodeMap[n.id] = n;
+            }});
+
+            // Create edge elements
+            const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            svg.appendChild(edgeGroup);
+
+            edges.forEach(e => {{
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('class', 'edge');
+                line.setAttribute('stroke', '#64748b');
+                line.setAttribute('stroke-width', '2');
+                line.dataset.from = e.source;
+                line.dataset.to = e.target;
+                edgeGroup.appendChild(line);
+            }});
+
+            // Create node elements
+            const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            svg.appendChild(nodeGroup);
+
+            nodes.forEach(n => {{
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'node');
+                g.dataset.id = n.id;
+                g.style.cursor = 'pointer';
+
+                const bgColor = n.is_covered ? '#22c55e' : '#ef4444';
+                const borderColor = n.type === 'verb' ? '#3b82f6' : '#8b5cf6';
+
+                if (n.type === 'noun') {{
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                    circle.setAttribute('rx', '50');
+                    circle.setAttribute('ry', '25');
+                    circle.setAttribute('fill', bgColor);
+                    circle.setAttribute('stroke', borderColor);
+                    circle.setAttribute('stroke-width', '3');
+                    g.appendChild(circle);
+                }} else {{
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('width', '100');
+                    rect.setAttribute('height', '40');
+                    rect.setAttribute('x', '-50');
+                    rect.setAttribute('y', '-20');
+                    rect.setAttribute('rx', '5');
+                    rect.setAttribute('fill', bgColor);
+                    rect.setAttribute('stroke', borderColor);
+                    rect.setAttribute('stroke-width', '3');
+                    g.appendChild(rect);
+                }}
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dy', '5');
+                text.setAttribute('fill', '#1e293b');
+                text.setAttribute('font-size', '11');
+                text.setAttribute('font-weight', '600');
+                text.textContent = n.name.length > 12 ? n.name.slice(0, 10) + '..' : n.name;
+                g.appendChild(text);
+
+                g.addEventListener('click', () => showDetails(n));
+                nodeGroup.appendChild(g);
+                n.element = g;
+            }});
+
+            // Simple force simulation
+            function simulate() {{
+                // Repulsion between nodes
+                for (let i = 0; i < nodes.length; i++) {{
+                    for (let j = i + 1; j < nodes.length; j++) {{
+                        const dx = nodes[j].x - nodes[i].x;
+                        const dy = nodes[j].y - nodes[i].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        const force = 5000 / (dist * dist);
+                        const fx = (dx / dist) * force;
+                        const fy = (dy / dist) * force;
+                        nodes[i].vx -= fx;
+                        nodes[i].vy -= fy;
+                        nodes[j].vx += fx;
+                        nodes[j].vy += fy;
+                    }}
+                }}
+
+                // Attraction along edges
+                edges.forEach(e => {{
+                    const source = nodeMap[e.source];
+                    const target = nodeMap[e.target];
+                    if (source && target) {{
+                        const dx = target.x - source.x;
+                        const dy = target.y - source.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        const force = dist * 0.01;
+                        const fx = (dx / dist) * force;
+                        const fy = (dy / dist) * force;
+                        source.vx += fx;
+                        source.vy += fy;
+                        target.vx -= fx;
+                        target.vy -= fy;
+                    }}
+                }});
+
+                // Center gravity
+                nodes.forEach(n => {{
+                    n.vx += (centerX - n.x) * 0.001;
+                    n.vy += (centerY - n.y) * 0.001;
+                }});
+
+                // Apply velocity with damping
+                nodes.forEach(n => {{
+                    n.vx *= 0.9;
+                    n.vy *= 0.9;
+                    n.x += n.vx;
+                    n.y += n.vy;
+                    // Keep in bounds
+                    n.x = Math.max(60, Math.min(width - 60, n.x));
+                    n.y = Math.max(30, Math.min(height - 30, n.y));
+                }});
+
+                // Update positions
+                nodes.forEach(n => {{
+                    n.element.setAttribute('transform', `translate(${{n.x}}, ${{n.y}})`);
+                }});
+
+                edgeGroup.querySelectorAll('line').forEach(line => {{
+                    const source = nodeMap[line.dataset.from];
+                    const target = nodeMap[line.dataset.to];
+                    if (source && target) {{
+                        line.setAttribute('x1', source.x);
+                        line.setAttribute('y1', source.y);
+                        line.setAttribute('x2', target.x);
+                        line.setAttribute('y2', target.y);
+                    }}
+                }});
             }}
-        );
 
-        network.on('click', params => {{
-            if (params.nodes.length) {{
-                const node = data.surface.nodes.find(n => n.id === params.nodes[0]);
-                showDetails(node);
+            // Run simulation
+            let iterations = 0;
+            function tick() {{
+                simulate();
+                iterations++;
+                if (iterations < 200) {{
+                    requestAnimationFrame(tick);
+                }}
             }}
-        }});
+            tick();
+
+            // Enable dragging
+            let dragging = null;
+            svg.addEventListener('mousedown', e => {{
+                const node = e.target.closest('.node');
+                if (node) {{
+                    dragging = nodeMap[node.dataset.id];
+                }}
+            }});
+            svg.addEventListener('mousemove', e => {{
+                if (dragging) {{
+                    const rect = svg.getBoundingClientRect();
+                    dragging.x = e.clientX - rect.left;
+                    dragging.y = e.clientY - rect.top;
+                    dragging.vx = 0;
+                    dragging.vy = 0;
+                    simulate();
+                }}
+            }});
+            svg.addEventListener('mouseup', () => {{ dragging = null; }});
+            svg.addEventListener('mouseleave', () => {{ dragging = null; }});
+        }}
+
+        window.addEventListener('load', initGraph);
+        window.addEventListener('resize', initGraph);
 
         function showDetails(node) {{
             document.getElementById('details').classList.add('visible');

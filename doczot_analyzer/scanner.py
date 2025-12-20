@@ -14,6 +14,54 @@ from typing import List, Optional
 from doczot_analyzer.models import Endpoint, Parameter
 
 
+def _extract_router_prefixes(tree: ast.Module) -> dict[str, str]:
+    """Extract router prefix mappings from APIRouter assignments.
+
+    Detects patterns like:
+    - router = APIRouter(prefix="/users")
+    - items_router = APIRouter(prefix="/items", tags=["items"])
+
+    Returns:
+        Dict mapping variable names to their prefixes (e.g., {"router": "/users"})
+    """
+    prefixes = {}
+
+    for node in ast.walk(tree):
+        # Look for assignments: router = APIRouter(...)
+        if isinstance(node, ast.Assign):
+            # Check if right side is a Call to APIRouter
+            if isinstance(node.value, ast.Call):
+                # Check if it's APIRouter
+                func = node.value.func
+                is_apirouter = False
+
+                if isinstance(func, ast.Name) and func.id == "APIRouter":
+                    is_apirouter = True
+                elif isinstance(func, ast.Attribute) and func.attr == "APIRouter":
+                    is_apirouter = True
+
+                if is_apirouter:
+                    # Extract the variable name(s)
+                    var_names = []
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            var_names.append(target.id)
+
+                    # Extract prefix from keyword arguments
+                    prefix = ""
+                    for keyword in node.value.keywords:
+                        if keyword.arg == "prefix":
+                            if isinstance(keyword.value, ast.Constant):
+                                prefix = keyword.value.value
+                                break
+
+                    # Map variable names to prefix
+                    for var_name in var_names:
+                        prefixes[var_name] = prefix
+
+    return prefixes
+
+
 def scan_python_file(source_code: str, file_path: str) -> List[Endpoint]:
     """Scan Python source code for FastAPI endpoints using AST parsing.
 
@@ -36,12 +84,15 @@ def scan_python_file(source_code: str, file_path: str) -> List[Endpoint]:
         # Re-raise syntax errors - let caller handle them
         raise
 
+    # Extract router prefixes from this file
+    router_prefixes = _extract_router_prefixes(tree)
+
     endpoints = []
 
     # Walk the AST tree looking for function definitions
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            endpoint = _extract_endpoint_from_function(node, file_path)
+            endpoint = _extract_endpoint_from_function(node, file_path, router_prefixes)
             if endpoint:
                 endpoints.append(endpoint)
 
@@ -50,22 +101,36 @@ def scan_python_file(source_code: str, file_path: str) -> List[Endpoint]:
 
 def _extract_endpoint_from_function(
     func_node: ast.FunctionDef | ast.AsyncFunctionDef,
-    file_path: str
+    file_path: str,
+    router_prefixes: dict[str, str] | None = None,
 ) -> Optional[Endpoint]:
     """Extract endpoint information from a function definition node.
 
     Args:
         func_node: AST node representing a function definition
         file_path: Path to the file containing this function
+        router_prefixes: Dict mapping router variable names to their prefixes
 
     Returns:
         Endpoint object if this is a FastAPI endpoint, None otherwise
     """
+    if router_prefixes is None:
+        router_prefixes = {}
+
     # Check if function has FastAPI decorators
     for decorator in func_node.decorator_list:
         endpoint_info = _parse_fastapi_decorator(decorator)
         if endpoint_info:
-            method, path, response_model, is_deprecated = endpoint_info
+            method, path, response_model, is_deprecated, router_name = endpoint_info
+
+            # Combine router prefix with endpoint path
+            prefix = router_prefixes.get(router_name, "")
+            if prefix:
+                # Ensure proper path joining (avoid double slashes)
+                if path.startswith("/"):
+                    path = prefix + path
+                else:
+                    path = prefix + "/" + path
 
             # Extract docstring
             docstring = ast.get_docstring(func_node)
@@ -106,14 +171,14 @@ def _parse_fastapi_decorator(decorator: ast.expr) -> Optional[tuple]:
     Supports patterns:
     - @app.get(path)
     - @router.post(path)
-    - @app.put(path, response_model=Model, deprecated=True)
+    - @items_router.put(path, response_model=Model, deprecated=True)
 
     Args:
         decorator: AST decorator node
 
     Returns:
-        Tuple of (method, path, response_model, is_deprecated) if FastAPI decorator,
-        None otherwise
+        Tuple of (method, path, response_model, is_deprecated, router_name) if FastAPI decorator,
+        None otherwise. router_name is the variable name (e.g., "router", "app", "items_router")
     """
     # Decorator must be a Call node (has parentheses)
     if not isinstance(decorator, ast.Call):
@@ -131,12 +196,11 @@ def _parse_fastapi_decorator(decorator: ast.expr) -> Optional[tuple]:
     if method not in valid_methods:
         return None
 
-    # Get the base object (should be 'app' or 'router')
+    # Get the base object name (e.g., 'app', 'router', 'items_router')
     if isinstance(decorator.func.value, ast.Name):
         base_name = decorator.func.value.id
-        # Accept 'app' or 'router' as valid FastAPI objects
-        if base_name not in {"app", "router"}:
-            return None
+        # Accept any variable name that could be a router/app
+        # Common patterns: app, router, api_router, users_router, etc.
     else:
         return None
 
@@ -164,7 +228,7 @@ def _parse_fastapi_decorator(decorator: ast.expr) -> Optional[tuple]:
             if isinstance(keyword.value, ast.Constant):
                 is_deprecated = bool(keyword.value.value)
 
-    return (method, path, response_model, is_deprecated)
+    return (method, path, response_model, is_deprecated, base_name)
 
 
 def _extract_parameters(
