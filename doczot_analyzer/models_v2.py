@@ -438,8 +438,9 @@ class GapReport(BaseModel):
 def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
     """Generate default ITM from a surface graph.
 
-    Default strategy: One reference topic per noun (entity-centric).
-    Orphan verbs are grouped by theme.
+    Default strategy: Type-first hierarchical structure.
+    - Reference > API > [Entity] > [Endpoint topics]
+    - Concept > Entity > [Entity concept topics]
     """
     topics = []
     topic_id_counter = 0
@@ -449,45 +450,178 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
         topic_id_counter += 1
         return f"topic_{topic_id_counter}"
 
-    # 1. Reference topic per noun
+    def verb_to_title(verb: SurfaceNode) -> str:
+        """Generate a readable title for an endpoint."""
+        method = verb.http_method or "CALL"
+        # Extract resource from path
+        if verb.http_path:
+            parts = [p for p in verb.http_path.split('/') if p and not p.startswith('{')]
+            resource = parts[-1] if parts else "resource"
+            # Check if path has ID parameter
+            has_id = '{' in verb.http_path
+            if method == "GET" and not has_id:
+                return f"List {resource}"
+            elif method == "GET" and has_id:
+                return f"Get {resource}"
+            elif method == "POST":
+                return f"Create {resource}"
+            elif method == "PUT" or method == "PATCH":
+                return f"Update {resource}"
+            elif method == "DELETE":
+                return f"Delete {resource}"
+        return verb.name.replace("_", " ").title()
+
+    # ==========================================================================
+    # REFERENCE > API section
+    # ==========================================================================
+    reference_id = next_id()
+    api_id = next_id()
+    api_entity_ids = []
+
+    # Create entity groups under API
     for noun in surface.nouns:
         related_verbs = surface.verbs_for_noun(noun.id)
+        entity_topic_id = next_id()
+        api_entity_ids.append(entity_topic_id)
+        endpoint_ids = []
 
-        topic = Topic(
-            id=next_id(),
+        # Create sub-topic for each endpoint
+        for verb in related_verbs:
+            endpoint_topic_id = next_id()
+            endpoint_ids.append(endpoint_topic_id)
+
+            endpoint_topic = Topic(
+                id=endpoint_topic_id,
+                name=verb_to_title(verb),
+                topic_type=TopicType.REFERENCE,
+                covers=[verb.id],
+                parent_id=entity_topic_id,
+                auto_generated=True,
+            )
+            topics.append(endpoint_topic)
+
+        # Create entity API topic
+        entity_topic = Topic(
+            id=entity_topic_id,
             name=noun.name.replace("_", " ").title(),
             topic_type=TopicType.REFERENCE,
-            covers=[noun.id] + [v.id for v in related_verbs],
+            covers=[],  # Container only
+            parent_id=api_id,
+            children=endpoint_ids,
             auto_generated=True,
         )
-        topics.append(topic)
+        topics.append(entity_topic)
 
-    # 2. Group orphan verbs by theme
+    # Handle orphan verbs - group by theme under API
     orphans = surface.orphan_verbs()
     if orphans:
-        # Simple clustering: group by path prefix
         themes: dict[str, list[SurfaceNode]] = {}
         for verb in orphans:
-            # Extract theme from path (e.g., /auth/login -> "auth")
             if verb.http_path:
                 parts = [p for p in verb.http_path.split('/') if p and not p.startswith('{')]
                 theme = parts[0] if parts else "general"
             else:
                 theme = "general"
-
             if theme not in themes:
                 themes[theme] = []
             themes[theme].append(verb)
 
         for theme, verbs in themes.items():
-            topic = Topic(
-                id=next_id(),
+            theme_topic_id = next_id()
+            api_entity_ids.append(theme_topic_id)
+            endpoint_ids = []
+
+            for verb in verbs:
+                endpoint_topic_id = next_id()
+                endpoint_ids.append(endpoint_topic_id)
+                endpoint_topic = Topic(
+                    id=endpoint_topic_id,
+                    name=verb_to_title(verb),
+                    topic_type=TopicType.REFERENCE,
+                    covers=[verb.id],
+                    parent_id=theme_topic_id,
+                    auto_generated=True,
+                )
+                topics.append(endpoint_topic)
+
+            theme_topic = Topic(
+                id=theme_topic_id,
                 name=theme.replace("_", " ").title(),
                 topic_type=TopicType.REFERENCE,
-                covers=[v.id for v in verbs],
+                covers=[],
+                parent_id=api_id,
+                children=endpoint_ids,
                 auto_generated=True,
             )
-            topics.append(topic)
+            topics.append(theme_topic)
+
+    # Create API container topic
+    api_topic = Topic(
+        id=api_id,
+        name="API",
+        topic_type=TopicType.REFERENCE,
+        covers=[],
+        parent_id=reference_id,
+        children=api_entity_ids,
+        auto_generated=True,
+    )
+    topics.append(api_topic)
+
+    # Create Reference root topic
+    reference_topic = Topic(
+        id=reference_id,
+        name="Reference",
+        topic_type=TopicType.REFERENCE,
+        covers=[],
+        children=[api_id],
+        auto_generated=True,
+    )
+    topics.append(reference_topic)
+
+    # ==========================================================================
+    # CONCEPT > Entity section
+    # ==========================================================================
+    concept_id = next_id()
+    entity_section_id = next_id()
+    entity_concept_ids = []
+
+    # Create concept topic for each entity (noun)
+    for noun in surface.nouns:
+        entity_concept_id = next_id()
+        entity_concept_ids.append(entity_concept_id)
+
+        entity_concept = Topic(
+            id=entity_concept_id,
+            name=noun.name.replace("_", " ").title(),
+            topic_type=TopicType.CONCEPT,
+            covers=[noun.id],  # Concept covers the noun
+            parent_id=entity_section_id,
+            auto_generated=True,
+        )
+        topics.append(entity_concept)
+
+    # Create Entity container topic
+    entity_section = Topic(
+        id=entity_section_id,
+        name="Entity",
+        topic_type=TopicType.CONCEPT,
+        covers=[],
+        parent_id=concept_id,
+        children=entity_concept_ids,
+        auto_generated=True,
+    )
+    topics.append(entity_section)
+
+    # Create Concept root topic
+    concept_topic = Topic(
+        id=concept_id,
+        name="Concept",
+        topic_type=TopicType.CONCEPT,
+        covers=[],
+        children=[entity_section_id],
+        auto_generated=True,
+    )
+    topics.append(concept_topic)
 
     # 3. Concept topics for standalone concepts
     for concept in surface.concepts:
@@ -499,6 +633,98 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
             auto_generated=True,
         )
         topics.append(topic)
+
+    # ==========================================================================
+    # TASK (How-to) section - infer common journeys
+    # ==========================================================================
+    task_id = next_id()
+    howto_ids = []
+
+    # Helper to find verbs by path pattern
+    def find_verbs_by_pattern(patterns: list[str]) -> list[str]:
+        """Find verb IDs matching path patterns."""
+        matches = []
+        for verb in surface.verbs:
+            if verb.http_path:
+                for pattern in patterns:
+                    if pattern in verb.http_path.lower():
+                        matches.append(verb.id)
+                        break
+        return matches
+
+    # Detect auth flow: signup, login, token
+    auth_verbs = find_verbs_by_pattern(['signup', 'login', 'access-token', 'register'])
+    if len(auth_verbs) >= 2:
+        howto_id = next_id()
+        howto_ids.append(howto_id)
+        topics.append(Topic(
+            id=howto_id,
+            name="How to authenticate",
+            topic_type=TopicType.TASK,
+            covers=auth_verbs,
+            parent_id=task_id,
+            auto_generated=True,
+        ))
+
+    # Detect account management: me endpoints
+    me_verbs = find_verbs_by_pattern(['/me', '/self', '/current'])
+    if me_verbs:
+        howto_id = next_id()
+        howto_ids.append(howto_id)
+        topics.append(Topic(
+            id=howto_id,
+            name="How to manage your account",
+            topic_type=TopicType.TASK,
+            covers=me_verbs,
+            parent_id=task_id,
+            auto_generated=True,
+        ))
+
+    # Detect password recovery flow
+    password_verbs = find_verbs_by_pattern(['password-recovery', 'reset-password', 'forgot'])
+    if password_verbs:
+        howto_id = next_id()
+        howto_ids.append(howto_id)
+        topics.append(Topic(
+            id=howto_id,
+            name="How to recover your password",
+            topic_type=TopicType.TASK,
+            covers=password_verbs,
+            parent_id=task_id,
+            auto_generated=True,
+        ))
+
+    # Detect CRUD flows for each entity (if has create + list/get)
+    for noun in surface.nouns:
+        verbs = surface.verbs_for_noun(noun.id)
+        methods = {v.http_method for v in verbs if v.http_method}
+        # Only suggest CRUD how-to if entity has meaningful operations
+        if 'POST' in methods and ('GET' in methods or 'PUT' in methods):
+            entity_name = noun.name.replace("_", " ").title()
+            # Skip utility entities
+            if noun.name.lower() not in ['util', 'utils', 'health', 'test']:
+                howto_id = next_id()
+                howto_ids.append(howto_id)
+                topics.append(Topic(
+                    id=howto_id,
+                    name=f"How to work with {entity_name}s",
+                    topic_type=TopicType.TASK,
+                    covers=[noun.id] + [v.id for v in verbs],  # Include the noun!
+                    parent_id=task_id,
+                    auto_generated=True,
+                ))
+
+    # Create Task root topic if we found any how-tos
+    if howto_ids:
+        task_topic = Topic(
+            id=task_id,
+            name="Task",
+            topic_type=TopicType.TASK,
+            covers=[],
+            children=howto_ids,
+            auto_generated=True,
+        )
+        topics.append(task_topic)
 
     return TopicManifest(
         manifest_type=ManifestType.INTENDED,

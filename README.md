@@ -12,10 +12,11 @@
 
 Every software team faces the same challenge: documentation becomes outdated the moment you write it. DocZot ensures your API docs stay synchronized with your code by:
 
-- 🔍 **Scanning** your codebase for API endpoints (FastAPI supported, more coming)
-- 📄 **Analyzing** documentation for coverage gaps
-- 🤖 **AI-powered** matching to verify documentation quality (coming soon)
-- 💬 **PR comments** with coverage reports (coming soon)
+- 🔍 **Surface Graph** - Scans your codebase for API endpoints, entities, and their relationships
+- 📋 **ITM (Intended Topic Manifest)** - Auto-generates documentation structure: Reference docs, Concept docs, How-to guides
+- 📄 **ATM (Actual Topic Manifest)** - Discovers what documentation actually exists
+- 📊 **Gap Report** - Shows what's missing between intended and actual coverage
+- 🎯 **Interactive Visualizer** - Explore your API surface with hover-to-highlight topic coverage
 
 **Everything is open source.** No vendor lock-in. Full transparency.
 
@@ -60,17 +61,19 @@ python -m doczot_analyzer /path/to/your/project
 
 ## Status
 
-🚧 **Week 1-2: MVP Development** - Building core analysis engine
+🚀 **v2 Architecture Complete** - Four-layer documentation coverage model
 
 ### Completed
-- [x] Project structure
-- [x] Code scanner (FastAPI endpoint detection)
-- [x] Documentation parser (Markdown)
-- [x] Data models
-- [x] Test suite (56 tests, 91% coverage)
-- [ ] LLM integration (Week 2)
-- [ ] CLI interface (Week 3)
-- [ ] GitHub App (Week 4+)
+- [x] Code scanner with router prefix tracking and entity detection
+- [x] Surface Graph (verbs, nouns, edges)
+- [x] ITM generation (Reference/Concept/Task topic hierarchy)
+- [x] ATM discovery from markdown with semantic search
+- [x] Gap Report with coverage stats and sprint planning
+- [x] Interactive HTML visualizer with hover-to-highlight
+- [x] How-to inference from API patterns (auth, CRUD, account mgmt)
+- [x] CLI interface (`doczot analyze`, `doczot visualize`)
+- [ ] GitHub App with PR comments (coming soon)
+- [ ] LLM-powered doc quality scoring (coming soon)
 
 ## Development
 
@@ -82,10 +85,45 @@ This project follows a **docs-first, tests-first** approach:
 
 ## Architecture
 
-- `doczot_analyzer/scanner.py` - FastAPI endpoint detection (AST-based)
+DocZot uses a **four-layer model** for documentation coverage:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Layer 1: Surface Graph                                 │
+│  - Verbs (API endpoints)                                │
+│  - Nouns (entities extracted from paths + code)         │
+│  - Edges (verb operates_on noun)                        │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│  Layer 2: ITM (Intended Topic Manifest)                 │
+│  - Reference > API > Entity > Endpoints                 │
+│  - Concept > Entity (one per noun)                      │
+│  - Task > How-tos (auto-inferred journeys)              │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│  Layer 3: ATM (Actual Topic Manifest)                   │
+│  - Discovered from existing markdown docs               │
+│  - Matched to surface elements via semantic search      │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│  Layer 4: Gap Report                                    │
+│  - Coverage percentage                                  │
+│  - Missing/partial/complete topics                      │
+│  - Sprint plan for doc improvements                     │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Key Files
+
+- `doczot_analyzer/scanner.py` - FastAPI endpoint detection with entity extraction (AST-based)
+- `doczot_analyzer/analyzer_v2.py` - Surface graph builder, ATM discovery
+- `doczot_analyzer/models_v2.py` - Surface, Topic, and Gap models with ITM generation
+- `doczot_analyzer/cli_v2.py` - CLI and interactive HTML visualizer
 - `doczot_analyzer/docs_parser.py` - Markdown documentation parser
-- `doczot_analyzer/models.py` - Pydantic data models
-- `doczot_analyzer/tests/` - Comprehensive test suite
+- `doczot_analyzer/vector_store.py` - Semantic search for doc matching
 
 ## Installation
 

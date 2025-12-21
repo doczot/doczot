@@ -374,6 +374,8 @@ def generate_visualization_html(
             "name": t.name,
             "type": t.topic_type.value,
             "covers": t.covers,
+            "parent_id": t.parent_id,
+            "children": t.children,
             "auto_generated": t.auto_generated,
         }
         for t in itm.topics
@@ -502,9 +504,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <div id="tooltip-name" style="font-weight:600; color:#e2e8f0;"></div>
         <div id="tooltip-sig" style="color:#94a3b8; font-family:monospace; font-size:11px; margin-top:4px;"></div>
     </div>
+    <div class="graph-hint">Scroll to zoom · Shift+drag to pan · Hover for details</div>
     <div class="container">
         <div id="graph"></div>
-        <div class="graph-hint">Scroll to zoom · Shift+drag to pan · Hover for details</div>
         <div class="sidebar">
             <div class="panel">
                 <h1>{product_name}</h1>
@@ -896,16 +898,65 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             document.getElementById('tab-' + name).classList.add('active');
         }}
 
-        // Populate ITM list
+        // Highlight surface nodes covered by a topic
+        function highlightCoverage(covers, highlight) {{
+            document.querySelectorAll('.node').forEach(node => {{
+                const nodeId = node.dataset.id;
+                const shape = node.querySelector('rect, ellipse');
+                if (covers.includes(nodeId)) {{
+                    if (highlight) {{
+                        shape.setAttribute('stroke', '#fbbf24');
+                        shape.setAttribute('stroke-width', '5');
+                        node.style.opacity = '1';
+                    }} else {{
+                        // Restore original
+                        const n = data.surface.nodes.find(n => n.id === nodeId);
+                        const borderColor = n && n.type === 'verb' ? '#3b82f6' : '#8b5cf6';
+                        shape.setAttribute('stroke', borderColor);
+                        shape.setAttribute('stroke-width', '3');
+                        node.style.opacity = '1';
+                    }}
+                }} else if (highlight) {{
+                    node.style.opacity = '0.3';
+                }}
+            }});
+        }}
+
+        // Get all covers including children's covers
+        function getAllCovers(topicId) {{
+            const topic = data.itm.find(t => t.id === topicId);
+            if (!topic) return [];
+            let covers = [...(topic.covers || [])];
+            (topic.children || []).forEach(childId => {{
+                covers = covers.concat(getAllCovers(childId));
+            }});
+            return covers;
+        }}
+
+        // Build hierarchical ITM list
+        function buildItmTree(parentId, indent) {{
+            const children = data.itm.filter(t => t.parent_id === parentId);
+            let html = '';
+            children.forEach(t => {{
+                const allCovers = getAllCovers(t.id);
+                const hasChildren = data.itm.some(c => c.parent_id === t.id);
+                const icon = hasChildren ? '▸ ' : '';
+                html += `
+                    <div class="topic-item" style="margin-left: ${{indent * 16}}px; cursor: pointer;"
+                         data-topic-id="${{t.id}}"
+                         onmouseenter="highlightCoverage(getAllCovers('${{t.id}}'), true)"
+                         onmouseleave="highlightCoverage([], false)">
+                        <div class="topic-name">${{icon}}${{t.name}}</div>
+                        <div class="topic-meta">${{t.type}} · ${{allCovers.length}} elements</div>
+                    </div>
+                `;
+                html += buildItmTree(t.id, indent + 1);
+            }});
+            return html;
+        }}
+
         const itmList = document.getElementById('itm-list');
-        data.itm.forEach(t => {{
-            itmList.innerHTML += `
-                <div class="topic-item">
-                    <div class="topic-name">${{t.name}}</div>
-                    <div class="topic-meta">${{t.type}} · covers ${{t.covers.length}} elements</div>
-                </div>
-            `;
-        }});
+        itmList.innerHTML = buildItmTree(null, 0);
 
         // Populate ATM list
         const atmList = document.getElementById('atm-list');
