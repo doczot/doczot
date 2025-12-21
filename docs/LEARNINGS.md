@@ -182,3 +182,202 @@ Based on these findings, we should add tests for:
 These insights came from manually testing the dataset building process on the FastAPI repository and attempting to rate endpoint/doc pairs. This real-world validation was essential for discovering these issues.
 
 **Methodology:** Build in public, test on real code, iterate based on actual usage.
+
+---
+
+## Date: 2025-12-21
+
+### Testing v2 Architecture with Full-Stack Template
+
+**Repository:** full-stack-fastapi-template (local clone)
+
+---
+
+## Key Findings
+
+### 1. Entity Detection Requires Code Analysis, Not Just URLs
+
+**Problem:** URL-based entity extraction misses important relationships.
+
+**Example:**
+```python
+# Endpoint: POST /password-recovery/{email}
+# URL suggests: "password-recovery" entity (wrong!)
+# Code shows: user = crud.get_user_by_email(...)
+# Reality: This endpoint operates on USER entity
+```
+
+**Why this matters:**
+- Password recovery, login, signup all operate on users
+- Auth endpoints don't mention "user" in their paths
+- Without code analysis, these endpoints appear orphaned
+
+**Solution Implemented:**
+AST-based detection of entities from:
+1. Variable assignments: `user = crud.get_user_by_email(...)` → `user`
+2. CRUD function calls: `crud.create_item(...)` → `item`
+3. Type hints: `def get_user(user: UserPublic)` → `user`
+4. Response models: `response_model=User` → `user`
+
+**Code location:** `doczot_analyzer/scanner.py` - `_extract_entities_from_body()`
+
+**Results:**
+- Before: Only 1 noun (user) detected from `/users/{id}` path
+- After: All endpoints correctly linked to their entities
+
+---
+
+### 2. ITM Should Use Type-First Hierarchy
+
+**Problem:** Entity-centric organization ("User Management" containing all user docs) doesn't match how developers think about documentation.
+
+**Insight from user feedback:**
+> "It should also encompass traditional API generated reference docs"
+> "Let's group the ITM topics by type. So Reference > API would have all of those topics"
+
+**Solution:**
+```
+Reference
+└── API
+    ├── User (entity grouping)
+    │   ├── Create user
+    │   ├── Get user
+    │   └── ...
+    └── Item
+        └── ...
+
+Concept
+└── Entity
+    ├── User (concept doc)
+    └── Item (concept doc)
+
+Task
+├── How to authenticate
+├── How to work with Users
+└── ...
+```
+
+**Why this works better:**
+- Matches industry IA best practices
+- Separates reference (API) from conceptual (entity explanations)
+- Task section provides journey-based documentation
+- Each endpoint gets its own reference topic
+
+---
+
+### 3. How-To Topics Should Cover Nouns AND Verbs
+
+**Problem:** Initial how-to implementation only covered verb (endpoint) IDs.
+
+**User observation:**
+> "How to work with Users doesn't highlight the actual User node, only the surrounding verbs"
+
+**Fix:**
+```python
+# Before
+covers=[v.id for v in verbs]
+
+# After
+covers=[noun.id] + [v.id for v in verbs]
+```
+
+**Why this matters:**
+- Hover-to-highlight should show the complete picture
+- A "How to work with Users" guide IS about the User entity
+- Visual connection between entity and its operations
+
+---
+
+### 4. Conservative How-To Inference Prevents Topic Explosion
+
+**Design decision:** Only infer how-tos for clearly recognizable patterns:
+
+| Pattern | Detection Method | Confidence |
+|---------|-----------------|------------|
+| Auth flow | `signup`, `login`, `access-token` in paths | High |
+| Account mgmt | `/me`, `/self`, `/current` endpoints | High |
+| Password recovery | `password-recovery`, `reset-password` in paths | High |
+| CRUD journey | Entity with POST + (GET or PUT) | Medium |
+
+**Rejected approaches:**
+- Every endpoint as a how-to (too noisy)
+- Clustering endpoints by similarity (unpredictable)
+- LLM-generated topics (expensive, inconsistent)
+
+**Principle:** Better to miss a how-to than suggest irrelevant ones.
+
+---
+
+### 5. Real Projects Often Have Zero API Documentation
+
+**Discovery:** The full-stack-fastapi-template has **no API documentation**.
+
+**What exists:**
+- Development setup (Docker, tests, migrations)
+- Deployment instructions
+- Code comments
+
+**What's missing:**
+- No `POST /users` documentation
+- No `GET /items/{id}` documentation
+- No endpoint reference at all!
+
+**They rely on:** FastAPI's auto-generated Swagger UI at `/docs`
+
+**Implication for DocZot:**
+- ATM correctly returns 0 topics
+- Gap report shows 100% missing coverage
+- This is a valid, realistic scenario
+- Many projects are in this state
+
+---
+
+## Design Principles Solidified
+
+### 1. Separation of Layers
+- **Surface Graph** = immutable facts from code (what exists)
+- **ITM** = curated plan (what should be documented)
+- **ATM** = discovered reality (what is documented)
+- **Gap Report** = actionable insights (what's missing)
+
+### 2. Deterministic First, LLM Later
+Current implementation uses NO LLM calls:
+- AST for code scanning
+- Rule-based for ITM generation
+- Vector embeddings for semantic matching
+
+LLM reserved for quality scoring (future enhancement).
+
+### 3. Type-First Information Architecture
+Content type (Reference, Concept, Task) comes before entity grouping.
+Matches how developers navigate documentation.
+
+### 4. Code-Aware Entity Detection
+URLs alone are insufficient. AST analysis reveals true dependencies.
+
+---
+
+## Visualization Lessons
+
+### Label Truncation
+Long endpoint names like `create_password-recovery-html-content` cause overlap.
+Solution: Middle ellipsis (`create_pa..content`) preserves both prefix and suffix.
+
+### Hover-to-Highlight UX
+When hovering ITM topics, dim non-covered nodes and highlight covered ones.
+Visual feedback makes coverage immediately understandable.
+
+### Hint Bar Visibility
+Fixed-position hints need:
+- Semi-transparent background
+- High z-index (1000+)
+- Visible text color (not too subtle)
+
+---
+
+## Next Steps
+
+- [ ] Add LLM-powered quality scoring for ATM topics
+- [ ] Consider scanning parent directories for documentation
+- [ ] Add configuration for custom how-to patterns
+- [ ] GitHub App integration for PR comments

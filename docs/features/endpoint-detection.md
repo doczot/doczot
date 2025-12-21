@@ -196,6 +196,109 @@ def some_property(self):
 - Use `ast.get_docstring()` to extract docstrings
 - Parse function signature from `FunctionDef.args`
 
+---
+
+## R10: Router Prefix Resolution
+
+**Status:** ✅ Implemented (2025-12-21)
+
+Must resolve full paths by combining router prefixes with endpoint paths.
+
+### Example
+
+```python
+# In app/api/routes/users.py
+router = APIRouter(prefix="/users")
+
+@router.get("/{user_id}")  # Decorator shows "/{user_id}"
+async def get_user(user_id: int): ...
+# Resolved path: /users/{user_id}
+
+# In app/api/main.py
+api_router.include_router(users.router, prefix="/api/v1")
+# Final path: /api/v1/users/{user_id}
+```
+
+### Implementation
+- Track `APIRouter(prefix=...)` declarations
+- Parse `include_router()` calls to build prefix chains
+- Combine prefixes with endpoint decorator paths
+
+---
+
+## R11: Entity Detection from Code
+
+**Status:** ✅ Implemented (2025-12-21)
+
+Extract entity references from endpoint function bodies, not just URL paths.
+
+### Why This Matters
+
+URLs alone miss many entity relationships:
+```python
+@router.post("/password-recovery/{email}")
+async def recover_password(email: str):
+    user = crud.get_user_by_email(session, email)  # Operates on USER!
+    ...
+```
+
+The URL suggests "password-recovery" as an entity, but the code shows it operates on `user`.
+
+### Detection Methods
+
+1. **Variable Assignments**
+   ```python
+   user = crud.get_user_by_email(...)  # → "user" entity
+   item = session.get(Item, id)        # → "item" entity
+   ```
+
+2. **CRUD Function Calls**
+   ```python
+   crud.create_item(...)               # → "item" entity
+   crud.update_user(...)               # → "user" entity
+   ```
+
+3. **Type Hints**
+   ```python
+   def create(user: UserCreate)        # → "user" entity
+   def get() -> ItemPublic             # → "item" entity
+   ```
+
+4. **Response Models**
+   ```python
+   @router.get("/", response_model=User)  # → "user" entity
+   ```
+
+### Filtering
+
+Skip infrastructure types to keep only domain entities:
+- Skip: `Session`, `HTTPException`, `Request`, `Response`, `Depends`
+- Skip compound types: `UserCreate`, `ItemUpdate` (extract base: `user`, `item`)
+- Skip action words: `login`, `verify`, `token`, `health`
+
+### Output
+
+The `Endpoint` model includes:
+```python
+class Endpoint(BaseModel):
+    # ... existing fields ...
+    entity_references: List[str] = []  # ["user", "item", ...]
+```
+
+### Example Output
+
+```python
+Endpoint(
+    method="POST",
+    path="/password-recovery/{email}",
+    function_name="recover_password",
+    entity_references=["user"],  # Detected from crud.get_user_by_email()
+    # ...
+)
+```
+
+---
+
 ## Testing Strategy
 
 - Test each requirement separately

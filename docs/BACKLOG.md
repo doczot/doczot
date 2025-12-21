@@ -49,7 +49,7 @@ Instead of custom data models, adopt an officially recognized format for represe
 ## Scanner Enhancements
 
 ### Resolve Router Prefixes for Accurate Paths
-**Status:** 🔥 Hot
+**Status:** ✅ Accepted (Implemented 2025-12-21)
 **Date Added:** 2025-10-22
 **Category:** Core Functionality, Accuracy
 **Source:** Golden dataset rating session - discovered real endpoints with empty paths
@@ -69,18 +69,16 @@ async def update_current_user(...): ...
 router.include_router(users.router, prefix="/user")  # Real path is /user
 ```
 
-**Solution:**
-- Parse `include_router()` calls to build prefix mapping
-- Resolve full paths by combining router prefix + decorator path
-- Handle nested routers (prefix chains)
+**Solution Implemented:**
+- Track `APIRouter(prefix=...)` declarations in scanner.py
+- Combine router prefix with endpoint decorator path
+- See `docs/features/endpoint-detection.md` R10 for details
 
-**Impact:** HIGH - Affects path matching between endpoints and documentation
-
-**Next Steps:**
-- [ ] Add router prefix tracking to scanner.py
-- [ ] Parse include_router() calls in main app file
-- [ ] Update Endpoint model to include resolved_path
-- [ ] Add tests for nested router scenarios
+**Completed:**
+- [x] Add router prefix tracking to scanner.py
+- [x] Parse APIRouter prefix declarations
+- [x] Combine prefixes with endpoint paths
+- [x] Update documentation
 
 ---
 
