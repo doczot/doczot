@@ -442,7 +442,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .container {{ display: flex; height: 100vh; width: 100vw; }}
         #graph {{ flex: 1; min-width: 400px; height: 100vh; background: #1e293b; position: relative; overflow: hidden; }}
         #graph svg {{ width: 100%; height: 100%; }}
-        .graph-hint {{ position: fixed; bottom: 10px; left: 10px; font-size: 0.75rem; color: #64748b; pointer-events: none; z-index: 100; }}
+        .graph-hint {{ position: fixed; bottom: 15px; left: 15px; font-size: 0.8rem; color: #e2e8f0; background: rgba(30, 41, 59, 0.9); padding: 8px 14px; border-radius: 6px; border: 1px solid #334155; pointer-events: none; z-index: 1000; }}
         .node {{ cursor: pointer; }}
         .node rect, .node ellipse {{ stroke-width: 3; }}
         .node text {{ font-size: 12px; font-weight: 500; pointer-events: none; }}

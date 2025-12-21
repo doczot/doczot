@@ -657,11 +657,14 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
     if len(auth_verbs) >= 2:
         howto_id = next_id()
         howto_ids.append(howto_id)
+        # Auth flows operate on users, so include user noun if present
+        user_noun = next((n for n in surface.nouns if n.name == 'user'), None)
+        auth_covers = ([user_noun.id] if user_noun else []) + auth_verbs
         topics.append(Topic(
             id=howto_id,
             name="How to authenticate",
             topic_type=TopicType.TASK,
-            covers=auth_verbs,
+            covers=auth_covers,
             parent_id=task_id,
             auto_generated=True,
         ))
