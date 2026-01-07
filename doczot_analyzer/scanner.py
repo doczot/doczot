@@ -304,6 +304,9 @@ def _extract_endpoint_from_function(
             entity_refs.update(_extract_entities_from_body(func_node))
             entity_refs.update(_extract_entities_from_types(func_node, response_model))
 
+            # v3: Extract constraints from decorators and dependencies
+            constraints = _extract_constraints(func_node)
+
             return Endpoint(
                 method=method,
                 path=path,
@@ -318,6 +321,7 @@ def _extract_endpoint_from_function(
                 is_async=is_async,
                 semantic_signature=semantic_signature,
                 entity_references=sorted(entity_refs),
+                constraints=constraints,
             )
 
     return None
@@ -387,6 +391,83 @@ def _parse_fastapi_decorator(decorator: ast.expr) -> Optional[tuple]:
                 is_deprecated = bool(keyword.value.value)
 
     return (method, path, response_model, is_deprecated, base_name)
+
+
+def _extract_constraints(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[dict]:
+    """Extract constraint information from decorators and dependencies.
+
+    Detects:
+    - Rate limits: @limiter.limit("100/hour"), @ratelimit.limits(...)
+    - Auth: @requires_auth, @authenticated, @login_required
+    - Dependencies: Depends(get_current_user), Depends(require_admin)
+    - Permissions: @permission_required(...), @role_required(...)
+
+    Args:
+        func_node: AST function definition node
+
+    Returns:
+        List of constraint dictionaries with 'type' and 'value' keys
+    """
+    constraints = []
+
+    for decorator in func_node.decorator_list:
+        # Pattern 1: @limiter.limit("X/timeunit") or @ratelimit.limits(...)
+        if isinstance(decorator, ast.Call):
+            if isinstance(decorator.func, ast.Attribute):
+                if decorator.func.attr in ("limit", "limits"):
+                    if decorator.args and isinstance(decorator.args[0], ast.Constant):
+                        constraints.append({
+                            "type": "rate_limit",
+                            "value": decorator.args[0].value,
+                        })
+
+            # Pattern 3: @permission_required("admin") or @role_required(...)
+            if isinstance(decorator.func, ast.Name):
+                if decorator.func.id in ("permission_required", "role_required"):
+                    if decorator.args and isinstance(decorator.args[0], ast.Constant):
+                        constraints.append({
+                            "type": "permission",
+                            "value": decorator.args[0].value,
+                        })
+
+        # Pattern 2: @requires_auth, @authenticated, etc. (simple decorators)
+        if isinstance(decorator, ast.Name):
+            auth_decorators = {
+                "requires_auth", "authenticated", "login_required",
+                "require_auth", "auth_required"
+            }
+            if decorator.id in auth_decorators:
+                constraints.append({
+                    "type": "auth_required",
+                    "value": True,
+                })
+
+    # Pattern 4: Depends(get_current_user) in function parameters
+    # Look for Annotated[Type, Depends(...)] pattern
+    for arg in func_node.args.args:
+        if arg.annotation:
+            # Check for Depends() in type annotation
+            if isinstance(arg.annotation, ast.Subscript):
+                # Could be Annotated[X, Depends(...)]
+                if isinstance(arg.annotation.value, ast.Name):
+                    if arg.annotation.value.id == "Annotated":
+                        # Check the slice (second part of Annotated)
+                        if isinstance(arg.annotation.slice, ast.Tuple):
+                            for elt in arg.annotation.slice.elts[1:]:  # Skip first element (type)
+                                if isinstance(elt, ast.Call):
+                                    if isinstance(elt.func, ast.Name):
+                                        if elt.func.id == "Depends":
+                                            # Extract dependency name
+                                            if elt.args and isinstance(elt.args[0], ast.Name):
+                                                dep_name = elt.args[0].id
+                                                # Common auth dependency patterns
+                                                if any(kw in dep_name.lower() for kw in ['user', 'auth', 'admin']):
+                                                    constraints.append({
+                                                        "type": "auth_required",
+                                                        "value": dep_name,
+                                                    })
+
+    return constraints
 
 
 def _extract_parameters(

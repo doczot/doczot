@@ -74,6 +74,115 @@ HTTP_METHOD_TO_VERB = {
 # SURFACE GRAPH BUILDING
 # =============================================================================
 
+def detect_part_of_relationships(
+    endpoints: list,
+    all_nouns: set[str]
+) -> list[tuple[str, str]]:
+    """Detect part_of relationships from nested URL paths.
+
+    Example: /users/{user_id}/projects/{project_id}
+    Result: (project, user) - projects are part_of users
+
+    Args:
+        endpoints: List of endpoint objects
+        all_nouns: Set of all noun names in the graph
+
+    Returns:
+        List of (child_noun, parent_noun) tuples
+    """
+    relationships = []
+    seen = set()
+
+    for ep in endpoints:
+        path = ep.path
+        # Strip API version prefixes
+        path = re.sub(r'/api/v\d+', '', path)
+        path = re.sub(r'/v\d+', '', path)
+
+        segments = [s for s in path.split('/') if s and not s.startswith('{')]
+
+        # Look for nested resource patterns
+        for i in range(len(segments) - 1):
+            # Check if there's a path param between segments
+            path_parts = path.split('/')
+            try:
+                parent_idx = path_parts.index(segments[i])
+                child_idx = path_parts.index(segments[i + 1])
+
+                # If there's a {id} between parent and child
+                if child_idx - parent_idx == 2:
+                    parent = segments[i].rstrip('s')  # Singularize
+                    child = segments[i + 1].rstrip('s')
+
+                    if parent in all_nouns and child in all_nouns:
+                        rel = (child, parent)
+                        if rel not in seen:
+                            relationships.append(rel)
+                            seen.add(rel)
+            except ValueError:
+                # Segment not found in path_parts
+                continue
+
+    return relationships
+
+
+def detect_prerequisite_relationships(
+    nodes: list[SurfaceNode],
+    edges: list[SurfaceEdge]
+) -> list[tuple[str, str]]:
+    """Detect prerequisite relationships.
+
+    Auth-protected endpoints require login/token endpoints as prerequisites.
+
+    Args:
+        nodes: List of all surface nodes
+        edges: List of all edges
+
+    Returns:
+        List of (source_verb_id, target_verb_id) tuples for prerequisites
+    """
+    prerequisites = []
+
+    # Find auth endpoints (login, token, signup)
+    auth_paths = ['login', 'token', 'access-token', 'signup', 'register']
+    auth_verb_ids = [
+        n.id for n in nodes
+        if n.type == NodeType.VERB and n.http_path and
+        any(kw in n.http_path.lower() for kw in auth_paths)
+    ]
+
+    if not auth_verb_ids:
+        return prerequisites
+
+    # Find constrained_by edges that point to auth constraints
+    auth_constraint_ids = {
+        e.target_id for e in edges
+        if e.edge_type == EdgeType.CONSTRAINED_BY
+    }
+
+    auth_constraints = [
+        n for n in nodes
+        if n.id in auth_constraint_ids and
+        n.type == NodeType.CONSTRAINT and
+        'auth' in n.name.lower()
+    ]
+
+    # Find verbs constrained by auth
+    auth_constrained_verbs = set()
+    for constraint in auth_constraints:
+        for edge in edges:
+            if edge.target_id == constraint.id and edge.edge_type == EdgeType.CONSTRAINED_BY:
+                auth_constrained_verbs.add(edge.source_id)
+
+    # Create prerequisite: protected_endpoint → login_endpoint
+    primary_auth = auth_verb_ids[0]  # Use first auth endpoint found
+    for verb_id in auth_constrained_verbs:
+        if verb_id not in auth_verb_ids:  # Don't make auth depend on itself
+            prerequisites.append((verb_id, primary_auth))
+
+    return prerequisites
+
+
 def extract_nouns_from_path(path: str) -> list[str]:
     """Extract noun candidates from an API path."""
     nouns = []
@@ -203,6 +312,45 @@ def build_surface_graph(
             )
             edges.append(edge)
 
+    # v3: Create constraint nodes for each endpoint
+    for ep in endpoints:
+        verb_id = f"verb:{ep.method}:{ep.path}"
+
+        for constraint in ep.constraints:
+            constraint_id = f"constraint:{constraint['type']}:{verb_id}"
+
+            # Generate description based on constraint type
+            if constraint['type'] == 'rate_limit':
+                description = f"Rate limited to {constraint['value']}"
+            elif constraint['type'] == 'auth_required':
+                if isinstance(constraint['value'], str):
+                    description = f"Authentication required: {constraint['value']}"
+                else:
+                    description = "Authentication required"
+            elif constraint['type'] == 'permission':
+                description = f"Requires {constraint['value']} permission"
+            else:
+                description = str(constraint.get('value', ''))
+
+            constraint_node = SurfaceNode(
+                id=constraint_id,
+                type=NodeType.CONSTRAINT,
+                name=constraint['type'],
+                description=description,
+                source_file=ep.file_path,
+                source_line=ep.line_number,
+            )
+            nodes.append(constraint_node)
+
+            # Create constrained_by edge
+            edge = SurfaceEdge(
+                source_id=verb_id,
+                target_id=constraint_id,
+                edge_type=EdgeType.CONSTRAINED_BY,
+                confidence=ConfidenceLevel.HIGH,
+            )
+            edges.append(edge)
+
     return SurfaceGraph(
         product_name=product_name,
         source_paths=[repo_path],
@@ -215,6 +363,30 @@ def build_surface_graph(
 # ATM DISCOVERY
 # =============================================================================
 
+def _find_git_root(start_path: str) -> Optional[str]:
+    """Find the git repository root by looking for .git directory.
+
+    Args:
+        start_path: Directory to start searching from
+
+    Returns:
+        Absolute path to git root, or None if not in a git repo
+    """
+    current = Path(start_path).resolve()
+
+    # Search up to 10 levels to avoid infinite loops
+    for _ in range(10):
+        if (current / '.git').exists():
+            return str(current)
+
+        parent = current.parent
+        if parent == current:  # Reached filesystem root
+            break
+        current = parent
+
+    return None
+
+
 def discover_atm(
     repo_path: str,
     surface: SurfaceGraph,
@@ -222,11 +394,37 @@ def discover_atm(
     """Discover actual topics from existing documentation.
 
     Parses markdown files and matches content to surface elements.
+    Searches in the scanned directory and parent directories (up to git root).
     """
     repo_path = str(Path(repo_path).resolve())
 
-    # Find and parse docs
-    md_files = find_markdown_files(repo_path)
+    # Find git root for expanded search
+    git_root = _find_git_root(repo_path)
+
+    # Search for markdown files in:
+    # 1. The scanned directory
+    # 2. Parent directories up to git root
+    search_paths = [repo_path]
+    if git_root and git_root != repo_path:
+        current = Path(repo_path).parent
+        while current >= Path(git_root):
+            search_paths.append(str(current))
+            if current == Path(git_root):
+                break
+            current = current.parent
+
+    # Collect all markdown files from all search paths
+    md_files = []
+    seen_files = set()
+    for search_path in search_paths:
+        for md_file in find_markdown_files(search_path):
+            # Dedupe by absolute path
+            abs_path = str(Path(md_file).resolve())
+            if abs_path not in seen_files:
+                seen_files.add(abs_path)
+                md_files.append(md_file)
+
+    # Parse doc references from scanned directory only
     doc_references = scan_documentation(repo_path)
 
     # Build vector store for matching

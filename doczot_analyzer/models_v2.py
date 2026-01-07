@@ -61,9 +61,10 @@ except ImportError:
 
 class NodeType(str, Enum):
     """Types of nodes in the product surface graph."""
-    NOUN = "noun"       # Entities: User, Project, Invoice
-    VERB = "verb"       # Actions: create, delete, configure
-    CONCEPT = "concept" # Ideas: authentication, rate limiting
+    NOUN = "noun"           # Entities: User, Project, Invoice
+    VERB = "verb"           # Actions: create, delete, configure
+    CONCEPT = "concept"     # Ideas: authentication, rate limiting
+    CONSTRAINT = "constraint"  # Permissions, rate limits, prerequisites
 
 
 class NodeClass(str, Enum):
@@ -76,10 +77,11 @@ class NodeClass(str, Enum):
 
 class EdgeType(str, Enum):
     """Types of relationships between surface nodes."""
-    OPERATES_ON = "operates_on"     # verb -> noun
-    PART_OF = "part_of"             # noun -> noun
-    RELATED_TO = "related_to"       # any -> any
-    PREREQUISITE = "prerequisite"   # concept -> concept
+    OPERATES_ON = "operates_on"         # verb -> noun
+    PART_OF = "part_of"                 # noun -> noun
+    RELATED_TO = "related_to"           # any -> any
+    PREREQUISITE = "prerequisite"       # concept -> concept, verb -> verb
+    CONSTRAINED_BY = "constrained_by"   # verb -> constraint
 
 
 class TopicType(str, Enum):
@@ -190,6 +192,10 @@ class SurfaceGraph(BaseModel):
     def concepts(self) -> list[SurfaceNode]:
         return self.nodes_by_type(NodeType.CONCEPT)
 
+    @property
+    def constraints(self) -> list[SurfaceNode]:
+        return self.nodes_by_type(NodeType.CONSTRAINT)
+
     def verbs_for_noun(self, noun_id: str) -> list[SurfaceNode]:
         """Get all verbs that operate on a noun."""
         verb_ids = [
@@ -283,8 +289,19 @@ class TopicQuality(BaseModel):
     has_use_cases: bool = False
     has_examples: bool = False
 
-    # Overall score
+    # Constraint coverage (v3)
+    has_auth_requirements: Literal["yes", "partial", "no"] = "no"
+    has_rate_limits: Literal["yes", "partial", "no"] = "no"
+    has_prerequisites: Literal["yes", "partial", "no"] = "no"
+
+    # Agent navigability (v3)
+    has_machine_readable_spec: bool = False
+    terminology_consistent: bool = False
+
+    # Overall scores
     coverage_score: float = 0.0  # 0.0 - 1.0
+    constraint_score: float = 0.0  # 0.0 - 1.0 (v3)
+    agent_readiness_score: float = 0.0  # 0.0 - 1.0 (v3)
 
 
 class TopicManifest(BaseModel):

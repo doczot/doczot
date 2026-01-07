@@ -73,6 +73,7 @@ class Endpoint(BaseModel):
     confidence_score: Optional[float] = None
     matched_doc_chunk: Optional[str] = None  # The actual documentation text that was matched
     entity_references: List[str] = Field(default_factory=list)  # Entities detected from code analysis
+    constraints: List[dict] = Field(default_factory=list)  # v3: Constraints extracted from decorators
 
     def __str__(self) -> str:
         """String representation of endpoint."""

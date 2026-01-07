@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Optional
 
 from doczot_analyzer.manifest import TopicManifest
+from doczot_analyzer.models_v2 import SurfaceGraph, SurfaceNode, SurfaceEdge, NodeType, EdgeType, ConfidenceLevel
 
 
 DEFAULT_DB_PATH = ".doczot/manifests.db"
@@ -66,6 +67,64 @@ class ManifestStore:
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_generated_at
                 ON manifests(generated_at)
+            """)
+
+            # v3: Surface Graph persistence tables
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS scans (
+                    id TEXT PRIMARY KEY,
+                    product_name TEXT NOT NULL,
+                    scanned_at TEXT NOT NULL,
+                    source_paths TEXT NOT NULL,
+                    node_count INTEGER,
+                    edge_count INTEGER,
+                    metadata TEXT
+                )
+            """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS surface_nodes (
+                    id TEXT PRIMARY KEY,
+                    scan_id TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    node_class TEXT DEFAULT 'user-facing',
+                    source_file TEXT,
+                    source_line INTEGER,
+                    code_signature TEXT,
+                    http_method TEXT,
+                    http_path TEXT,
+                    FOREIGN KEY (scan_id) REFERENCES scans(id) ON DELETE CASCADE
+                )
+            """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS surface_edges (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    scan_id TEXT NOT NULL,
+                    source_id TEXT NOT NULL,
+                    target_id TEXT NOT NULL,
+                    edge_type TEXT NOT NULL,
+                    confidence TEXT DEFAULT 'medium',
+                    FOREIGN KEY (scan_id) REFERENCES scans(id) ON DELETE CASCADE
+                )
+            """)
+
+            # Indexes for Surface Graph queries
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_scan_id
+                ON surface_nodes(scan_id)
+            """)
+
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_node_type
+                ON surface_nodes(type)
+            """)
+
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_edge_scan
+                ON surface_edges(scan_id)
             """)
 
             conn.commit()
@@ -275,3 +334,217 @@ class ManifestStore:
             """, (product_name,))
             conn.commit()
             return cursor.rowcount
+
+    # v3: Surface Graph persistence methods
+
+    def save_surface_graph(self, surface: SurfaceGraph) -> str:
+        """Save a Surface Graph to the database.
+
+        Args:
+            surface: The SurfaceGraph to save
+
+        Returns:
+            The scan_id for reference
+        """
+        scan_id = f"{surface.product_name}:{surface.scanned_at.isoformat()}"
+
+        with sqlite3.connect(self.db_path) as conn:
+            # Save scan metadata
+            conn.execute("""
+                INSERT OR REPLACE INTO scans
+                (id, product_name, scanned_at, source_paths, node_count, edge_count, metadata)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                scan_id,
+                surface.product_name,
+                surface.scanned_at.isoformat(),
+                json.dumps(surface.source_paths),
+                len(surface.nodes),
+                len(surface.edges),
+                json.dumps({"version": surface.version} if surface.version else {}),
+            ))
+
+            # Delete existing nodes and edges for this scan (if replacing)
+            conn.execute("DELETE FROM surface_nodes WHERE scan_id = ?", (scan_id,))
+            conn.execute("DELETE FROM surface_edges WHERE scan_id = ?", (scan_id,))
+
+            # Save nodes
+            for node in surface.nodes:
+                conn.execute("""
+                    INSERT INTO surface_nodes
+                    (id, scan_id, type, name, description, node_class, source_file,
+                     source_line, code_signature, http_method, http_path)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    node.id,
+                    scan_id,
+                    node.type.value,
+                    node.name,
+                    node.description,
+                    node.node_class.value,
+                    node.source_file,
+                    node.source_line,
+                    node.code_signature,
+                    node.http_method,
+                    node.http_path,
+                ))
+
+            # Save edges
+            for edge in surface.edges:
+                conn.execute("""
+                    INSERT INTO surface_edges
+                    (scan_id, source_id, target_id, edge_type, confidence)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    scan_id,
+                    edge.source_id,
+                    edge.target_id,
+                    edge.edge_type.value,
+                    edge.confidence.value,
+                ))
+
+            conn.commit()
+
+        return scan_id
+
+    def load_surface_graph(
+        self,
+        product_name: str,
+        scan_id: Optional[str] = None
+    ) -> Optional[SurfaceGraph]:
+        """Load a Surface Graph from the database.
+
+        Args:
+            product_name: Name of the product
+            scan_id: Optional specific scan ID. If None, loads latest.
+
+        Returns:
+            The SurfaceGraph if found, None otherwise
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            # Get scan metadata
+            if scan_id:
+                cursor = conn.execute("""
+                    SELECT id, product_name, scanned_at, source_paths, metadata
+                    FROM scans
+                    WHERE id = ?
+                """, (scan_id,))
+            else:
+                cursor = conn.execute("""
+                    SELECT id, product_name, scanned_at, source_paths, metadata
+                    FROM scans
+                    WHERE product_name = ?
+                    ORDER BY scanned_at DESC
+                    LIMIT 1
+                """, (product_name,))
+
+            scan_row = cursor.fetchone()
+            if not scan_row:
+                return None
+
+            scan_id = scan_row[0]
+            product_name = scan_row[1]
+            scanned_at = datetime.fromisoformat(scan_row[2])
+            source_paths = json.loads(scan_row[3])
+            metadata = json.loads(scan_row[4]) if scan_row[4] else {}
+
+            # Load nodes
+            cursor = conn.execute("""
+                SELECT id, type, name, description, node_class, source_file,
+                       source_line, code_signature, http_method, http_path
+                FROM surface_nodes
+                WHERE scan_id = ?
+            """, (scan_id,))
+
+            nodes = []
+            for row in cursor.fetchall():
+                node = SurfaceNode(
+                    id=row[0],
+                    type=NodeType(row[1]),
+                    name=row[2],
+                    description=row[3],
+                    node_class=row[4],
+                    source_file=row[5],
+                    source_line=row[6],
+                    code_signature=row[7],
+                    http_method=row[8],
+                    http_path=row[9],
+                )
+                nodes.append(node)
+
+            # Load edges
+            cursor = conn.execute("""
+                SELECT source_id, target_id, edge_type, confidence
+                FROM surface_edges
+                WHERE scan_id = ?
+            """, (scan_id,))
+
+            edges = []
+            for row in cursor.fetchall():
+                edge = SurfaceEdge(
+                    source_id=row[0],
+                    target_id=row[1],
+                    edge_type=EdgeType(row[2]),
+                    confidence=ConfidenceLevel(row[3]),
+                )
+                edges.append(edge)
+
+            return SurfaceGraph(
+                product_name=product_name,
+                version=metadata.get("version"),
+                scanned_at=scanned_at,
+                source_paths=source_paths,
+                nodes=nodes,
+                edges=edges,
+            )
+
+    def list_scans(self, product_name: Optional[str] = None) -> list[dict]:
+        """List available scans.
+
+        Args:
+            product_name: Optional filter by product name
+
+        Returns:
+            List of scan summaries
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            if product_name:
+                cursor = conn.execute("""
+                    SELECT id, product_name, scanned_at, node_count, edge_count
+                    FROM scans
+                    WHERE product_name = ?
+                    ORDER BY scanned_at DESC
+                """, (product_name,))
+            else:
+                cursor = conn.execute("""
+                    SELECT id, product_name, scanned_at, node_count, edge_count
+                    FROM scans
+                    ORDER BY scanned_at DESC
+                """)
+
+            return [
+                {
+                    "scan_id": row[0],
+                    "product_name": row[1],
+                    "scanned_at": row[2],
+                    "node_count": row[3],
+                    "edge_count": row[4],
+                }
+                for row in cursor.fetchall()
+            ]
+
+    def delete_scan(self, scan_id: str) -> bool:
+        """Delete a scan and all its nodes/edges.
+
+        Args:
+            scan_id: The scan ID to delete
+
+        Returns:
+            True if deleted, False if not found
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute("""
+                DELETE FROM scans WHERE id = ?
+            """, (scan_id,))
+            conn.commit()
+            return cursor.rowcount > 0
