@@ -1,0 +1,74 @@
+{
+  "surface_id": "doc-detective",
+  "itm_id": "doc-detective:2026-01-07T15:32:55.941676",
+  "atm_id": "doc-detective:2026-01-07T15:32:55.941676",
+  "generated_at": "2026-01-07 15:32:57.685753",
+  "product_name": "doc-detective",
+  "gaps": [
+    {
+      "itm_topic_id": "topic_4",
+      "itm_topic_name": "Doc-Detective",
+      "atm_topic_id": "atm_topic_1",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_3",
+      "itm_topic_name": "General",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: General",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_2",
+      "itm_topic_name": "API",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: API",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_1",
+      "itm_topic_name": "Reference",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Reference",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_6",
+      "itm_topic_name": "Entity",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Entity",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_5",
+      "itm_topic_name": "Concept",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Concept",
+      "priority": 0
+    }
+  ],
+  "extra_topics": []
+}

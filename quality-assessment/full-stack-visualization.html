@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DocZot - full-stack-fastapi-template</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+        .container { display: flex; height: 100vh; width: 100vw; }
+        #graph { flex: 1; min-width: 400px; height: 100vh; background: #1e293b; position: relative; overflow: hidden; }
+        #graph svg { width: 100%; height: 100%; }
+        .graph-hint { position: fixed; bottom: 15px; left: 15px; font-size: 0.8rem; color: #e2e8f0; background: rgba(30, 41, 59, 0.9); padding: 8px 14px; border-radius: 6px; border: 1px solid #334155; pointer-events: none; z-index: 1000; }
+        .node { cursor: pointer; }
+        .node rect, .node ellipse { stroke-width: 3; }
+        .node text { font-size: 12px; font-weight: 500; pointer-events: none; }
+        .node:hover rect, .node:hover ellipse { stroke: #fbbf24; stroke-width: 4; }
+        .edge { stroke: #64748b; stroke-width: 2; fill: none; }
+        .edge-arrow { fill: #64748b; }
+        .sidebar { width: 400px; background: #1e293b; border-left: 2px solid #3b82f6; overflow-y: auto; }
+        .panel { padding: 20px; border-bottom: 1px solid #334155; }
+        h1 { font-size: 1.4rem; color: #3b82f6; margin-bottom: 15px; }
+        h2 { font-size: 1.1rem; color: #60a5fa; margin: 15px 0 10px 0; }
+        h3 { font-size: 0.95rem; color: #93c5fd; margin: 10px 0 5px 0; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat { background: #334155; padding: 12px; border-radius: 8px; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: #3b82f6; }
+        .stat-label { font-size: 0.8rem; color: #94a3b8; }
+        .coverage-bar { height: 8px; background: #334155; border-radius: 4px; margin-top: 10px; }
+        .coverage-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e); }
+        .tabs { display: flex; border-bottom: 1px solid #334155; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: #94a3b8; }
+        .tab:hover { background: #334155; }
+        .tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+        .tab-content { display: none; padding: 15px; }
+        .tab-content.active { display: block; }
+        .topic-item { background: #334155; padding: 10px; border-radius: 6px; margin: 8px 0; }
+        .topic-name { font-weight: 500; }
+        .topic-meta { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+        .gap-item { padding: 10px; border-left: 3px solid; margin: 8px 0; background: #334155; }
+        .gap-missing { border-color: #ef4444; }
+        .gap-partial { border-color: #f59e0b; }
+        .gap-complete { border-color: #22c55e; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+        .badge-missing { background: #ef4444; }
+        .badge-partial { background: #f59e0b; color: #000; }
+        .badge-complete { background: #22c55e; color: #000; }
+        .badge-extra { background: #8b5cf6; }
+        .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .legend-item { display: flex; align-items: center; font-size: 0.85rem; }
+        .legend-color { width: 16px; height: 16px; border-radius: 4px; margin-right: 6px; }
+        #details { display: none; }
+        #details.visible { display: block; }
+        .detail-row { margin: 5px 0; }
+        .detail-label { color: #94a3b8; }
+        .surface-item { background: #334155; padding: 8px 10px; border-radius: 6px; margin: 6px 0; border-left: 3px solid; cursor: pointer; }
+        .surface-item:hover { background: #3b4a5e; }
+        .surface-item.verb { border-color: #3b82f6; }
+        .surface-item.noun { border-color: #8b5cf6; }
+        .surface-item.covered { opacity: 1; }
+        .surface-item.uncovered { opacity: 0.7; }
+        .surface-item .name { font-weight: 600; font-size: 0.9rem; }
+        .surface-item .signature { font-family: monospace; font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+        .surface-item .source { font-size: 0.7rem; color: #64748b; margin-top: 2px; }
+        .surface-item .coverage-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .surface-item .coverage-dot.covered { background: #22c55e; }
+        .surface-item .coverage-dot.uncovered { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <div id="tooltip" style="display:none; position:fixed; background:#1e293b; border:1px solid #3b82f6; padding:8px 12px; border-radius:6px; font-size:12px; z-index:1000; pointer-events:none; max-width:300px;">
+        <div id="tooltip-name" style="font-weight:600; color:#e2e8f0;"></div>
+        <div id="tooltip-sig" style="color:#94a3b8; font-family:monospace; font-size:11px; margin-top:4px;"></div>
+    </div>
+    <div class="graph-hint">Scroll to zoom · Shift+drag to pan · Hover for details</div>
+    <div class="container">
+        <div id="graph"></div>
+        <div class="sidebar">
+            <div class="panel">
+                <h1>full-stack-fastapi-template</h1>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">15%</div>
+                        <div class="stat-label">Coverage</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">47</div>
+                        <div class="stat-label">Surface Elements</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">54</div>
+                        <div class="stat-label">ITM Topics</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">ATM Topics</div>
+                    </div>
+                </div>
+                <div class="coverage-bar">
+                    <div class="coverage-fill" style="width: 14.8%"></div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('surface')">Surface</div>
+                <div class="tab" onclick="showTab('itm')">ITM</div>
+                <div class="tab" onclick="showTab('atm')">ATM</div>
+                <div class="tab" onclick="showTab('gaps')">Gaps</div>
+            </div>
+
+            <div id="tab-surface" class="tab-content active">
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-color" style="background:#22c55e"></div>Covered</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div>Uncovered</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#3b82f6;border-radius:2px"></div>Verb</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#8b5cf6;border-radius:50%"></div>Noun</div>
+                </div>
+                <div id="details">
+                    <h3 id="detail-name">-</h3>
+                    <div class="detail-row"><span class="detail-label">Type:</span> <span id="detail-type">-</span></div>
+                    <div class="detail-row"><span class="detail-label" id="sig-label">Signature:</span> <span id="detail-sig">-</span></div>
+                    <div class="detail-row"><span class="detail-label" id="source-label">Source:</span> <span id="detail-source">-</span></div>
+                    <div class="detail-row"><span class="detail-label">ITM Topics:</span> <span id="detail-itm">-</span></div>
+                    <div class="detail-row"><span class="detail-label">ATM Topics:</span> <span id="detail-atm">-</span></div>
+                </div>
+                <h3 style="margin-top:20px">Nouns (3)</h3>
+                <div id="noun-list"></div>
+                <h3 style="margin-top:15px">Verbs (23)</h3>
+                <div id="verb-list"></div>
+            </div>
+
+            <div id="tab-itm" class="tab-content">
+                <h3>Intended Topics</h3>
+                <div id="itm-list"></div>
+            </div>
+
+            <div id="tab-atm" class="tab-content">
+                <h3>Actual Topics (from docs)</h3>
+                <div id="atm-list"></div>
+            </div>
+
+            <div id="tab-gaps" class="tab-content">
+                <h3>Sprint Plan</h3>
+                <div class="stats" style="margin-bottom:15px">
+                    <div class="stat"><div class="stat-value" style="color:#22c55e">7</div><div class="stat-label">Complete</div></div>
+                    <div class="stat"><div class="stat-value" style="color:#f59e0b">2</div><div class="stat-label">Partial</div></div>
+                    <div class="stat"><div class="stat-value" style="color:#ef4444">45</div><div class="stat-label">Missing</div></div>
+                    <div class="stat"><div class="stat-value" style="color:#8b5cf6">0</div><div class="stat-label">Extra</div></div>
+                </div>
+                <div id="gaps-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = {"product_name": "full-stack-fastapi-template", "surface": {"nodes": [{"id": "verb:GET:/users/", "name": "get_users", "type": "verb", "signature": "GET /users/", "source": "app/api/routes/users.py:37", "itm_topics": ["List users", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "noun:user", "name": "user", "type": "noun", "signature": "Referenced by 16 endpoints", "source": "get_users, create_users, patch_me, patch_password, get_me (+11 more)", "itm_topics": ["User", "How to authenticate", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/users/", "name": "create_users", "type": "verb", "signature": "POST /users/", "source": "app/api/routes/users.py:54", "itm_topics": ["Create users", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:PATCH:/users/me", "name": "patch_me", "type": "verb", "signature": "PATCH /users/me", "source": "app/api/routes/users.py:79", "itm_topics": ["Update me", "How to manage your account", "How to work with Users"], "atm_topics": ["Release Notes"], "is_covered": true}, {"id": "verb:PATCH:/users/me/password", "name": "patch_password", "type": "verb", "signature": "PATCH /users/me/password", "source": "app/api/routes/users.py:101", "itm_topics": ["Update password", "How to manage your account", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:GET:/users/me", "name": "get_me", "type": "verb", "signature": "GET /users/me", "source": "app/api/routes/users.py:121", "itm_topics": ["List me", "How to manage your account", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:DELETE:/users/me", "name": "delete_me", "type": "verb", "signature": "DELETE /users/me", "source": "app/api/routes/users.py:129", "itm_topics": ["Delete me", "How to manage your account", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/users/signup", "name": "create_signup", "type": "verb", "signature": "POST /users/signup", "source": "app/api/routes/users.py:143", "itm_topics": ["Create signup", "How to authenticate", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:GET:/users/{user_id}", "name": "get_users", "type": "verb", "signature": "GET /users/{user_id}", "source": "app/api/routes/users.py:159", "itm_topics": ["Get users", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:PATCH:/users/{user_id}", "name": "patch_users", "type": "verb", "signature": "PATCH /users/{user_id}", "source": "app/api/routes/users.py:181", "itm_topics": ["Update users", "How to work with Users"], "atm_topics": ["Release Notes"], "is_covered": true}, {"id": "verb:DELETE:/users/{user_id}", "name": "delete_users", "type": "verb", "signature": "DELETE /users/{user_id}", "source": "app/api/routes/users.py:209", "itm_topics": ["Delete users", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/utils/test-email/", "name": "create_test-email", "type": "verb", "signature": "POST /utils/test-email/", "source": "app/api/routes/utils.py:16", "itm_topics": ["Create test-email"], "atm_topics": [], "is_covered": false}, {"id": "noun:util", "name": "util", "type": "noun", "signature": "Referenced by 2 endpoints", "source": "create_test-email, get_health-check", "itm_topics": ["Util"], "atm_topics": [], "is_covered": false}, {"id": "verb:GET:/utils/health-check/", "name": "get_health-check", "type": "verb", "signature": "GET /utils/health-check/", "source": "app/api/routes/utils.py:30", "itm_topics": ["List health-check"], "atm_topics": ["Release Notes"], "is_covered": true}, {"id": "verb:POST:/login/access-token", "name": "create_access-token", "type": "verb", "signature": "POST /login/access-token", "source": "app/api/routes/login.py:25", "itm_topics": ["Create access-token", "How to authenticate", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/login/test-token", "name": "create_test-token", "type": "verb", "signature": "POST /login/test-token", "source": "app/api/routes/login.py:47", "itm_topics": ["Create test-token", "How to authenticate", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/password-recovery/{email}", "name": "create_password-recovery", "type": "verb", "signature": "POST /password-recovery/{email}", "source": "app/api/routes/login.py:55", "itm_topics": ["Create password-recovery", "How to recover your password", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/reset-password/", "name": "create_reset-password", "type": "verb", "signature": "POST /reset-password/", "source": "app/api/routes/login.py:79", "itm_topics": ["Create reset-password", "How to recover your password", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/password-recovery-html-content/{email}", "name": "create_password-recovery-html-content", "type": "verb", "signature": "POST /password-recovery-html-content/{email}", "source": "app/api/routes/login.py:106", "itm_topics": ["Create password-recovery-html-content", "How to recover your password", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "verb:GET:/items/", "name": "get_items", "type": "verb", "signature": "GET /items/", "source": "app/api/routes/items.py:14", "itm_topics": ["List items", "How to work with Items"], "atm_topics": [], "is_covered": false}, {"id": "noun:item", "name": "item", "type": "noun", "signature": "Referenced by 5 endpoints", "source": "get_items, get_items, create_items, update_items, delete_items", "itm_topics": ["Item", "How to work with Items"], "atm_topics": [], "is_covered": false}, {"id": "verb:GET:/items/{id}", "name": "get_items", "type": "verb", "signature": "GET /items/{id}", "source": "app/api/routes/items.py:45", "itm_topics": ["Get items", "How to work with Items"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/items/", "name": "create_items", "type": "verb", "signature": "POST /items/", "source": "app/api/routes/items.py:58", "itm_topics": ["Create items", "How to work with Items"], "atm_topics": [], "is_covered": false}, {"id": "verb:PUT:/items/{id}", "name": "update_items", "type": "verb", "signature": "PUT /items/{id}", "source": "app/api/routes/items.py:72", "itm_topics": ["Update items", "How to work with Items"], "atm_topics": [], "is_covered": false}, {"id": "verb:DELETE:/items/{id}", "name": "delete_items", "type": "verb", "signature": "DELETE /items/{id}", "source": "app/api/routes/items.py:96", "itm_topics": ["Delete items", "How to work with Items"], "atm_topics": [], "is_covered": false}, {"id": "verb:POST:/private/users/", "name": "create_users", "type": "verb", "signature": "POST /private/users/", "source": "app/api/routes/private.py:24", "itm_topics": ["Create users", "How to work with Users"], "atm_topics": [], "is_covered": false}, {"id": "constraint:auth_required:verb:GET:/users/", "name": "auth_required", "type": "constraint", "signature": null, "source": "app/api/routes/users.py:37", "itm_topics": [], "atm_topics": [], "is_covered": false}, {"id": "constraint:auth_required:verb:POST:/users/", "name": "auth_required", "type": "constraint", "signature": null, "source": "app/api/routes/users.py:54", "itm_topics": [], "atm_topics": [], "is_covered": false}, {"id": "constraint:auth_required:verb:PATCH:/users/{user_id}", "name": "auth_required", "type": "constraint", "signature": null, "source": "app/api/routes/users.py:181", "itm_topics": [], "atm_topics": [], "is_covered": false}, {"id": "constraint:auth_required:verb:DELETE:/users/{user_id}", "name": "auth_required", "type": "constraint", "signature": null, "source": "app/api/routes/users.py:209", "itm_topics": [], "atm_topics": [], "is_covered": false}, {"id": "constraint:auth_required:verb:POST:/utils/test-email/", "name": "auth_required", "type": "constraint", "signature": null, "source": "app/api/routes/utils.py:16", "itm_topics": [], "atm_topics": [], "is_covered": false}, {"id": "constraint:auth_required:verb:POST:/password-recovery-html-content/{email}", "name": "auth_required", "type": "constraint", "signature": null, "source": "app/api/routes/login.py:106", "itm_topics": [], "atm_topics": [], "is_covered": false}, {"id": "concept:test", "name": "test", "type": "concept", "signature": null, "source": "app/api/routes/utils.py:16", "itm_topics": ["Test"], "atm_topics": [], "is_covered": false}, {"id": "concept:oauth2", "name": "oauth2", "type": "concept", "signature": null, "source": "app/api/routes/login.py:25", "itm_topics": ["Oauth2"], "atm_topics": [], "is_covered": false}, {"id": "concept:password", "name": "password", "type": "concept", "signature": null, "source": "app/api/routes/login.py:55", "itm_topics": ["Password"], "atm_topics": [], "is_covered": false}, {"id": "concept:recovery", "name": "recovery", "type": "concept", "signature": null, "source": "app/api/routes/login.py:55", "itm_topics": ["Recovery"], "atm_topics": [], "is_covered": false}, {"id": "concept:reset", "name": "reset", "type": "concept", "signature": null, "source": "app/api/routes/login.py:79", "itm_topics": ["Reset"], "atm_topics": [], "is_covered": false}, {"id": "concept:html", "name": "html", "type": "concept", "signature": null, "source": "app/api/routes/login.py:106", "itm_topics": ["Html"], "atm_topics": [], "is_covered": false}, {"id": "concept:content", "name": "content", "type": "concept", "signature": null, "source": "app/api/routes/login.py:106", "itm_topics": ["Content"], "atm_topics": [], "is_covered": false}, {"id": "concept:requirements", "name": "requirements", "type": "concept", "signature": null, "source": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md:0", "itm_topics": ["Requirements"], "atm_topics": [], "is_covered": false}, {"id": "concept:docker compose", "name": "docker compose", "type": "concept", "signature": null, "source": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md:0", "itm_topics": ["Docker Compose"], "atm_topics": ["Development"], "is_covered": true}, {"id": "concept:general workflow", "name": "general workflow", "type": "concept", "signature": null, "source": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md:0", "itm_topics": ["General Workflow"], "atm_topics": [], "is_covered": false}, {"id": "concept:vs code", "name": "vs code", "type": "concept", "signature": null, "source": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md:0", "itm_topics": ["Vs Code"], "atm_topics": [], "is_covered": false}, {"id": "concept:docker compose override", "name": "docker compose override", "type": "concept", "signature": null, "source": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md:0", "itm_topics": ["Docker Compose Override"], "atm_topics": ["Development"], "is_covered": true}, {"id": "concept:backend tests", "name": "backend tests", "type": "concept", "signature": null, "source": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md:0", "itm_topics": ["Backend Tests"], "atm_topics": ["Readme"], "is_covered": true}, {"id": "concept:migrations", "name": "migrations", "type": "concept", "signature": null, "source": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md:0", "itm_topics": ["Migrations"], "atm_topics": [], "is_covered": false}, {"id": "concept:email templates", "name": "email templates", "type": "concept", "signature": null, "source": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md:0", "itm_topics": ["Email Templates"], "atm_topics": ["Readme"], "is_covered": true}], "edges": [{"source": "verb:GET:/users/", "target": "noun:user", "type": "operates_on"}, {"source": "verb:POST:/users/", "target": "noun:user", "type": "operates_on"}, {"source": "verb:PATCH:/users/me", "target": "noun:user", "type": "operates_on"}, {"source": "verb:PATCH:/users/me/password", "target": "noun:user", "type": "operates_on"}, {"source": "verb:GET:/users/me", "target": "noun:user", "type": "operates_on"}, {"source": "verb:DELETE:/users/me", "target": "noun:user", "type": "operates_on"}, {"source": "verb:POST:/users/signup", "target": "noun:user", "type": "operates_on"}, {"source": "verb:GET:/users/{user_id}", "target": "noun:user", "type": "operates_on"}, {"source": "verb:PATCH:/users/{user_id}", "target": "noun:user", "type": "operates_on"}, {"source": "verb:DELETE:/users/{user_id}", "target": "noun:user", "type": "operates_on"}, {"source": "verb:POST:/utils/test-email/", "target": "noun:util", "type": "operates_on"}, {"source": "verb:GET:/utils/health-check/", "target": "noun:util", "type": "operates_on"}, {"source": "verb:POST:/login/access-token", "target": "noun:user", "type": "operates_on"}, {"source": "verb:POST:/login/test-token", "target": "noun:user", "type": "operates_on"}, {"source": "verb:POST:/password-recovery/{email}", "target": "noun:user", "type": "operates_on"}, {"source": "verb:POST:/reset-password/", "target": "noun:user", "type": "operates_on"}, {"source": "verb:POST:/password-recovery-html-content/{email}", "target": "noun:user", "type": "operates_on"}, {"source": "verb:GET:/items/", "target": "noun:item", "type": "operates_on"}, {"source": "verb:GET:/items/{id}", "target": "noun:item", "type": "operates_on"}, {"source": "verb:POST:/items/", "target": "noun:item", "type": "operates_on"}, {"source": "verb:PUT:/items/{id}", "target": "noun:item", "type": "operates_on"}, {"source": "verb:DELETE:/items/{id}", "target": "noun:item", "type": "operates_on"}, {"source": "verb:POST:/private/users/", "target": "noun:user", "type": "operates_on"}, {"source": "verb:GET:/users/", "target": "constraint:auth_required:verb:GET:/users/", "type": "constrained_by"}, {"source": "verb:POST:/users/", "target": "constraint:auth_required:verb:POST:/users/", "type": "constrained_by"}, {"source": "verb:PATCH:/users/{user_id}", "target": "constraint:auth_required:verb:PATCH:/users/{user_id}", "type": "constrained_by"}, {"source": "verb:DELETE:/users/{user_id}", "target": "constraint:auth_required:verb:DELETE:/users/{user_id}", "type": "constrained_by"}, {"source": "verb:POST:/utils/test-email/", "target": "constraint:auth_required:verb:POST:/utils/test-email/", "type": "constrained_by"}, {"source": "verb:POST:/password-recovery-html-content/{email}", "target": "constraint:auth_required:verb:POST:/password-recovery-html-content/{email}", "type": "constrained_by"}, {"source": "verb:POST:/password-recovery-html-content/{email}", "target": "verb:POST:/users/signup", "type": "prerequisite"}, {"source": "verb:DELETE:/users/{user_id}", "target": "verb:POST:/users/signup", "type": "prerequisite"}, {"source": "verb:POST:/utils/test-email/", "target": "verb:POST:/users/signup", "type": "prerequisite"}, {"source": "verb:GET:/users/", "target": "verb:POST:/users/signup", "type": "prerequisite"}, {"source": "verb:POST:/users/", "target": "verb:POST:/users/signup", "type": "prerequisite"}, {"source": "verb:PATCH:/users/{user_id}", "target": "verb:POST:/users/signup", "type": "prerequisite"}]}, "itm": [{"id": "topic_4", "name": "List users", "type": "reference", "covers": ["verb:GET:/users/"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_5", "name": "Create users", "type": "reference", "covers": ["verb:POST:/users/"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_6", "name": "Update me", "type": "reference", "covers": ["verb:PATCH:/users/me"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_7", "name": "Update password", "type": "reference", "covers": ["verb:PATCH:/users/me/password"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_8", "name": "List me", "type": "reference", "covers": ["verb:GET:/users/me"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_9", "name": "Delete me", "type": "reference", "covers": ["verb:DELETE:/users/me"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_10", "name": "Create signup", "type": "reference", "covers": ["verb:POST:/users/signup"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_11", "name": "Get users", "type": "reference", "covers": ["verb:GET:/users/{user_id}"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_12", "name": "Update users", "type": "reference", "covers": ["verb:PATCH:/users/{user_id}"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_13", "name": "Delete users", "type": "reference", "covers": ["verb:DELETE:/users/{user_id}"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_14", "name": "Create access-token", "type": "reference", "covers": ["verb:POST:/login/access-token"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_15", "name": "Create test-token", "type": "reference", "covers": ["verb:POST:/login/test-token"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_16", "name": "Create password-recovery", "type": "reference", "covers": ["verb:POST:/password-recovery/{email}"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_17", "name": "Create reset-password", "type": "reference", "covers": ["verb:POST:/reset-password/"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_18", "name": "Create password-recovery-html-content", "type": "reference", "covers": ["verb:POST:/password-recovery-html-content/{email}"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_19", "name": "Create users", "type": "reference", "covers": ["verb:POST:/private/users/"], "parent_id": "topic_3", "children": [], "auto_generated": true}, {"id": "topic_3", "name": "User", "type": "reference", "covers": [], "parent_id": "topic_2", "children": ["topic_4", "topic_5", "topic_6", "topic_7", "topic_8", "topic_9", "topic_10", "topic_11", "topic_12", "topic_13", "topic_14", "topic_15", "topic_16", "topic_17", "topic_18", "topic_19"], "auto_generated": true}, {"id": "topic_21", "name": "Create test-email", "type": "reference", "covers": ["verb:POST:/utils/test-email/"], "parent_id": "topic_20", "children": [], "auto_generated": true}, {"id": "topic_22", "name": "List health-check", "type": "reference", "covers": ["verb:GET:/utils/health-check/"], "parent_id": "topic_20", "children": [], "auto_generated": true}, {"id": "topic_20", "name": "Util", "type": "reference", "covers": [], "parent_id": "topic_2", "children": ["topic_21", "topic_22"], "auto_generated": true}, {"id": "topic_24", "name": "List items", "type": "reference", "covers": ["verb:GET:/items/"], "parent_id": "topic_23", "children": [], "auto_generated": true}, {"id": "topic_25", "name": "Get items", "type": "reference", "covers": ["verb:GET:/items/{id}"], "parent_id": "topic_23", "children": [], "auto_generated": true}, {"id": "topic_26", "name": "Create items", "type": "reference", "covers": ["verb:POST:/items/"], "parent_id": "topic_23", "children": [], "auto_generated": true}, {"id": "topic_27", "name": "Update items", "type": "reference", "covers": ["verb:PUT:/items/{id}"], "parent_id": "topic_23", "children": [], "auto_generated": true}, {"id": "topic_28", "name": "Delete items", "type": "reference", "covers": ["verb:DELETE:/items/{id}"], "parent_id": "topic_23", "children": [], "auto_generated": true}, {"id": "topic_23", "name": "Item", "type": "reference", "covers": [], "parent_id": "topic_2", "children": ["topic_24", "topic_25", "topic_26", "topic_27", "topic_28"], "auto_generated": true}, {"id": "topic_2", "name": "API", "type": "reference", "covers": [], "parent_id": "topic_1", "children": ["topic_3", "topic_20", "topic_23"], "auto_generated": true}, {"id": "topic_1", "name": "Reference", "type": "reference", "covers": [], "parent_id": null, "children": ["topic_2"], "auto_generated": true}, {"id": "topic_31", "name": "User", "type": "concept", "covers": ["noun:user"], "parent_id": "topic_30", "children": [], "auto_generated": true}, {"id": "topic_32", "name": "Util", "type": "concept", "covers": ["noun:util"], "parent_id": "topic_30", "children": [], "auto_generated": true}, {"id": "topic_33", "name": "Item", "type": "concept", "covers": ["noun:item"], "parent_id": "topic_30", "children": [], "auto_generated": true}, {"id": "topic_30", "name": "Entity", "type": "concept", "covers": [], "parent_id": "topic_29", "children": ["topic_31", "topic_32", "topic_33"], "auto_generated": true}, {"id": "topic_29", "name": "Concept", "type": "concept", "covers": [], "parent_id": null, "children": ["topic_30"], "auto_generated": true}, {"id": "topic_34", "name": "Test", "type": "concept", "covers": ["concept:test"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_35", "name": "Oauth2", "type": "concept", "covers": ["concept:oauth2"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_36", "name": "Password", "type": "concept", "covers": ["concept:password"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_37", "name": "Recovery", "type": "concept", "covers": ["concept:recovery"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_38", "name": "Reset", "type": "concept", "covers": ["concept:reset"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_39", "name": "Html", "type": "concept", "covers": ["concept:html"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_40", "name": "Content", "type": "concept", "covers": ["concept:content"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_41", "name": "Requirements", "type": "concept", "covers": ["concept:requirements"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_42", "name": "Docker Compose", "type": "concept", "covers": ["concept:docker compose"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_43", "name": "General Workflow", "type": "concept", "covers": ["concept:general workflow"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_44", "name": "Vs Code", "type": "concept", "covers": ["concept:vs code"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_45", "name": "Docker Compose Override", "type": "concept", "covers": ["concept:docker compose override"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_46", "name": "Backend Tests", "type": "concept", "covers": ["concept:backend tests"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_47", "name": "Migrations", "type": "concept", "covers": ["concept:migrations"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_48", "name": "Email Templates", "type": "concept", "covers": ["concept:email templates"], "parent_id": null, "children": [], "auto_generated": true}, {"id": "topic_50", "name": "How to authenticate", "type": "task", "covers": ["noun:user", "verb:POST:/users/signup", "verb:POST:/login/access-token", "verb:POST:/login/test-token"], "parent_id": "topic_49", "children": [], "auto_generated": true}, {"id": "topic_51", "name": "How to manage your account", "type": "task", "covers": ["verb:PATCH:/users/me", "verb:PATCH:/users/me/password", "verb:GET:/users/me", "verb:DELETE:/users/me"], "parent_id": "topic_49", "children": [], "auto_generated": true}, {"id": "topic_52", "name": "How to recover your password", "type": "task", "covers": ["verb:POST:/password-recovery/{email}", "verb:POST:/reset-password/", "verb:POST:/password-recovery-html-content/{email}"], "parent_id": "topic_49", "children": [], "auto_generated": true}, {"id": "topic_53", "name": "How to work with Users", "type": "task", "covers": ["noun:user", "verb:GET:/users/", "verb:POST:/users/", "verb:PATCH:/users/me", "verb:PATCH:/users/me/password", "verb:GET:/users/me", "verb:DELETE:/users/me", "verb:POST:/users/signup", "verb:GET:/users/{user_id}", "verb:PATCH:/users/{user_id}", "verb:DELETE:/users/{user_id}", "verb:POST:/login/access-token", "verb:POST:/login/test-token", "verb:POST:/password-recovery/{email}", "verb:POST:/reset-password/", "verb:POST:/password-recovery-html-content/{email}", "verb:POST:/private/users/"], "parent_id": "topic_49", "children": [], "auto_generated": true}, {"id": "topic_54", "name": "How to work with Items", "type": "task", "covers": ["noun:item", "verb:GET:/items/", "verb:GET:/items/{id}", "verb:POST:/items/", "verb:PUT:/items/{id}", "verb:DELETE:/items/{id}"], "parent_id": "topic_49", "children": [], "auto_generated": true}, {"id": "topic_49", "name": "Task", "type": "task", "covers": [], "parent_id": null, "children": ["topic_50", "topic_51", "topic_52", "topic_53", "topic_54"], "auto_generated": true}], "atm": [{"id": "atm_topic_1", "name": "Readme", "type": "reference", "covers": ["concept:backend tests", "concept:email templates"], "source_file": "README.md", "quality": {"has_parameters": "no", "has_returns": "no", "has_errors": "partial", "has_warnings": false, "has_description": true, "has_use_cases": true, "has_examples": true, "has_auth_requirements": "no", "has_rate_limits": "no", "has_prerequisites": "no", "has_machine_readable_spec": false, "terminology_consistent": false, "coverage_score": 0.5, "constraint_score": 0.0, "agent_readiness_score": 0.25}}, {"id": "atm_topic_2", "name": "Release Notes", "type": "reference", "covers": ["verb:GET:/utils/health-check/", "verb:PATCH:/users/me", "verb:PATCH:/users/{user_id}"], "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/release-notes.md", "quality": {"has_parameters": "partial", "has_returns": "partial", "has_errors": "partial", "has_warnings": true, "has_description": true, "has_use_cases": true, "has_examples": false, "has_auth_requirements": "yes", "has_rate_limits": "no", "has_prerequisites": "no", "has_machine_readable_spec": false, "terminology_consistent": false, "coverage_score": 0.5, "constraint_score": 0.5, "agent_readiness_score": 0.5}}, {"id": "atm_topic_5", "name": "Development", "type": "reference", "covers": ["concept:docker compose", "concept:docker compose override"], "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/development.md", "quality": {"has_parameters": "no", "has_returns": "no", "has_errors": "no", "has_warnings": false, "has_description": true, "has_use_cases": true, "has_examples": true, "has_auth_requirements": "no", "has_rate_limits": "no", "has_prerequisites": "no", "has_machine_readable_spec": false, "terminology_consistent": false, "coverage_score": 0.4, "constraint_score": 0.0, "agent_readiness_score": 0.2}}], "gaps": [{"topic": "List users", "status": "missing", "action": "Create new reference topic: List users", "missing": ["verb:GET:/users/"], "quality_gaps": []}, {"topic": "Create users", "status": "missing", "action": "Create new reference topic: Create users", "missing": ["verb:POST:/users/"], "quality_gaps": []}, {"topic": "Update me", "status": "complete", "action": "", "missing": [], "quality_gaps": ["missing examples"]}, {"topic": "Update password", "status": "missing", "action": "Create new reference topic: Update password", "missing": ["verb:PATCH:/users/me/password"], "quality_gaps": []}, {"topic": "List me", "status": "missing", "action": "Create new reference topic: List me", "missing": ["verb:GET:/users/me"], "quality_gaps": []}, {"topic": "Delete me", "status": "missing", "action": "Create new reference topic: Delete me", "missing": ["verb:DELETE:/users/me"], "quality_gaps": []}, {"topic": "Create signup", "status": "missing", "action": "Create new reference topic: Create signup", "missing": ["verb:POST:/users/signup"], "quality_gaps": []}, {"topic": "Get users", "status": "missing", "action": "Create new reference topic: Get users", "missing": ["verb:GET:/users/{user_id}"], "quality_gaps": []}, {"topic": "Update users", "status": "complete", "action": "", "missing": [], "quality_gaps": ["missing examples"]}, {"topic": "Delete users", "status": "missing", "action": "Create new reference topic: Delete users", "missing": ["verb:DELETE:/users/{user_id}"], "quality_gaps": []}, {"topic": "Create access-token", "status": "missing", "action": "Create new reference topic: Create access-token", "missing": ["verb:POST:/login/access-token"], "quality_gaps": []}, {"topic": "Create test-token", "status": "missing", "action": "Create new reference topic: Create test-token", "missing": ["verb:POST:/login/test-token"], "quality_gaps": []}, {"topic": "Create password-recovery", "status": "missing", "action": "Create new reference topic: Create password-recovery", "missing": ["verb:POST:/password-recovery/{email}"], "quality_gaps": []}, {"topic": "Create reset-password", "status": "missing", "action": "Create new reference topic: Create reset-password", "missing": ["verb:POST:/reset-password/"], "quality_gaps": []}, {"topic": "Create password-recovery-html-content", "status": "missing", "action": "Create new reference topic: Create password-recovery-html-content", "missing": ["verb:POST:/password-recovery-html-content/{email}"], "quality_gaps": []}, {"topic": "Create users", "status": "missing", "action": "Create new reference topic: Create users", "missing": ["verb:POST:/private/users/"], "quality_gaps": []}, {"topic": "User", "status": "missing", "action": "Create new reference topic: User", "missing": [], "quality_gaps": []}, {"topic": "Create test-email", "status": "missing", "action": "Create new reference topic: Create test-email", "missing": ["verb:POST:/utils/test-email/"], "quality_gaps": []}, {"topic": "List health-check", "status": "complete", "action": "", "missing": [], "quality_gaps": ["missing examples"]}, {"topic": "Util", "status": "missing", "action": "Create new reference topic: Util", "missing": [], "quality_gaps": []}, {"topic": "List items", "status": "missing", "action": "Create new reference topic: List items", "missing": ["verb:GET:/items/"], "quality_gaps": []}, {"topic": "Get items", "status": "missing", "action": "Create new reference topic: Get items", "missing": ["verb:GET:/items/{id}"], "quality_gaps": []}, {"topic": "Create items", "status": "missing", "action": "Create new reference topic: Create items", "missing": ["verb:POST:/items/"], "quality_gaps": []}, {"topic": "Update items", "status": "missing", "action": "Create new reference topic: Update items", "missing": ["verb:PUT:/items/{id}"], "quality_gaps": []}, {"topic": "Delete items", "status": "missing", "action": "Create new reference topic: Delete items", "missing": ["verb:DELETE:/items/{id}"], "quality_gaps": []}, {"topic": "Item", "status": "missing", "action": "Create new reference topic: Item", "missing": [], "quality_gaps": []}, {"topic": "API", "status": "missing", "action": "Create new reference topic: API", "missing": [], "quality_gaps": []}, {"topic": "Reference", "status": "missing", "action": "Create new reference topic: Reference", "missing": [], "quality_gaps": []}, {"topic": "User", "status": "missing", "action": "Create new concept topic: User", "missing": ["noun:user"], "quality_gaps": []}, {"topic": "Util", "status": "missing", "action": "Create new concept topic: Util", "missing": ["noun:util"], "quality_gaps": []}, {"topic": "Item", "status": "missing", "action": "Create new concept topic: Item", "missing": ["noun:item"], "quality_gaps": []}, {"topic": "Entity", "status": "missing", "action": "Create new concept topic: Entity", "missing": [], "quality_gaps": []}, {"topic": "Concept", "status": "missing", "action": "Create new concept topic: Concept", "missing": [], "quality_gaps": []}, {"topic": "Test", "status": "missing", "action": "Create new concept topic: Test", "missing": ["concept:test"], "quality_gaps": []}, {"topic": "Oauth2", "status": "missing", "action": "Create new concept topic: Oauth2", "missing": ["concept:oauth2"], "quality_gaps": []}, {"topic": "Password", "status": "missing", "action": "Create new concept topic: Password", "missing": ["concept:password"], "quality_gaps": []}, {"topic": "Recovery", "status": "missing", "action": "Create new concept topic: Recovery", "missing": ["concept:recovery"], "quality_gaps": []}, {"topic": "Reset", "status": "missing", "action": "Create new concept topic: Reset", "missing": ["concept:reset"], "quality_gaps": []}, {"topic": "Html", "status": "missing", "action": "Create new concept topic: Html", "missing": ["concept:html"], "quality_gaps": []}, {"topic": "Content", "status": "missing", "action": "Create new concept topic: Content", "missing": ["concept:content"], "quality_gaps": []}, {"topic": "Requirements", "status": "missing", "action": "Create new concept topic: Requirements", "missing": ["concept:requirements"], "quality_gaps": []}, {"topic": "Docker Compose", "status": "complete", "action": "", "missing": [], "quality_gaps": ["missing error docs"]}, {"topic": "General Workflow", "status": "missing", "action": "Create new concept topic: General Workflow", "missing": ["concept:general workflow"], "quality_gaps": []}, {"topic": "Vs Code", "status": "missing", "action": "Create new concept topic: Vs Code", "missing": ["concept:vs code"], "quality_gaps": []}, {"topic": "Docker Compose Override", "status": "complete", "action": "", "missing": [], "quality_gaps": ["missing error docs"]}, {"topic": "Backend Tests", "status": "complete", "action": "", "missing": [], "quality_gaps": []}, {"topic": "Migrations", "status": "missing", "action": "Create new concept topic: Migrations", "missing": ["concept:migrations"], "quality_gaps": []}, {"topic": "Email Templates", "status": "complete", "action": "", "missing": [], "quality_gaps": []}, {"topic": "How to authenticate", "status": "missing", "action": "Create new task topic: How to authenticate", "missing": ["noun:user", "verb:POST:/users/signup", "verb:POST:/login/access-token", "verb:POST:/login/test-token"], "quality_gaps": []}, {"topic": "How to manage your account", "status": "partial", "action": "Add coverage for 3 missing elements", "missing": ["verb:GET:/users/me", "verb:PATCH:/users/me/password", "verb:DELETE:/users/me"], "quality_gaps": ["missing examples"]}, {"topic": "How to recover your password", "status": "missing", "action": "Create new task topic: How to recover your password", "missing": ["verb:POST:/password-recovery/{email}", "verb:POST:/reset-password/", "verb:POST:/password-recovery-html-content/{email}"], "quality_gaps": []}, {"topic": "How to work with Users", "status": "partial", "action": "Add coverage for 15 missing elements", "missing": ["verb:POST:/password-recovery/{email}", "verb:POST:/login/access-token", "verb:DELETE:/users/me", "verb:GET:/users/{user_id}", "verb:DELETE:/users/{user_id}", "verb:POST:/private/users/", "verb:GET:/users/me", "verb:POST:/reset-password/", "noun:user", "verb:POST:/users/", "verb:POST:/password-recovery-html-content/{email}", "verb:POST:/login/test-token", "verb:PATCH:/users/me/password", "verb:POST:/users/signup", "verb:GET:/users/"], "quality_gaps": ["missing examples"]}, {"topic": "How to work with Items", "status": "missing", "action": "Create new task topic: How to work with Items", "missing": ["noun:item", "verb:GET:/items/", "verb:GET:/items/{id}", "verb:POST:/items/", "verb:PUT:/items/{id}", "verb:DELETE:/items/{id}"], "quality_gaps": []}, {"topic": "Task", "status": "missing", "action": "Create new task topic: Task", "missing": [], "quality_gaps": []}], "stats": {"total_topics": 54, "complete": 7, "partial": 2, "missing": 45, "extra": 0, "coverage_percentage": 14.8}, "extra_topics": []};
+
+        // Simple force-directed layout (no external dependencies)
+        function initGraph() {
+            const container = document.getElementById('graph');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Create SVG
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            container.innerHTML = '';
+            container.appendChild(svg);
+
+            // Initialize node positions in a circle
+            const nodes = data.surface.nodes;
+            const edges = data.surface.edges;
+            const nodeMap = {};
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) * 0.35;
+
+            nodes.forEach((n, i) => {
+                const angle = (2 * Math.PI * i) / nodes.length;
+                n.x = centerX + radius * Math.cos(angle);
+                n.y = centerY + radius * Math.sin(angle);
+                n.vx = 0;
+                n.vy = 0;
+                nodeMap[n.id] = n;
+            });
+
+            // Create edge elements
+            const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            svg.appendChild(edgeGroup);
+
+            edges.forEach(e => {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('class', 'edge');
+                line.setAttribute('stroke', '#64748b');
+                line.setAttribute('stroke-width', '2');
+                line.dataset.from = e.source;
+                line.dataset.to = e.target;
+                edgeGroup.appendChild(line);
+            });
+
+            // Create node elements
+            const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            svg.appendChild(nodeGroup);
+
+            // Smart label truncation: keep start and end, ellipsis in middle
+            function truncateLabel(name, maxLen = 18) {
+                if (name.length <= maxLen) return name;
+                const keep = Math.floor((maxLen - 2) / 2);
+                return name.slice(0, keep) + '..' + name.slice(-keep);
+            }
+
+            nodes.forEach(n => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'node');
+                g.dataset.id = n.id;
+                g.style.cursor = 'pointer';
+
+                const bgColor = n.is_covered ? '#22c55e' : '#ef4444';
+                const borderColor = n.type === 'verb' ? '#3b82f6' : '#8b5cf6';
+
+                // Calculate width based on truncated text (max 18 chars)
+                const displayName = truncateLabel(n.name);
+                const textWidth = displayName.length * 7 + 20;
+                const nodeWidth = Math.max(80, Math.min(160, textWidth));  // Cap at 160px
+                const nodeHeight = 32;
+
+                if (n.type === 'noun') {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                    circle.setAttribute('rx', String(nodeWidth / 2));
+                    circle.setAttribute('ry', String(nodeHeight / 2 + 4));
+                    circle.setAttribute('fill', bgColor);
+                    circle.setAttribute('stroke', borderColor);
+                    circle.setAttribute('stroke-width', '3');
+                    g.appendChild(circle);
+                } else {
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('width', String(nodeWidth));
+                    rect.setAttribute('height', String(nodeHeight));
+                    rect.setAttribute('x', String(-nodeWidth / 2));
+                    rect.setAttribute('y', String(-nodeHeight / 2));
+                    rect.setAttribute('rx', '5');
+                    rect.setAttribute('fill', bgColor);
+                    rect.setAttribute('stroke', borderColor);
+                    rect.setAttribute('stroke-width', '3');
+                    g.appendChild(rect);
+                }
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dy', '4');
+                text.setAttribute('fill', '#1e293b');
+                text.setAttribute('font-size', '11');
+                text.setAttribute('font-weight', '600');
+                text.textContent = displayName;  // Show truncated name
+                g.appendChild(text);
+
+                // Hover tooltip
+                g.addEventListener('mouseenter', e => {
+                    const tooltip = document.getElementById('tooltip');
+                    document.getElementById('tooltip-name').textContent = n.name;
+                    document.getElementById('tooltip-sig').textContent = n.signature || '';
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.clientX + 15) + 'px';
+                    tooltip.style.top = (e.clientY + 15) + 'px';
+                });
+                g.addEventListener('mousemove', e => {
+                    const tooltip = document.getElementById('tooltip');
+                    tooltip.style.left = (e.clientX + 15) + 'px';
+                    tooltip.style.top = (e.clientY + 15) + 'px';
+                });
+                g.addEventListener('mouseleave', () => {
+                    document.getElementById('tooltip').style.display = 'none';
+                });
+
+                g.addEventListener('click', () => showDetails(n));
+                nodeGroup.appendChild(g);
+                n.element = g;
+                n.nodeWidth = nodeWidth;  // Store for collision detection
+            });
+
+            // Zoom and pan state
+            let scale = 1;
+            let translateX = 0;
+            let translateY = 0;
+            const graphGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            graphGroup.setAttribute('id', 'graph-transform');
+            svg.appendChild(graphGroup);
+            graphGroup.appendChild(edgeGroup);
+            graphGroup.appendChild(nodeGroup);
+
+            function updateTransform() {
+                graphGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${scale})`);
+            }
+
+            // Mouse wheel zoom
+            svg.addEventListener('wheel', e => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.max(0.3, Math.min(3, scale * delta));
+                // Zoom toward mouse position
+                const rect = svg.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+                translateX = mx - (mx - translateX) * (newScale / scale);
+                translateY = my - (my - translateY) * (newScale / scale);
+                scale = newScale;
+                updateTransform();
+            });
+
+            // Pan with middle mouse or shift+drag
+            let panning = false;
+            let panStart = {x: 0, y: 0};
+            svg.addEventListener('mousedown', e => {
+                if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
+                    panning = true;
+                    panStart = {x: e.clientX - translateX, y: e.clientY - translateY};
+                    e.preventDefault();
+                }
+            });
+            svg.addEventListener('mousemove', e => {
+                if (panning) {
+                    translateX = e.clientX - panStart.x;
+                    translateY = e.clientY - panStart.y;
+                    updateTransform();
+                }
+            });
+            svg.addEventListener('mouseup', () => { panning = false; });
+            svg.addEventListener('mouseleave', () => { panning = false; });
+
+            // Simple force simulation
+            function simulate() {
+                // Repulsion between nodes (much stronger for clusters)
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[j].x - nodes[i].x;
+                        const dy = nodes[j].y - nodes[i].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        // Stronger repulsion, especially when close
+                        const minDist = (nodes[i].nodeWidth + nodes[j].nodeWidth) / 2 + 30;
+                        const force = dist < minDist ? 15000 / (dist * dist) : 8000 / (dist * dist);
+                        const fx = (dx / dist) * force;
+                        const fy = (dy / dist) * force;
+                        nodes[i].vx -= fx;
+                        nodes[i].vy -= fy;
+                        nodes[j].vx += fx;
+                        nodes[j].vy += fy;
+                    }
+                }
+
+                // Attraction along edges
+                edges.forEach(e => {
+                    const source = nodeMap[e.source];
+                    const target = nodeMap[e.target];
+                    if (source && target) {
+                        const dx = target.x - source.x;
+                        const dy = target.y - source.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        const force = dist * 0.01;
+                        const fx = (dx / dist) * force;
+                        const fy = (dy / dist) * force;
+                        source.vx += fx;
+                        source.vy += fy;
+                        target.vx -= fx;
+                        target.vy -= fy;
+                    }
+                });
+
+                // Center gravity
+                nodes.forEach(n => {
+                    n.vx += (centerX - n.x) * 0.001;
+                    n.vy += (centerY - n.y) * 0.001;
+                });
+
+                // Apply velocity with damping
+                nodes.forEach(n => {
+                    n.vx *= 0.9;
+                    n.vy *= 0.9;
+                    n.x += n.vx;
+                    n.y += n.vy;
+                    // Keep in bounds (account for node width)
+                    const halfWidth = (n.nodeWidth || 80) / 2 + 10;
+                    n.x = Math.max(halfWidth, Math.min(width - halfWidth, n.x));
+                    n.y = Math.max(25, Math.min(height - 25, n.y));
+                });
+
+                // Update positions
+                nodes.forEach(n => {
+                    n.element.setAttribute('transform', `translate(${n.x}, ${n.y})`);
+                });
+
+                edgeGroup.querySelectorAll('line').forEach(line => {
+                    const source = nodeMap[line.dataset.from];
+                    const target = nodeMap[line.dataset.to];
+                    if (source && target) {
+                        line.setAttribute('x1', source.x);
+                        line.setAttribute('y1', source.y);
+                        line.setAttribute('x2', target.x);
+                        line.setAttribute('y2', target.y);
+                    }
+                });
+            }
+
+            // Run simulation
+            let iterations = 0;
+            function tick() {
+                simulate();
+                iterations++;
+                if (iterations < 200) {
+                    requestAnimationFrame(tick);
+                }
+            }
+            tick();
+
+            // Enable dragging
+            let dragging = null;
+            svg.addEventListener('mousedown', e => {
+                const node = e.target.closest('.node');
+                if (node) {
+                    dragging = nodeMap[node.dataset.id];
+                }
+            });
+            svg.addEventListener('mousemove', e => {
+                if (dragging) {
+                    const rect = svg.getBoundingClientRect();
+                    dragging.x = e.clientX - rect.left;
+                    dragging.y = e.clientY - rect.top;
+                    dragging.vx = 0;
+                    dragging.vy = 0;
+                    simulate();
+                }
+            });
+            svg.addEventListener('mouseup', () => { dragging = null; });
+            svg.addEventListener('mouseleave', () => { dragging = null; });
+        }
+
+        window.addEventListener('load', initGraph);
+        window.addEventListener('resize', initGraph);
+
+        function showDetails(node) {
+            document.getElementById('details').classList.add('visible');
+            document.getElementById('detail-name').textContent = node.name;
+            document.getElementById('detail-type').textContent = node.type;
+
+            // Update labels based on node type
+            if (node.type === 'noun') {
+                document.getElementById('sig-label').textContent = 'Usage:';
+                document.getElementById('source-label').textContent = 'Endpoints:';
+            } else {
+                document.getElementById('sig-label').textContent = 'Signature:';
+                document.getElementById('source-label').textContent = 'Source:';
+            }
+
+            document.getElementById('detail-sig').textContent = node.signature || '-';
+            document.getElementById('detail-source').textContent = node.source || '-';
+            document.getElementById('detail-itm').textContent = node.itm_topics.join(', ') || 'None';
+            document.getElementById('detail-atm').textContent = node.atm_topics.join(', ') || 'None';
+        }
+
+        function showTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + name).classList.add('active');
+        }
+
+        // Highlight surface nodes covered by a topic
+        function highlightCoverage(covers, highlight) {
+            document.querySelectorAll('.node').forEach(node => {
+                const nodeId = node.dataset.id;
+                const shape = node.querySelector('rect, ellipse');
+                if (covers.includes(nodeId)) {
+                    if (highlight) {
+                        shape.setAttribute('stroke', '#fbbf24');
+                        shape.setAttribute('stroke-width', '5');
+                        node.style.opacity = '1';
+                    } else {
+                        // Restore original
+                        const n = data.surface.nodes.find(n => n.id === nodeId);
+                        const borderColor = n && n.type === 'verb' ? '#3b82f6' : '#8b5cf6';
+                        shape.setAttribute('stroke', borderColor);
+                        shape.setAttribute('stroke-width', '3');
+                        node.style.opacity = '1';
+                    }
+                } else if (highlight) {
+                    node.style.opacity = '0.3';
+                }
+            });
+        }
+
+        // Get all covers including children's covers
+        function getAllCovers(topicId) {
+            const topic = data.itm.find(t => t.id === topicId);
+            if (!topic) return [];
+            let covers = [...(topic.covers || [])];
+            (topic.children || []).forEach(childId => {
+                covers = covers.concat(getAllCovers(childId));
+            });
+            return covers;
+        }
+
+        // Build hierarchical ITM list
+        function buildItmTree(parentId, indent) {
+            const children = data.itm.filter(t => t.parent_id === parentId);
+            let html = '';
+            children.forEach(t => {
+                const allCovers = getAllCovers(t.id);
+                const hasChildren = data.itm.some(c => c.parent_id === t.id);
+                const icon = hasChildren ? '▸ ' : '';
+                html += `
+                    <div class="topic-item" style="margin-left: ${indent * 16}px; cursor: pointer;"
+                         data-topic-id="${t.id}"
+                         onmouseenter="highlightCoverage(getAllCovers('${t.id}'), true)"
+                         onmouseleave="highlightCoverage([], false)">
+                        <div class="topic-name">${icon}${t.name}</div>
+                        <div class="topic-meta">${t.type} · ${allCovers.length} elements</div>
+                    </div>
+                `;
+                html += buildItmTree(t.id, indent + 1);
+            });
+            return html;
+        }
+
+        const itmList = document.getElementById('itm-list');
+        itmList.innerHTML = buildItmTree(null, 0);
+
+        // Populate ATM list
+        const atmList = document.getElementById('atm-list');
+        data.atm.forEach(t => {
+            const score = t.quality ? Math.round(t.quality.coverage_score * 100) + '%' : 'N/A';
+            atmList.innerHTML += `
+                <div class="topic-item">
+                    <div class="topic-name">${t.name} <span class="badge">${score}</span></div>
+                    <div class="topic-meta">${t.source_file || 'Unknown source'}</div>
+                </div>
+            `;
+        });
+
+        // Populate gaps list
+        const gapsList = document.getElementById('gaps-list');
+        data.gaps.filter(g => g.status !== 'complete').forEach(g => {
+            gapsList.innerHTML += `
+                <div class="gap-item gap-${g.status}">
+                    <div class="topic-name">${g.topic} <span class="badge badge-${g.status}">${g.status}</span></div>
+                    <div class="topic-meta">${g.action}</div>
+                </div>
+            `;
+        });
+
+        if (data.extra_topics.length) {
+            gapsList.innerHTML += '<h3 style="margin-top:20px">Extra Topics (not in ITM)</h3>';
+            data.extra_topics.forEach(id => {
+                const topic = data.atm.find(t => t.id === id);
+                if (topic) {
+                    gapsList.innerHTML += `
+                        <div class="gap-item" style="border-color:#8b5cf6">
+                            <div class="topic-name">${topic.name} <span class="badge badge-extra">extra</span></div>
+                            <div class="topic-meta">${topic.source_file}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // Populate surface lists (nouns and verbs)
+        const nounList = document.getElementById('noun-list');
+        const verbList = document.getElementById('verb-list');
+
+        data.surface.nodes.filter(n => n.type === 'noun').forEach(n => {
+            const coveredClass = n.is_covered ? 'covered' : 'uncovered';
+            nounList.innerHTML += `
+                <div class="surface-item noun ${coveredClass}" onclick="highlightNode('${n.id}')">
+                    <div class="name"><span class="coverage-dot ${coveredClass}"></span>${n.name}</div>
+                </div>
+            `;
+        });
+
+        data.surface.nodes.filter(n => n.type === 'verb').forEach(n => {
+            const coveredClass = n.is_covered ? 'covered' : 'uncovered';
+            verbList.innerHTML += `
+                <div class="surface-item verb ${coveredClass}" onclick="highlightNode('${n.id}')">
+                    <div class="name"><span class="coverage-dot ${coveredClass}"></span>${n.name}</div>
+                    <div class="signature">${n.signature || ''}</div>
+                    <div class="source">${n.source || 'Unknown'}</div>
+                </div>
+            `;
+        });
+
+        // Highlight node in graph when clicking list item
+        function highlightNode(nodeId) {
+            const nodeEl = document.querySelector(`.node[data-id="${nodeId}"]`);
+            if (nodeEl) {
+                // Flash effect
+                const shape = nodeEl.querySelector('rect, ellipse');
+                const origStroke = shape.getAttribute('stroke');
+                shape.setAttribute('stroke', '#fbbf24');
+                shape.setAttribute('stroke-width', '5');
+                setTimeout(() => {
+                    shape.setAttribute('stroke', origStroke);
+                    shape.setAttribute('stroke-width', '3');
+                }, 1500);
+
+                // Show details
+                const node = data.surface.nodes.find(n => n.id === nodeId);
+                if (node) showDetails(node);
+            }
+        }
+    </script>
+</body>
+</html>

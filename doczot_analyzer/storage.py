@@ -84,8 +84,8 @@ class ManifestStore:
 
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS surface_nodes (
-                    id TEXT PRIMARY KEY,
                     scan_id TEXT NOT NULL,
+                    id TEXT NOT NULL,
                     type TEXT NOT NULL,
                     name TEXT NOT NULL,
                     description TEXT,
@@ -95,6 +95,7 @@ class ManifestStore:
                     code_signature TEXT,
                     http_method TEXT,
                     http_path TEXT,
+                    PRIMARY KEY (scan_id, id),
                     FOREIGN KEY (scan_id) REFERENCES scans(id) ON DELETE CASCADE
                 )
             """)

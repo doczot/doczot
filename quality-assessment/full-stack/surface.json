@@ -1,0 +1,786 @@
+{
+  "product_name": "full-stack-fastapi-template",
+  "version": null,
+  "scanned_at": "2026-01-07 15:32:39.260228",
+  "source_paths": [
+    "/Users/sharon/projects/doczot/test_repos/full-stack/backend"
+  ],
+  "nodes": [
+    {
+      "id": "verb:GET:/users/",
+      "type": "verb",
+      "name": "get_users",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 37,
+      "code_signature": "GET /users/",
+      "http_method": "GET",
+      "http_path": "/users/"
+    },
+    {
+      "id": "noun:user",
+      "type": "noun",
+      "name": "user",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "verb:POST:/users/",
+      "type": "verb",
+      "name": "create_users",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 54,
+      "code_signature": "POST /users/",
+      "http_method": "POST",
+      "http_path": "/users/"
+    },
+    {
+      "id": "verb:PATCH:/users/me",
+      "type": "verb",
+      "name": "patch_me",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 79,
+      "code_signature": "PATCH /users/me",
+      "http_method": "PATCH",
+      "http_path": "/users/me"
+    },
+    {
+      "id": "verb:PATCH:/users/me/password",
+      "type": "verb",
+      "name": "patch_password",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 101,
+      "code_signature": "PATCH /users/me/password",
+      "http_method": "PATCH",
+      "http_path": "/users/me/password"
+    },
+    {
+      "id": "verb:GET:/users/me",
+      "type": "verb",
+      "name": "get_me",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 121,
+      "code_signature": "GET /users/me",
+      "http_method": "GET",
+      "http_path": "/users/me"
+    },
+    {
+      "id": "verb:DELETE:/users/me",
+      "type": "verb",
+      "name": "delete_me",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 129,
+      "code_signature": "DELETE /users/me",
+      "http_method": "DELETE",
+      "http_path": "/users/me"
+    },
+    {
+      "id": "verb:POST:/users/signup",
+      "type": "verb",
+      "name": "create_signup",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 143,
+      "code_signature": "POST /users/signup",
+      "http_method": "POST",
+      "http_path": "/users/signup"
+    },
+    {
+      "id": "verb:GET:/users/{user_id}",
+      "type": "verb",
+      "name": "get_users",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 159,
+      "code_signature": "GET /users/{user_id}",
+      "http_method": "GET",
+      "http_path": "/users/{user_id}"
+    },
+    {
+      "id": "verb:PATCH:/users/{user_id}",
+      "type": "verb",
+      "name": "patch_users",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 181,
+      "code_signature": "PATCH /users/{user_id}",
+      "http_method": "PATCH",
+      "http_path": "/users/{user_id}"
+    },
+    {
+      "id": "verb:DELETE:/users/{user_id}",
+      "type": "verb",
+      "name": "delete_users",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 209,
+      "code_signature": "DELETE /users/{user_id}",
+      "http_method": "DELETE",
+      "http_path": "/users/{user_id}"
+    },
+    {
+      "id": "verb:POST:/utils/test-email/",
+      "type": "verb",
+      "name": "create_test-email",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/utils.py",
+      "source_line": 16,
+      "code_signature": "POST /utils/test-email/",
+      "http_method": "POST",
+      "http_path": "/utils/test-email/"
+    },
+    {
+      "id": "noun:util",
+      "type": "noun",
+      "name": "util",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "verb:GET:/utils/health-check/",
+      "type": "verb",
+      "name": "get_health-check",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/utils.py",
+      "source_line": 30,
+      "code_signature": "GET /utils/health-check/",
+      "http_method": "GET",
+      "http_path": "/utils/health-check/"
+    },
+    {
+      "id": "verb:POST:/login/access-token",
+      "type": "verb",
+      "name": "create_access-token",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 25,
+      "code_signature": "POST /login/access-token",
+      "http_method": "POST",
+      "http_path": "/login/access-token"
+    },
+    {
+      "id": "verb:POST:/login/test-token",
+      "type": "verb",
+      "name": "create_test-token",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 47,
+      "code_signature": "POST /login/test-token",
+      "http_method": "POST",
+      "http_path": "/login/test-token"
+    },
+    {
+      "id": "verb:POST:/password-recovery/{email}",
+      "type": "verb",
+      "name": "create_password-recovery",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 55,
+      "code_signature": "POST /password-recovery/{email}",
+      "http_method": "POST",
+      "http_path": "/password-recovery/{email}"
+    },
+    {
+      "id": "verb:POST:/reset-password/",
+      "type": "verb",
+      "name": "create_reset-password",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 79,
+      "code_signature": "POST /reset-password/",
+      "http_method": "POST",
+      "http_path": "/reset-password/"
+    },
+    {
+      "id": "verb:POST:/password-recovery-html-content/{email}",
+      "type": "verb",
+      "name": "create_password-recovery-html-content",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 106,
+      "code_signature": "POST /password-recovery-html-content/{email}",
+      "http_method": "POST",
+      "http_path": "/password-recovery-html-content/{email}"
+    },
+    {
+      "id": "verb:GET:/items/",
+      "type": "verb",
+      "name": "get_items",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/items.py",
+      "source_line": 14,
+      "code_signature": "GET /items/",
+      "http_method": "GET",
+      "http_path": "/items/"
+    },
+    {
+      "id": "noun:item",
+      "type": "noun",
+      "name": "item",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "verb:GET:/items/{id}",
+      "type": "verb",
+      "name": "get_items",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/items.py",
+      "source_line": 45,
+      "code_signature": "GET /items/{id}",
+      "http_method": "GET",
+      "http_path": "/items/{id}"
+    },
+    {
+      "id": "verb:POST:/items/",
+      "type": "verb",
+      "name": "create_items",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/items.py",
+      "source_line": 58,
+      "code_signature": "POST /items/",
+      "http_method": "POST",
+      "http_path": "/items/"
+    },
+    {
+      "id": "verb:PUT:/items/{id}",
+      "type": "verb",
+      "name": "update_items",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/items.py",
+      "source_line": 72,
+      "code_signature": "PUT /items/{id}",
+      "http_method": "PUT",
+      "http_path": "/items/{id}"
+    },
+    {
+      "id": "verb:DELETE:/items/{id}",
+      "type": "verb",
+      "name": "delete_items",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/items.py",
+      "source_line": 96,
+      "code_signature": "DELETE /items/{id}",
+      "http_method": "DELETE",
+      "http_path": "/items/{id}"
+    },
+    {
+      "id": "verb:POST:/private/users/",
+      "type": "verb",
+      "name": "create_users",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/private.py",
+      "source_line": 24,
+      "code_signature": "POST /private/users/",
+      "http_method": "POST",
+      "http_path": "/private/users/"
+    },
+    {
+      "id": "constraint:auth_required:verb:GET:/users/",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 37,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:POST:/users/",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 54,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:PATCH:/users/{user_id}",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 181,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:DELETE:/users/{user_id}",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/users.py",
+      "source_line": 209,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:POST:/utils/test-email/",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/utils.py",
+      "source_line": 16,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:POST:/password-recovery-html-content/{email}",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 106,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:test",
+      "type": "concept",
+      "name": "test",
+      "description": "Test emails",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/utils.py",
+      "source_line": 16,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:oauth2",
+      "type": "concept",
+      "name": "oauth2",
+      "description": "OAuth2 compatible token login, get an access token for future requests",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 25,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:password",
+      "type": "concept",
+      "name": "password",
+      "description": "Password Recovery",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 55,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:recovery",
+      "type": "concept",
+      "name": "recovery",
+      "description": "Password Recovery",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 55,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:reset",
+      "type": "concept",
+      "name": "reset",
+      "description": "Reset password",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 79,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:html",
+      "type": "concept",
+      "name": "html",
+      "description": "HTML Content for Password Recovery",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 106,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:content",
+      "type": "concept",
+      "name": "content",
+      "description": "HTML Content for Password Recovery",
+      "node_class": "user-facing",
+      "source_file": "app/api/routes/login.py",
+      "source_line": 106,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:requirements",
+      "type": "concept",
+      "name": "requirements",
+      "description": "* [Docker](https://www.",
+      "node_class": "user-facing",
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md",
+      "source_line": 0,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:docker compose",
+      "type": "concept",
+      "name": "docker compose",
+      "description": "Start the local development environment with Docker Compose following the guide in [.",
+      "node_class": "user-facing",
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md",
+      "source_line": 0,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:general workflow",
+      "type": "concept",
+      "name": "general workflow",
+      "description": "By default, the dependencies are managed with [uv](https://docs.",
+      "node_class": "user-facing",
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md",
+      "source_line": 0,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:vs code",
+      "type": "concept",
+      "name": "vs code",
+      "description": "There are already configurations in place to run the backend through the VS Code debugger, so that you can use breakpoints, pause and explore variables, etc.",
+      "node_class": "user-facing",
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md",
+      "source_line": 0,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:docker compose override",
+      "type": "concept",
+      "name": "docker compose override",
+      "description": "During development, you can change Docker Compose settings that will only affect the local development environment in the file `docker-compose.",
+      "node_class": "user-facing",
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md",
+      "source_line": 0,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:backend tests",
+      "type": "concept",
+      "name": "backend tests",
+      "description": "To test the backend run:\n\n```console\n$ bash .",
+      "node_class": "user-facing",
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md",
+      "source_line": 0,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:migrations",
+      "type": "concept",
+      "name": "migrations",
+      "description": "As during local development your app directory is mounted as a volume inside the container, you can also run the migrations with `alembic` commands inside the container and the migration code will be ",
+      "node_class": "user-facing",
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md",
+      "source_line": 0,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:email templates",
+      "type": "concept",
+      "name": "email templates",
+      "description": "The email templates are in `.",
+      "node_class": "user-facing",
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/backend/README.md",
+      "source_line": 0,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "verb:GET:/users/",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/users/",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PATCH:/users/me",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PATCH:/users/me/password",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/me",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:DELETE:/users/me",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/users/signup",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/{user_id}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PATCH:/users/{user_id}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:DELETE:/users/{user_id}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/utils/test-email/",
+      "target_id": "noun:util",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/utils/health-check/",
+      "target_id": "noun:util",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/login/access-token",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/login/test-token",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/password-recovery/{email}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/reset-password/",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/password-recovery-html-content/{email}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/items/",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/items/{id}",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/items/",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PUT:/items/{id}",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:DELETE:/items/{id}",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/private/users/",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/",
+      "target_id": "constraint:auth_required:verb:GET:/users/",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:POST:/users/",
+      "target_id": "constraint:auth_required:verb:POST:/users/",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:PATCH:/users/{user_id}",
+      "target_id": "constraint:auth_required:verb:PATCH:/users/{user_id}",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:DELETE:/users/{user_id}",
+      "target_id": "constraint:auth_required:verb:DELETE:/users/{user_id}",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:POST:/utils/test-email/",
+      "target_id": "constraint:auth_required:verb:POST:/utils/test-email/",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:POST:/password-recovery-html-content/{email}",
+      "target_id": "constraint:auth_required:verb:POST:/password-recovery-html-content/{email}",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:POST:/utils/test-email/",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/users/",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:DELETE:/users/{user_id}",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/password-recovery-html-content/{email}",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PATCH:/users/{user_id}",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    }
+  ]
+}

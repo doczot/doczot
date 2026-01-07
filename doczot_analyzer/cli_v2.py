@@ -19,6 +19,7 @@ from doczot_analyzer.analyzer_v2 import (
     discover_atm,
     analyze_repository,
     print_analysis_summary,
+    diff_surface_graphs,
 )
 from doczot_analyzer.models_v2 import (
     SurfaceGraph,
@@ -30,6 +31,7 @@ from doczot_analyzer.models_v2 import (
     generate_default_itm,
     compute_gap_report,
 )
+from doczot_analyzer.storage import ManifestStore
 
 
 # =============================================================================
@@ -48,6 +50,12 @@ def cmd_analyze(args):
 
     print_analysis_summary(surface, itm, atm, gap_report)
 
+    # v3: Persist Surface Graph to database (always, for diff capability)
+    db_path = args.db_path or ".doczot/manifests.db"
+    store = ManifestStore(db_path)
+    scan_id = store.save_surface_graph(surface)
+    print(f"\nSurface graph saved to database: {scan_id}")
+
     # Save artifacts if requested
     if args.output:
         output_dir = Path(args.output)
@@ -62,7 +70,7 @@ def cmd_analyze(args):
         with open(output_dir / "gaps.json", 'w') as f:
             json.dump(gap_report.model_dump(), f, indent=2, default=str)
 
-        print(f"\nArtifacts saved to: {output_dir}/")
+        print(f"Artifacts saved to: {output_dir}/")
 
     return 0
 
@@ -1046,6 +1054,107 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 
 # =============================================================================
+# DIFF COMMAND
+# =============================================================================
+
+def cmd_diff(args):
+    """Compare two Surface Graph scans and report changes."""
+    db_path = args.db_path or ".doczot/manifests.db"
+    store = ManifestStore(db_path)
+
+    # Get product name (required)
+    if not args.product:
+        print("Error: --product is required for diff command")
+        return 1
+
+    # Load scans
+    try:
+        old_scan = store.load_surface_graph(args.product, args.old_scan)
+        new_scan = store.load_surface_graph(args.product, args.new_scan)
+    except Exception as e:
+        print(f"Error loading scans: {e}")
+        return 1
+
+    if not old_scan or not new_scan:
+        print("Error: Could not load one or both scans")
+        print(f"Product: {args.product}")
+        print(f"Old scan: {args.old_scan or 'previous'}")
+        print(f"New scan: {args.new_scan or 'latest'}")
+
+        # List available scans
+        scans = store.list_scans(args.product)
+        if scans:
+            print(f"\nAvailable scans for {args.product}:")
+            for scan in scans:
+                print(f"  - {scan['id']} ({scan['scanned_at']})")
+        else:
+            print(f"\nNo scans found for product: {args.product}")
+
+        return 1
+
+    # Compute diff
+    diff = diff_surface_graphs(old_scan, new_scan)
+
+    # Print report
+    print(f"\n{'='*60}")
+    print(f"ONTOLOGY DIFF: {args.product}")
+    print(f"{'='*60}")
+    print(f"\nOld scan: {args.old_scan or 'previous'}")
+    print(f"New scan: {args.new_scan or 'latest'}")
+
+    print(f"\n--- Summary ---")
+    print(f"Nodes added:   {diff['summary']['total_nodes_added']}")
+    print(f"Nodes removed: {diff['summary']['total_nodes_removed']}")
+    print(f"Edges added:   {diff['summary']['total_edges_added']}")
+    print(f"Edges removed: {diff['summary']['total_edges_removed']}")
+
+    if diff['summary'].get('nodes_added_by_type'):
+        print(f"\n--- New Nodes by Type ---")
+        for node_type, count in diff['summary']['nodes_added_by_type'].items():
+            print(f"  {node_type:<15} +{count}")
+
+    if diff['summary'].get('nodes_removed_by_type'):
+        print(f"\n--- Removed Nodes by Type ---")
+        for node_type, count in diff['summary']['nodes_removed_by_type'].items():
+            print(f"  {node_type:<15} -{count}")
+
+    # Show details if requested
+    if args.verbose:
+        if diff['nodes_added']:
+            print(f"\n--- Nodes Added ({len(diff['nodes_added'])}) ---")
+            for node_id in diff['nodes_added'][:20]:
+                node = new_scan.get_node(node_id)
+                if node:
+                    print(f"  + {node.type.value:<12} {node.name}")
+            if len(diff['nodes_added']) > 20:
+                print(f"  ... and {len(diff['nodes_added']) - 20} more")
+
+        if diff['nodes_removed']:
+            print(f"\n--- Nodes Removed ({len(diff['nodes_removed'])}) ---")
+            for node_id in diff['nodes_removed'][:20]:
+                node = old_scan.get_node(node_id)
+                if node:
+                    print(f"  - {node.type.value:<12} {node.name}")
+            if len(diff['nodes_removed']) > 20:
+                print(f"  ... and {len(diff['nodes_removed']) - 20} more")
+
+        if diff['edges_added']:
+            print(f"\n--- Edges Added ({len(diff['edges_added'])}) ---")
+            for source, target, edge_type in diff['edges_added'][:10]:
+                print(f"  + {edge_type}: {source} -> {target}")
+            if len(diff['edges_added']) > 10:
+                print(f"  ... and {len(diff['edges_added']) - 10} more")
+
+    # Save to file if requested
+    if args.output:
+        with open(args.output, 'w') as f:
+            json.dump(diff, f, indent=2, default=str)
+        print(f"\nDiff saved to: {args.output}")
+
+    return 0
+
+
+# =============================================================================
 # MAIN
 # =============================================================================
 
@@ -1064,6 +1173,7 @@ def main():
     p.add_argument("repo_path", nargs="?", default=".")
     p.add_argument("--name", help="Product name")
     p.add_argument("--output", "-o", help="Output directory for artifacts")
+    p.add_argument("--db-path", default=".doczot/manifests.db", help="Database path")
     p.set_defaults(func=cmd_analyze)
 
     # surface
@@ -1103,6 +1213,16 @@ def main():
     p.add_argument("--output", "-o", default="doczot-viz.html")
     p.add_argument("--open", action="store_true", help="Open in browser")
     p.set_defaults(func=cmd_visualize)
+
+    # diff
+    p = subparsers.add_parser("diff", help="Compare two Surface Graph scans")
+    p.add_argument("--product", required=True, help="Product name")
+    p.add_argument("--old-scan", help="Old scan ID (default: previous)")
+    p.add_argument("--new-scan", help="New scan ID (default: latest)")
+    p.add_argument("--db-path", default=".doczot/manifests.db", help="Database path")
+    p.add_argument("--verbose", "-v", action="store_true", help="Show detailed changes")
+    p.add_argument("--output", "-o", help="Save diff to JSON file")
+    p.set_defaults(func=cmd_diff)
 
     args = parser.parse_args()
 

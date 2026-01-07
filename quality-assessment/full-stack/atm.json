@@ -1,0 +1,117 @@
+{
+  "manifest_type": "actual",
+  "surface_id": "full-stack-fastapi-template:2026-01-07T15:32:39.260228",
+  "product_name": "full-stack-fastapi-template",
+  "created_at": "2026-01-07 15:32:48.420247",
+  "updated_at": "2026-01-07 15:32:48.420265",
+  "topics": [
+    {
+      "id": "atm_topic_1",
+      "name": "Readme",
+      "topic_type": "reference",
+      "covers": [
+        "concept:email templates",
+        "concept:backend tests"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_2",
+      "name": "Release Notes",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/utils/health-check/",
+        "verb:PATCH:/users/me",
+        "verb:PATCH:/users/{user_id}"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/release-notes.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_5",
+      "name": "Development",
+      "topic_type": "reference",
+      "covers": [
+        "concept:docker compose override",
+        "concept:docker compose"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "/Users/sharon/projects/doczot/test_repos/full-stack/development.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    }
+  ],
+  "quality": {
+    "atm_topic_1": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "partial",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": false,
+      "coverage_score": 0.5,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.25
+    },
+    "atm_topic_2": {
+      "has_parameters": "partial",
+      "has_returns": "partial",
+      "has_errors": "partial",
+      "has_warnings": true,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": false,
+      "has_auth_requirements": "yes",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": false,
+      "coverage_score": 0.5,
+      "constraint_score": 0.5,
+      "agent_readiness_score": 0.5
+    },
+    "atm_topic_5": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": false,
+      "coverage_score": 0.4,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.2
+    }
+  }
+}

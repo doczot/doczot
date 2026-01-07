@@ -1,0 +1,985 @@
+{
+  "manifest_type": "intended",
+  "surface_id": "full-stack-fastapi-template:2026-01-07T15:32:39.260228",
+  "product_name": "full-stack-fastapi-template",
+  "created_at": "2026-01-07 15:32:39.260456",
+  "updated_at": "2026-01-07 15:32:39.260457",
+  "topics": [
+    {
+      "id": "topic_4",
+      "name": "List users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/users/"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_5",
+      "name": "Create users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/users/"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_6",
+      "name": "Update me",
+      "topic_type": "reference",
+      "covers": [
+        "verb:PATCH:/users/me"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_7",
+      "name": "Update password",
+      "topic_type": "reference",
+      "covers": [
+        "verb:PATCH:/users/me/password"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_8",
+      "name": "List me",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/users/me"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_9",
+      "name": "Delete me",
+      "topic_type": "reference",
+      "covers": [
+        "verb:DELETE:/users/me"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_10",
+      "name": "Create signup",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/users/signup"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_11",
+      "name": "Get users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/users/{user_id}"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_12",
+      "name": "Update users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:PATCH:/users/{user_id}"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_13",
+      "name": "Delete users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:DELETE:/users/{user_id}"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_14",
+      "name": "Create access-token",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/login/access-token"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_15",
+      "name": "Create test-token",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/login/test-token"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_16",
+      "name": "Create password-recovery",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/password-recovery/{email}"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_17",
+      "name": "Create reset-password",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/reset-password/"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_18",
+      "name": "Create password-recovery-html-content",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/password-recovery-html-content/{email}"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_19",
+      "name": "Create users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/private/users/"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_3",
+      "name": "User",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_4",
+        "topic_5",
+        "topic_6",
+        "topic_7",
+        "topic_8",
+        "topic_9",
+        "topic_10",
+        "topic_11",
+        "topic_12",
+        "topic_13",
+        "topic_14",
+        "topic_15",
+        "topic_16",
+        "topic_17",
+        "topic_18",
+        "topic_19"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_21",
+      "name": "Create test-email",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/utils/test-email/"
+      ],
+      "parent_id": "topic_20",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_22",
+      "name": "List health-check",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/utils/health-check/"
+      ],
+      "parent_id": "topic_20",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_20",
+      "name": "Util",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_21",
+        "topic_22"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_24",
+      "name": "List items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/items/"
+      ],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_25",
+      "name": "Get items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/items/{id}"
+      ],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_26",
+      "name": "Create items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/items/"
+      ],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_27",
+      "name": "Update items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:PUT:/items/{id}"
+      ],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_28",
+      "name": "Delete items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:DELETE:/items/{id}"
+      ],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_23",
+      "name": "Item",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_24",
+        "topic_25",
+        "topic_26",
+        "topic_27",
+        "topic_28"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_2",
+      "name": "API",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_1",
+      "children": [
+        "topic_3",
+        "topic_20",
+        "topic_23"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_1",
+      "name": "Reference",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": null,
+      "children": [
+        "topic_2"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_31",
+      "name": "User",
+      "topic_type": "concept",
+      "covers": [
+        "noun:user"
+      ],
+      "parent_id": "topic_30",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_32",
+      "name": "Util",
+      "topic_type": "concept",
+      "covers": [
+        "noun:util"
+      ],
+      "parent_id": "topic_30",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_33",
+      "name": "Item",
+      "topic_type": "concept",
+      "covers": [
+        "noun:item"
+      ],
+      "parent_id": "topic_30",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_30",
+      "name": "Entity",
+      "topic_type": "concept",
+      "covers": [],
+      "parent_id": "topic_29",
+      "children": [
+        "topic_31",
+        "topic_32",
+        "topic_33"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_29",
+      "name": "Concept",
+      "topic_type": "concept",
+      "covers": [],
+      "parent_id": null,
+      "children": [
+        "topic_30"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_34",
+      "name": "Test",
+      "topic_type": "concept",
+      "covers": [
+        "concept:test"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_35",
+      "name": "Oauth2",
+      "topic_type": "concept",
+      "covers": [
+        "concept:oauth2"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_36",
+      "name": "Password",
+      "topic_type": "concept",
+      "covers": [
+        "concept:password"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_37",
+      "name": "Recovery",
+      "topic_type": "concept",
+      "covers": [
+        "concept:recovery"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_38",
+      "name": "Reset",
+      "topic_type": "concept",
+      "covers": [
+        "concept:reset"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_39",
+      "name": "Html",
+      "topic_type": "concept",
+      "covers": [
+        "concept:html"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_40",
+      "name": "Content",
+      "topic_type": "concept",
+      "covers": [
+        "concept:content"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_41",
+      "name": "Requirements",
+      "topic_type": "concept",
+      "covers": [
+        "concept:requirements"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_42",
+      "name": "Docker Compose",
+      "topic_type": "concept",
+      "covers": [
+        "concept:docker compose"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_43",
+      "name": "General Workflow",
+      "topic_type": "concept",
+      "covers": [
+        "concept:general workflow"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_44",
+      "name": "Vs Code",
+      "topic_type": "concept",
+      "covers": [
+        "concept:vs code"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_45",
+      "name": "Docker Compose Override",
+      "topic_type": "concept",
+      "covers": [
+        "concept:docker compose override"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_46",
+      "name": "Backend Tests",
+      "topic_type": "concept",
+      "covers": [
+        "concept:backend tests"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_47",
+      "name": "Migrations",
+      "topic_type": "concept",
+      "covers": [
+        "concept:migrations"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_48",
+      "name": "Email Templates",
+      "topic_type": "concept",
+      "covers": [
+        "concept:email templates"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_50",
+      "name": "How to authenticate",
+      "topic_type": "task",
+      "covers": [
+        "noun:user",
+        "verb:POST:/users/signup",
+        "verb:POST:/login/access-token",
+        "verb:POST:/login/test-token"
+      ],
+      "parent_id": "topic_49",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_51",
+      "name": "How to manage your account",
+      "topic_type": "task",
+      "covers": [
+        "verb:PATCH:/users/me",
+        "verb:PATCH:/users/me/password",
+        "verb:GET:/users/me",
+        "verb:DELETE:/users/me"
+      ],
+      "parent_id": "topic_49",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_52",
+      "name": "How to recover your password",
+      "topic_type": "task",
+      "covers": [
+        "verb:POST:/password-recovery/{email}",
+        "verb:POST:/reset-password/",
+        "verb:POST:/password-recovery-html-content/{email}"
+      ],
+      "parent_id": "topic_49",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_53",
+      "name": "How to work with Users",
+      "topic_type": "task",
+      "covers": [
+        "noun:user",
+        "verb:GET:/users/",
+        "verb:POST:/users/",
+        "verb:PATCH:/users/me",
+        "verb:PATCH:/users/me/password",
+        "verb:GET:/users/me",
+        "verb:DELETE:/users/me",
+        "verb:POST:/users/signup",
+        "verb:GET:/users/{user_id}",
+        "verb:PATCH:/users/{user_id}",
+        "verb:DELETE:/users/{user_id}",
+        "verb:POST:/login/access-token",
+        "verb:POST:/login/test-token",
+        "verb:POST:/password-recovery/{email}",
+        "verb:POST:/reset-password/",
+        "verb:POST:/password-recovery-html-content/{email}",
+        "verb:POST:/private/users/"
+      ],
+      "parent_id": "topic_49",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_54",
+      "name": "How to work with Items",
+      "topic_type": "task",
+      "covers": [
+        "noun:item",
+        "verb:GET:/items/",
+        "verb:GET:/items/{id}",
+        "verb:POST:/items/",
+        "verb:PUT:/items/{id}",
+        "verb:DELETE:/items/{id}"
+      ],
+      "parent_id": "topic_49",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_49",
+      "name": "Task",
+      "topic_type": "task",
+      "covers": [],
+      "parent_id": null,
+      "children": [
+        "topic_50",
+        "topic_51",
+        "topic_52",
+        "topic_53",
+        "topic_54"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    }
+  ],
+  "quality": {}
+}

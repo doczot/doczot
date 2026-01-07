@@ -400,6 +400,7 @@ def _extract_constraints(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> l
     - Rate limits: @limiter.limit("100/hour"), @ratelimit.limits(...)
     - Auth: @requires_auth, @authenticated, @login_required
     - Dependencies: Depends(get_current_user), Depends(require_admin)
+    - Router dependencies: @router.get("/", dependencies=[Depends(...)])
     - Permissions: @permission_required(...), @role_required(...)
 
     Args:
@@ -429,6 +430,23 @@ def _extract_constraints(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> l
                             "type": "permission",
                             "value": decorator.args[0].value,
                         })
+
+            # Pattern 5 (NEW): @router.get("/", dependencies=[Depends(...)])
+            # Check decorator keyword arguments for "dependencies"
+            for keyword in decorator.keywords:
+                if keyword.arg == "dependencies" and isinstance(keyword.value, ast.List):
+                    for dep_call in keyword.value.elts:
+                        if isinstance(dep_call, ast.Call):
+                            if isinstance(dep_call.func, ast.Name) and dep_call.func.id == "Depends":
+                                # Extract dependency name
+                                if dep_call.args and isinstance(dep_call.args[0], ast.Name):
+                                    dep_name = dep_call.args[0].id
+                                    # Check if it's an auth-related dependency
+                                    if any(kw in dep_name.lower() for kw in ['user', 'auth', 'admin', 'superuser']):
+                                        constraints.append({
+                                            "type": "auth_required",
+                                            "value": dep_name,
+                                        })
 
         # Pattern 2: @requires_auth, @authenticated, etc. (simple decorators)
         if isinstance(decorator, ast.Name):

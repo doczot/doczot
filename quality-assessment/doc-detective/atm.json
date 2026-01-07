@@ -1,0 +1,45 @@
+{
+  "manifest_type": "actual",
+  "surface_id": "doc-detective:2026-01-07T15:32:55.941676",
+  "product_name": "doc-detective",
+  "created_at": "2026-01-07 15:32:57.685655",
+  "updated_at": "2026-01-07 15:32:57.685664",
+  "topics": [
+    {
+      "id": "atm_topic_1",
+      "name": "Contributions",
+      "topic_type": "reference",
+      "covers": [
+        "verb:CLI:doc-detective"
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "CONTRIBUTIONS.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    }
+  ],
+  "quality": {
+    "atm_topic_1": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": false,
+      "has_examples": false,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": false,
+      "coverage_score": 0.2,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.1
+    }
+  }
+}

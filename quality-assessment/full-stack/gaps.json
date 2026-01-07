@@ -1,0 +1,668 @@
+{
+  "surface_id": "full-stack-fastapi-template",
+  "itm_id": "full-stack-fastapi-template:2026-01-07T15:32:39.260228",
+  "atm_id": "full-stack-fastapi-template:2026-01-07T15:32:39.260228",
+  "generated_at": "2026-01-07 15:32:48.420719",
+  "product_name": "full-stack-fastapi-template",
+  "gaps": [
+    {
+      "itm_topic_id": "topic_4",
+      "itm_topic_name": "List users",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:GET:/users/"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: List users",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_5",
+      "itm_topic_name": "Create users",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/users/"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create users",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_6",
+      "itm_topic_name": "Update me",
+      "atm_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing examples"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_7",
+      "itm_topic_name": "Update password",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:PATCH:/users/me/password"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Update password",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_8",
+      "itm_topic_name": "List me",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:GET:/users/me"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: List me",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_9",
+      "itm_topic_name": "Delete me",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:DELETE:/users/me"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Delete me",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_10",
+      "itm_topic_name": "Create signup",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/users/signup"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create signup",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_11",
+      "itm_topic_name": "Get users",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:GET:/users/{user_id}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Get users",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_12",
+      "itm_topic_name": "Update users",
+      "atm_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing examples"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_13",
+      "itm_topic_name": "Delete users",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:DELETE:/users/{user_id}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Delete users",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_14",
+      "itm_topic_name": "Create access-token",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/login/access-token"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create access-token",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_15",
+      "itm_topic_name": "Create test-token",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/login/test-token"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create test-token",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_16",
+      "itm_topic_name": "Create password-recovery",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/password-recovery/{email}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create password-recovery",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_17",
+      "itm_topic_name": "Create reset-password",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/reset-password/"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create reset-password",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_18",
+      "itm_topic_name": "Create password-recovery-html-content",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/password-recovery-html-content/{email}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create password-recovery-html-content",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_19",
+      "itm_topic_name": "Create users",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/private/users/"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create users",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_3",
+      "itm_topic_name": "User",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: User",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_21",
+      "itm_topic_name": "Create test-email",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/utils/test-email/"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create test-email",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_22",
+      "itm_topic_name": "List health-check",
+      "atm_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing examples"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_20",
+      "itm_topic_name": "Util",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Util",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_24",
+      "itm_topic_name": "List items",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:GET:/items/"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: List items",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_25",
+      "itm_topic_name": "Get items",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:GET:/items/{id}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Get items",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_26",
+      "itm_topic_name": "Create items",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/items/"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Create items",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_27",
+      "itm_topic_name": "Update items",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:PUT:/items/{id}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Update items",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_28",
+      "itm_topic_name": "Delete items",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:DELETE:/items/{id}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Delete items",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_23",
+      "itm_topic_name": "Item",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Item",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_2",
+      "itm_topic_name": "API",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: API",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_1",
+      "itm_topic_name": "Reference",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Reference",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_31",
+      "itm_topic_name": "User",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:user"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: User",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_32",
+      "itm_topic_name": "Util",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:util"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Util",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_33",
+      "itm_topic_name": "Item",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:item"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Item",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_30",
+      "itm_topic_name": "Entity",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Entity",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_29",
+      "itm_topic_name": "Concept",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Concept",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_34",
+      "itm_topic_name": "Test",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:test"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Test",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_35",
+      "itm_topic_name": "Oauth2",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:oauth2"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Oauth2",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_36",
+      "itm_topic_name": "Password",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:password"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Password",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_37",
+      "itm_topic_name": "Recovery",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:recovery"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Recovery",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_38",
+      "itm_topic_name": "Reset",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:reset"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Reset",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_39",
+      "itm_topic_name": "Html",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:html"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Html",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_40",
+      "itm_topic_name": "Content",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:content"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Content",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_41",
+      "itm_topic_name": "Requirements",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:requirements"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Requirements",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_42",
+      "itm_topic_name": "Docker Compose",
+      "atm_topic_id": "atm_topic_5",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_43",
+      "itm_topic_name": "General Workflow",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:general workflow"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: General Workflow",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_44",
+      "itm_topic_name": "Vs Code",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:vs code"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Vs Code",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_45",
+      "itm_topic_name": "Docker Compose Override",
+      "atm_topic_id": "atm_topic_5",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_46",
+      "itm_topic_name": "Backend Tests",
+      "atm_topic_id": "atm_topic_1",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_47",
+      "itm_topic_name": "Migrations",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "concept:migrations"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Migrations",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_48",
+      "itm_topic_name": "Email Templates",
+      "atm_topic_id": "atm_topic_1",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_50",
+      "itm_topic_name": "How to authenticate",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:user",
+        "verb:POST:/users/signup",
+        "verb:POST:/login/access-token",
+        "verb:POST:/login/test-token"
+      ],
+      "quality_gaps": [],
+      "action": "Create new task topic: How to authenticate",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_51",
+      "itm_topic_name": "How to manage your account",
+      "atm_topic_id": "atm_topic_2",
+      "status": "partial",
+      "missing_surface_ids": [
+        "verb:GET:/users/me",
+        "verb:PATCH:/users/me/password",
+        "verb:DELETE:/users/me"
+      ],
+      "quality_gaps": [
+        "missing examples"
+      ],
+      "action": "Add coverage for 3 missing elements",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_52",
+      "itm_topic_name": "How to recover your password",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "verb:POST:/password-recovery/{email}",
+        "verb:POST:/reset-password/",
+        "verb:POST:/password-recovery-html-content/{email}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new task topic: How to recover your password",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_53",
+      "itm_topic_name": "How to work with Users",
+      "atm_topic_id": "atm_topic_2",
+      "status": "partial",
+      "missing_surface_ids": [
+        "noun:user",
+        "verb:POST:/users/",
+        "verb:GET:/users/me",
+        "verb:DELETE:/users/{user_id}",
+        "verb:POST:/login/test-token",
+        "verb:POST:/password-recovery/{email}",
+        "verb:POST:/password-recovery-html-content/{email}",
+        "verb:GET:/users/{user_id}",
+        "verb:POST:/login/access-token",
+        "verb:POST:/users/signup",
+        "verb:PATCH:/users/me/password",
+        "verb:POST:/reset-password/",
+        "verb:DELETE:/users/me",
+        "verb:GET:/users/",
+        "verb:POST:/private/users/"
+      ],
+      "quality_gaps": [
+        "missing examples"
+      ],
+      "action": "Add coverage for 15 missing elements",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_54",
+      "itm_topic_name": "How to work with Items",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:item",
+        "verb:GET:/items/",
+        "verb:GET:/items/{id}",
+        "verb:POST:/items/",
+        "verb:PUT:/items/{id}",
+        "verb:DELETE:/items/{id}"
+      ],
+      "quality_gaps": [],
+      "action": "Create new task topic: How to work with Items",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_49",
+      "itm_topic_name": "Task",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new task topic: Task",
+      "priority": 0
+    }
+  ],
+  "extra_topics": []
+}

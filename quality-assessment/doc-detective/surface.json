@@ -1,0 +1,23 @@
+{
+  "product_name": "doc-detective",
+  "version": null,
+  "scanned_at": "2026-01-07 15:32:55.941676",
+  "source_paths": [
+    "/private/tmp/doc-detective"
+  ],
+  "nodes": [
+    {
+      "id": "verb:CLI:doc-detective",
+      "type": "verb",
+      "name": "doc-detective",
+      "description": "Documentation testing CLI tool",
+      "node_class": "user-facing",
+      "source_file": "/private/tmp/doc-detective",
+      "source_line": null,
+      "code_signature": "CLI doc-detective",
+      "http_method": null,
+      "http_path": null
+    }
+  ],
+  "edges": []
+}

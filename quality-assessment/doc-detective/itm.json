@@ -1,0 +1,110 @@
+{
+  "manifest_type": "intended",
+  "surface_id": "doc-detective:2026-01-07T15:32:55.941676",
+  "product_name": "doc-detective",
+  "created_at": "2026-01-07 15:32:55.941713",
+  "updated_at": "2026-01-07 15:32:55.941714",
+  "topics": [
+    {
+      "id": "topic_4",
+      "name": "Doc-Detective",
+      "topic_type": "reference",
+      "covers": [
+        "verb:CLI:doc-detective"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_3",
+      "name": "General",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_4"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_2",
+      "name": "API",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_1",
+      "children": [
+        "topic_3"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_1",
+      "name": "Reference",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": null,
+      "children": [
+        "topic_2"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_6",
+      "name": "Entity",
+      "topic_type": "concept",
+      "covers": [],
+      "parent_id": "topic_5",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_5",
+      "name": "Concept",
+      "topic_type": "concept",
+      "covers": [],
+      "parent_id": null,
+      "children": [
+        "topic_6"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    }
+  ],
+  "quality": {}
+}
