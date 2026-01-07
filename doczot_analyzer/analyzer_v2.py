@@ -104,12 +104,17 @@ def build_surface_graph_nodejs(
 ) -> SurfaceGraph:
     """Build a SurfaceGraph from a Node.js CLI repository.
 
+    Creates:
+    - Verb nodes for CLI commands
+    - Noun nodes for CLI flags/options
+    - Edges connecting commands to their flags
+
     Args:
         repo_path: Path to the repository
         product_name: Optional product name
 
     Returns:
-        SurfaceGraph with CLI commands as verb nodes
+        SurfaceGraph with CLI commands as verb nodes and flags as noun nodes
     """
     repo_path = str(Path(repo_path).resolve())
     if not product_name:
@@ -119,8 +124,9 @@ def build_surface_graph_nodejs(
 
     nodes: list[SurfaceNode] = []
     edges: list[SurfaceEdge] = []
+    seen_flags: set[str] = set()
 
-    # Create verb nodes for each command
+    # Create verb nodes for each command and noun nodes for flags
     for cmd in commands:
         verb_node = SurfaceNode(
             id=f"verb:CLI:{cmd.name}",
@@ -128,9 +134,37 @@ def build_surface_graph_nodejs(
             name=cmd.name,
             description=cmd.description,
             source_file=cmd.file_path,
-            code_signature=f"CLI {cmd.name}",
+            source_line=cmd.line_number if cmd.line_number else 1,
+            code_signature=cmd.name,  # Use clean name, not "CLI {name}"
         )
         nodes.append(verb_node)
+
+        # Create noun nodes for each flag/option
+        for flag in cmd.flags:
+            flag_name = flag.get('name', '')
+            if not flag_name or flag_name in seen_flags:
+                continue
+
+            seen_flags.add(flag_name)
+
+            flag_node = SurfaceNode(
+                id=f"noun:flag:{flag_name}",
+                type=NodeType.NOUN,
+                name=flag_name,
+                description=flag.get('description', f'CLI flag: {flag_name}'),
+                source_file=cmd.file_path,
+                source_line=1,  # Default to line 1 for flags
+            )
+            nodes.append(flag_node)
+
+            # Create edge: command operates_on flag
+            edge = SurfaceEdge(
+                source_id=verb_node.id,
+                target_id=flag_node.id,
+                edge_type=EdgeType.OPERATES_ON,
+                confidence=ConfidenceLevel.HIGH,
+            )
+            edges.append(edge)
 
     return SurfaceGraph(
         product_name=product_name,

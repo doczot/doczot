@@ -1,0 +1,230 @@
+{
+  "surface_id": "doc-detective",
+  "itm_id": "doc-detective:2026-01-07T15:45:33.945566",
+  "atm_id": "doc-detective:2026-01-07T15:45:33.945566",
+  "generated_at": "2026-01-07 15:45:36.106335",
+  "product_name": "doc-detective",
+  "gaps": [
+    {
+      "itm_topic_id": "topic_4",
+      "itm_topic_name": "Doc-Detective",
+      "atm_topic_id": "atm_topic_1",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_3",
+      "itm_topic_name": "Config",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Config",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_6",
+      "itm_topic_name": "Doc-Detective",
+      "atm_topic_id": "atm_topic_1",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_5",
+      "itm_topic_name": "Input",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Input",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_8",
+      "itm_topic_name": "Doc-Detective",
+      "atm_topic_id": "atm_topic_1",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_7",
+      "itm_topic_name": "Output",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Output",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_10",
+      "itm_topic_name": "Doc-Detective",
+      "atm_topic_id": "atm_topic_1",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_9",
+      "itm_topic_name": "Loglevel",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Loglevel",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_12",
+      "itm_topic_name": "Doc-Detective",
+      "atm_topic_id": "atm_topic_1",
+      "status": "complete",
+      "missing_surface_ids": [],
+      "quality_gaps": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_11",
+      "itm_topic_name": "Allow-Unsafe",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Allow-Unsafe",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_2",
+      "itm_topic_name": "API",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: API",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_1",
+      "itm_topic_name": "Reference",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new reference topic: Reference",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_15",
+      "itm_topic_name": "Config",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:flag:config"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Config",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_16",
+      "itm_topic_name": "Input",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:flag:input"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Input",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_17",
+      "itm_topic_name": "Output",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:flag:output"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Output",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_18",
+      "itm_topic_name": "Loglevel",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:flag:logLevel"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Loglevel",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_19",
+      "itm_topic_name": "Allow-Unsafe",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [
+        "noun:flag:allow-unsafe"
+      ],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Allow-Unsafe",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_14",
+      "itm_topic_name": "Entity",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Entity",
+      "priority": 0
+    },
+    {
+      "itm_topic_id": "topic_13",
+      "itm_topic_name": "Concept",
+      "atm_topic_id": null,
+      "status": "missing",
+      "missing_surface_ids": [],
+      "quality_gaps": [],
+      "action": "Create new concept topic: Concept",
+      "priority": 0
+    }
+  ],
+  "extra_topics": []
+}

@@ -1,0 +1,341 @@
+{
+  "manifest_type": "intended",
+  "surface_id": "doc-detective:2026-01-07T15:45:33.945566",
+  "product_name": "doc-detective",
+  "created_at": "2026-01-07 15:45:33.945638",
+  "updated_at": "2026-01-07 15:45:33.945638",
+  "topics": [
+    {
+      "id": "topic_4",
+      "name": "Doc-Detective",
+      "topic_type": "reference",
+      "covers": [
+        "verb:CLI:doc-detective"
+      ],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_3",
+      "name": "Config",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_4"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_6",
+      "name": "Doc-Detective",
+      "topic_type": "reference",
+      "covers": [
+        "verb:CLI:doc-detective"
+      ],
+      "parent_id": "topic_5",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_5",
+      "name": "Input",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_6"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_8",
+      "name": "Doc-Detective",
+      "topic_type": "reference",
+      "covers": [
+        "verb:CLI:doc-detective"
+      ],
+      "parent_id": "topic_7",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_7",
+      "name": "Output",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_8"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_10",
+      "name": "Doc-Detective",
+      "topic_type": "reference",
+      "covers": [
+        "verb:CLI:doc-detective"
+      ],
+      "parent_id": "topic_9",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_9",
+      "name": "Loglevel",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_10"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_12",
+      "name": "Doc-Detective",
+      "topic_type": "reference",
+      "covers": [
+        "verb:CLI:doc-detective"
+      ],
+      "parent_id": "topic_11",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_11",
+      "name": "Allow-Unsafe",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_12"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_2",
+      "name": "API",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": "topic_1",
+      "children": [
+        "topic_3",
+        "topic_5",
+        "topic_7",
+        "topic_9",
+        "topic_11"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_1",
+      "name": "Reference",
+      "topic_type": "reference",
+      "covers": [],
+      "parent_id": null,
+      "children": [
+        "topic_2"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_15",
+      "name": "Config",
+      "topic_type": "concept",
+      "covers": [
+        "noun:flag:config"
+      ],
+      "parent_id": "topic_14",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_16",
+      "name": "Input",
+      "topic_type": "concept",
+      "covers": [
+        "noun:flag:input"
+      ],
+      "parent_id": "topic_14",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_17",
+      "name": "Output",
+      "topic_type": "concept",
+      "covers": [
+        "noun:flag:output"
+      ],
+      "parent_id": "topic_14",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_18",
+      "name": "Loglevel",
+      "topic_type": "concept",
+      "covers": [
+        "noun:flag:logLevel"
+      ],
+      "parent_id": "topic_14",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_19",
+      "name": "Allow-Unsafe",
+      "topic_type": "concept",
+      "covers": [
+        "noun:flag:allow-unsafe"
+      ],
+      "parent_id": "topic_14",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_14",
+      "name": "Entity",
+      "topic_type": "concept",
+      "covers": [],
+      "parent_id": "topic_13",
+      "children": [
+        "topic_15",
+        "topic_16",
+        "topic_17",
+        "topic_18",
+        "topic_19"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_13",
+      "name": "Concept",
+      "topic_type": "concept",
+      "covers": [],
+      "parent_id": null,
+      "children": [
+        "topic_14"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    }
+  ],
+  "quality": {}
+}

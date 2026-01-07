@@ -164,11 +164,25 @@ def scan_yargs_commands(repo_path: str) -> list[CliCommand]:
 
     # If we found options, create a main command entry
     if commands:
+        # Find the main entry point file for better source reference
+        main_file = str(repo_path)
+        potential_entries = [
+            repo_path / "src" / "index.js",
+            repo_path / "src" / "cli.js",
+            repo_path / "index.js",
+            repo_path / "cli.js",
+        ]
+        for entry in potential_entries:
+            if entry.exists():
+                main_file = str(entry)
+                break
+
         # Group all options under a main command
         main_command = CliCommand(
             name="doc-detective",
             description="Documentation testing CLI tool",
-            file_path=str(repo_path),
+            file_path=main_file,
+            line_number=1,  # Set to 1 instead of 0/None
             flags=[{
                 "name": cmd.name.lstrip('-'),
                 "description": cmd.description

@@ -1,0 +1,114 @@
+{
+  "product_name": "doc-detective",
+  "version": null,
+  "scanned_at": "2026-01-07 15:45:33.945566",
+  "source_paths": [
+    "/private/tmp/doc-detective"
+  ],
+  "nodes": [
+    {
+      "id": "verb:CLI:doc-detective",
+      "type": "verb",
+      "name": "doc-detective",
+      "description": "Documentation testing CLI tool",
+      "node_class": "user-facing",
+      "source_file": "/private/tmp/doc-detective",
+      "source_line": null,
+      "code_signature": "CLI doc-detective",
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "noun:flag:config",
+      "type": "noun",
+      "name": "config",
+      "description": "Path to a `config.json` or `config.yaml` file.",
+      "node_class": "user-facing",
+      "source_file": "/private/tmp/doc-detective",
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "noun:flag:input",
+      "type": "noun",
+      "name": "input",
+      "description": "Path to test specifications and documentation source files. May be paths to specific files or to directories to scan for files.",
+      "node_class": "user-facing",
+      "source_file": "/private/tmp/doc-detective",
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "noun:flag:output",
+      "type": "noun",
+      "name": "output",
+      "description": "Path of the directory in which to store the output of Doc Detective commands.",
+      "node_class": "user-facing",
+      "source_file": "/private/tmp/doc-detective",
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "noun:flag:logLevel",
+      "type": "noun",
+      "name": "logLevel",
+      "description": "Detail level of logging events. Accepted values: silent, error, warning, info (default), debug",
+      "node_class": "user-facing",
+      "source_file": "/private/tmp/doc-detective",
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "noun:flag:allow-unsafe",
+      "type": "noun",
+      "name": "allow-unsafe",
+      "description": "Allow execution of potentially unsafe tests",
+      "node_class": "user-facing",
+      "source_file": "/private/tmp/doc-detective",
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "verb:CLI:doc-detective",
+      "target_id": "noun:flag:config",
+      "edge_type": "operates_on",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:CLI:doc-detective",
+      "target_id": "noun:flag:input",
+      "edge_type": "operates_on",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:CLI:doc-detective",
+      "target_id": "noun:flag:output",
+      "edge_type": "operates_on",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:CLI:doc-detective",
+      "target_id": "noun:flag:logLevel",
+      "edge_type": "operates_on",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:CLI:doc-detective",
+      "target_id": "noun:flag:allow-unsafe",
+      "edge_type": "operates_on",
+      "confidence": "high"
+    }
+  ]
+}
