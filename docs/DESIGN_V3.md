@@ -1,7 +1,7 @@
 # DocZot v3 Design Document: Documentation as Enterprise Ontology
 
 **Status**: Draft  
-**Author**: Sharon Rosner  
+**Author**: Sharon Campbell-Crow  
 **Date**: January 2026  
 **Version**: 3.0
 
