@@ -313,6 +313,25 @@ Compare two commits/branches:
 
 ---
 
+## Testing & Validation
+
+### Comprehensive Test Repository Suite
+**Status:** ✅ Documented (January 2026)
+**Category:** Quality Assurance, Validation
+
+Gemini AI analysis identified stratified test suite of real-world FastAPI repositories covering:
+- Gold standard: seapagan/fastapi-template (ideal structure)
+- Stress test: benavlabs/FastAPI-boilerplate (modern patterns)
+- Negative control: fastapi-realworld-example-app (zero docs)
+- Semantic challenge: fastapi-users (library abstractions)
+- Micro test: fastapi-blog-api (fast iteration)
+
+**See:** [docs/TESTING_STRATEGY.md](TESTING_STRATEGY.md) for comprehensive validation plan
+
+**Setup:** Run `bash scripts/setup_test_repos.sh` to clone repositories
+
+---
+
 ## Process Notes
 
 ### How to Use This Document
