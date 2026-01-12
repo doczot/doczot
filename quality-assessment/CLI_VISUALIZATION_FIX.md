@@ -1,7 +1,11 @@
 # CLI Visualization Fix
 
-**Issue Reported**: Doc Detective visualization only showed 1 node
-**Root Cause**: CLI flags were stored as metadata but not converted to graph nodes
+**Issue Reported**: Doc Detective visualization had display formatting problems
+**Root Causes**:
+1. CLI flags were stored as metadata but not converted to graph nodes
+2. Source file showed directory path instead of actual file
+3. Source line was null, causing `:None` in display
+
 **Fixed**: 2026-01-07
 
 ---
@@ -111,6 +115,37 @@ for flag in cmd.flags:
 - **Doc Detective**: Now shows meaningful graph (6 nodes vs 1)
 - **All yargs CLIs**: Will benefit from improved visualization
 - **CLI Documentation**: Can now track flag coverage like API endpoint coverage
+
+---
+
+## Final Display Fix (16:09)
+
+**Issue**: User reported verb showing as `/private/tmp/doc-detective:None`
+
+**Root causes**:
+- `source_file` was directory path instead of actual file
+- `source_line` was null
+- `code_signature` was "CLI doc-detective" instead of clean name
+
+**Solution**:
+1. Enhanced `scan_yargs_commands()` to find actual entry point file:
+   - Checks `src/index.js`, `src/cli.js`, `index.js`, `cli.js`
+   - Uses first existing file as source
+2. Set `line_number=1` instead of 0/None
+3. Changed `code_signature` to use clean command name
+
+**Result**:
+```json
+{
+  "id": "verb:CLI:doc-detective",
+  "name": "doc-detective",
+  "source_file": "/private/tmp/doc-detective/src/index.js",
+  "source_line": 1,
+  "code_signature": "doc-detective"
+}
+```
+
+Clean display: `doc-detective /private/tmp/doc-detective/src/index.js:1` ✅
 
 ---
 
