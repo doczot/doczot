@@ -210,7 +210,13 @@ We win by making DocZot so good that teams *want* to pay for the managed experie
 
 We welcome contributions! Whether you're fixing bugs, adding features, or improving docs, we'd love your help.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines (coming soon).
+**Development workflow:**
+1. Read [PRODUCT_OVERVIEW.md](docs/PRODUCT_OVERVIEW.md) to understand the architecture
+2. Check [BACKLOG.md](docs/BACKLOG.md) for planned features
+3. Follow the patterns in [CLAUDE.md](CLAUDE.md) when implementing
+4. Ensure tests pass with `pytest`
+
+Formal contribution guidelines coming soon.
 
 ---
 

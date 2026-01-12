@@ -2,6 +2,8 @@
 
 This document captures important insights discovered while testing DocZot on real-world codebases.
 
+> **See also**: [PRODUCT_OVERVIEW.md](PRODUCT_OVERVIEW.md) documents how these learnings shaped the current architecture.
+
 ## Date: 2025-10-20
 
 ### Testing FastAPI Repository

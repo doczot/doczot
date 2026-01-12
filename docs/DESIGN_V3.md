@@ -1,9 +1,11 @@
 # DocZot v3 Design Document: Documentation as Enterprise Ontology
 
-**Status**: Draft  
-**Author**: Sharon Campbell-Crow  
-**Date**: January 2026  
+**Status**: Vision Document
+**Author**: Sharon Campbell-Crow
+**Date**: January 2026
 **Version**: 3.0
+
+> **Note**: For the **current state** of DocZot's architecture and product design, see [PRODUCT_OVERVIEW.md](PRODUCT_OVERVIEW.md). This document describes the **future vision** for v3.
 
 ---
 

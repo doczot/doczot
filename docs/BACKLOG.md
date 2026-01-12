@@ -46,41 +46,17 @@ Instead of custom data models, adopt an officially recognized format for represe
 
 ---
 
-## Scanner Enhancements
+## Completed & Archived
 
 ### Resolve Router Prefixes for Accurate Paths
-**Status:** ✅ Accepted (Implemented 2025-12-21)
-**Date Added:** 2025-10-22
+**Status:** ✅ Implemented (2025-12-21) - Archived
 **Category:** Core Functionality, Accuracy
-**Source:** Golden dataset rating session - discovered real endpoints with empty paths
 
-**Problem:**
-Scanner captures decorator path (e.g., `@router.put("")`) but doesn't resolve the final mounted path. Real path is `/user` but scanner shows empty string.
-
-**Example:**
-```python
-# In app/api/routes/users.py
-router = APIRouter()
-
-@router.put("")  # Scanner sees ""
-async def update_current_user(...): ...
-
-# In app/api/routes/api.py
-router.include_router(users.router, prefix="/user")  # Real path is /user
-```
-
-**Solution Implemented:**
-- Track `APIRouter(prefix=...)` declarations in scanner.py
-- Combine router prefix with endpoint decorator path
-- See `docs/features/endpoint-detection.md` R10 for details
-
-**Completed:**
-- [x] Add router prefix tracking to scanner.py
-- [x] Parse APIRouter prefix declarations
-- [x] Combine prefixes with endpoint paths
-- [x] Update documentation
+Router prefix tracking implemented. See `docs/features/endpoint-detection.md` R10 for details.
 
 ---
+
+## Scanner Enhancements
 
 ### Improve Path Regex to Reduce False Positives
 **Status:** 🔥 Hot

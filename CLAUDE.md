@@ -27,8 +27,9 @@ doczot/
 │   ├── manifest.py            # TopicManifest operations
 │   └── cli_v2.py              # CLI and HTML visualizer
 ├── docs/
-│   ├── DESIGN_V3.md           # This design document
-│   ├── ARCHITECTURE.md        # Current architecture reference
+│   ├── PRODUCT_OVERVIEW.md    # Current product & architecture (comprehensive)
+│   ├── DESIGN_V3.md           # Vision for v3 architecture
+│   ├── LEARNINGS.md           # Design evolution from real-world testing
 │   └── features/              # Feature specifications
 └── scripts/                   # Development and debug scripts
 ```
@@ -462,14 +463,14 @@ A feature is complete when:
 2. Unit tests pass with >80% coverage on new code
 3. Integration test on full-stack-fastapi-template succeeds
 4. CLI help text is updated
-5. ARCHITECTURE.md is updated if architecture changed
+5. PRODUCT_OVERVIEW.md is updated if architecture changed
 6. No regressions in existing tests
 
 ---
 
 ## Getting Help
 
-- Read `docs/ARCHITECTURE.md` for current system design
+- Read `docs/PRODUCT_OVERVIEW.md` for comprehensive product & architecture documentation
 - Read `docs/DESIGN_V3.md` for v3 vision and roadmap
 - Read `docs/LEARNINGS.md` for past design decisions and their rationale
 - Check `scripts/` for debugging and validation utilities
