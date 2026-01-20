@@ -1,12 +1,14 @@
 """DocZot v2 CLI - Four Layer Documentation Analysis.
 
 Commands:
-    analyze     Run full analysis (surface, ITM, ATM, gaps)
-    surface     Explore the product surface graph
-    itm         View/edit the intended topic manifest
-    atm         View the actual topic manifest
-    gaps        View the gap report and sprint plan
-    visualize   Interactive HTML visualization
+    analyze          Run full analysis (surface, ITM, ATM, gaps)
+    surface          Explore the product surface graph
+    itm              View/edit the intended topic manifest
+    atm              View the actual topic manifest
+    gaps             View the gap report and sprint plan
+    visualize        Interactive HTML visualization
+    diff             Compare two Surface Graph scans
+    export-ontology  Export to RDF/OWL ontology formats
 """
 import argparse
 import json
@@ -1155,6 +1157,114 @@ def cmd_diff(args):
 
 
 # =============================================================================
+# EXPORT-ONTOLOGY COMMAND
+# =============================================================================
+
+def cmd_export_ontology(args):
+    """Export surface graph and manifests to RDF/OWL ontology."""
+    try:
+        from doczot_analyzer.ontology import (
+            full_analysis_to_ontology,
+            surface_graph_to_ontology,
+        )
+    except ImportError:
+        print("Error: Ontology export requires rdflib.")
+        print("Install with: pip install 'doczot-analyzer[ontology]'")
+        print("Or: pip install rdflib")
+        return 1
+
+    repo_path = args.repo_path or "."
+    repo_path = str(Path(repo_path).resolve())
+
+    print(f"Analyzing: {repo_path}")
+    surface, itm, atm, gap_report = analyze_repository(repo_path, args.name)
+
+    # Convert to ontology
+    if args.surface_only:
+        print("Converting surface graph to ontology...")
+        onto = surface_graph_to_ontology(surface, include_schema=not args.no_schema)
+    else:
+        print("Converting full analysis (surface + ITM + ATM) to ontology...")
+        onto = full_analysis_to_ontology(surface, itm, atm)
+
+    # Run reasoning if requested
+    if args.reason:
+        print("Running inference...")
+        if args.full_reason:
+            result = onto.run_reasoner()
+            if result['errors']:
+                for err in result['errors']:
+                    print(f"  Warning: {err}")
+            else:
+                print(f"  Inferred {result['inferred_triples']} new triples")
+        else:
+            inferred = onto.infer_transitive_closure()
+            print(f"  Inferred {inferred} transitive/inverse triples")
+
+    # Validate if requested
+    if args.validate:
+        print("Validating ontology...")
+        validation = onto.validate_consistency()
+        if validation['valid']:
+            print("  Ontology is valid")
+        else:
+            print(f"  Found {validation['issue_count']} issues:")
+            for issue in validation['issues'][:10]:
+                print(f"    - {issue['message']}")
+            if validation['issue_count'] > 10:
+                print(f"    ... and {validation['issue_count'] - 10} more")
+
+    # Show statistics
+    if args.stats:
+        stats = onto.get_statistics()
+        print(f"\n--- Ontology Statistics ---")
+        print(f"  Total triples: {stats['total_triples']}")
+        print(f"  Verbs: {stats['verbs']}")
+        print(f"  Nouns: {stats['nouns']}")
+        print(f"  Concepts: {stats['concepts']}")
+        print(f"  Constraints: {stats['constraints']}")
+        print(f"  Topics: {stats['topics']}")
+        print(f"  Relationships:")
+        for rel_type, count in stats['relationships'].items():
+            if count > 0:
+                print(f"    {rel_type}: {count}")
+
+    # Determine format
+    format_map = {
+        'turtle': 'turtle',
+        'ttl': 'turtle',
+        'json-ld': 'json-ld',
+        'jsonld': 'json-ld',
+        'xml': 'xml',
+        'rdf': 'xml',
+        'ntriples': 'nt',
+        'nt': 'nt',
+        'n3': 'n3',
+    }
+    output_format = format_map.get(args.format.lower(), 'turtle')
+
+    # Serialize
+    output = onto.serialize(output_format)
+
+    # Write to file or stdout
+    if args.output:
+        output_path = Path(args.output)
+        output_path.write_text(output)
+        print(f"\nOntology saved to: {output_path}")
+    else:
+        print(f"\n--- Ontology ({output_format}) ---\n")
+        # Limit output for large ontologies
+        lines = output.split('\n')
+        if len(lines) > 100 and not args.full:
+            print('\n'.join(lines[:100]))
+            print(f"\n... ({len(lines) - 100} more lines, use --full to show all or -o to save to file)")
+        else:
+            print(output)
+
+    return 0
+
+
+# =============================================================================
 # MAIN
 # =============================================================================
 
@@ -1223,6 +1333,30 @@ def main():
     p.add_argument("--verbose", "-v", action="store_true", help="Show detailed changes")
     p.add_argument("--output", "-o", help="Save diff to JSON file")
     p.set_defaults(func=cmd_diff)
+
+    # export-ontology
+    p = subparsers.add_parser("export-ontology", help="Export to RDF/OWL ontology")
+    p.add_argument("repo_path", nargs="?", default=".")
+    p.add_argument("--name", help="Product name")
+    p.add_argument("--format", "-f", default="turtle",
+                   choices=["turtle", "ttl", "json-ld", "jsonld", "xml", "rdf", "ntriples", "nt", "n3"],
+                   help="Output format (default: turtle)")
+    p.add_argument("--output", "-o", help="Save to file (otherwise prints to stdout)")
+    p.add_argument("--surface-only", action="store_true",
+                   help="Export only surface graph (not ITM/ATM)")
+    p.add_argument("--no-schema", action="store_true",
+                   help="Omit ontology schema (T-Box), only export instances")
+    p.add_argument("--reason", action="store_true",
+                   help="Run inference (transitive closure)")
+    p.add_argument("--full-reason", action="store_true",
+                   help="Run full OWL reasoning (requires owlready2 + Java)")
+    p.add_argument("--validate", action="store_true",
+                   help="Validate ontology consistency")
+    p.add_argument("--stats", action="store_true",
+                   help="Show ontology statistics")
+    p.add_argument("--full", action="store_true",
+                   help="Show full output (don't truncate)")
+    p.set_defaults(func=cmd_export_ontology)
 
     args = parser.parse_args()
 
