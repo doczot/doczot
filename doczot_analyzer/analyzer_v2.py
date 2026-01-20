@@ -738,17 +738,35 @@ def discover_atm(
         # Match chunks to surface elements
         covered_ids = set()
         for node in surface.user_facing_nodes():
-            # Create search signature
-            if node.type == NodeType.VERB and node.code_signature:
-                sig = node.code_signature
+            # Create search signature - include entity names for better matching
+            sig_parts = []
+
+            if node.type == NodeType.VERB:
+                # Include HTTP method and path
+                if node.code_signature:
+                    sig_parts.append(node.code_signature)
+                # Extract entity names from path (e.g., /users/me -> users)
+                if node.http_path:
+                    path_segments = [s for s in node.http_path.split('/') if s and not s.startswith('{')]
+                    sig_parts.extend(path_segments)
+                # Include function name (e.g., get_me -> get me)
+                if node.name:
+                    sig_parts.append(node.name.replace('_', ' '))
             else:
-                sig = node.name
+                sig_parts.append(node.name)
+
+            # Include description/docstring if available
+            if node.description:
+                sig_parts.append(node.description)
+
+            sig = ' '.join(sig_parts)
 
             results = vector_store.search(sig, limit=1)
             if results:
                 chunk, score = results[0]
                 # Check if this chunk is in current file
-                if chunk.file_path == file_path and score >= 0.4:
+                # Lowered threshold from 0.4 to 0.28 based on analysis
+                if chunk.file_path == file_path and score >= 0.28:
                     covered_ids.add(node.id)
 
         if covered_ids:  # Only create topic if it covers something

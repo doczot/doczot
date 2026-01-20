@@ -767,6 +767,10 @@ def compute_gap_report(
     matched_atm_ids = set()
 
     for itm_topic in itm.topics:
+        # Skip structural parent topics that don't cover anything directly
+        # These are just organizational hierarchy (e.g., "Reference", "API", "Entity")
+        if not itm_topic.covers and itm_topic.children:
+            continue
         # Find matching ATM topic (by name similarity or coverage overlap)
         best_match = None
         best_overlap = 0
