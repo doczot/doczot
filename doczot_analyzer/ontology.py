@@ -817,6 +817,410 @@ class DoczotOntology:
         self.graph.parse(path, format=format)
 
     # =========================================================================
+    # SPARQL QUERIES
+    # =========================================================================
+
+    def query(self, sparql: str) -> list[dict]:
+        """Execute a SPARQL query and return results as dicts.
+
+        Args:
+            sparql: SPARQL query string
+
+        Returns:
+            List of dictionaries with variable bindings
+
+        Example:
+            >>> results = onto.query('''
+            ...     SELECT ?verb ?path WHERE {
+            ...         ?verb a doczot:Verb ;
+            ...               doczot:httpPath ?path .
+            ...     }
+            ... ''')
+            >>> for row in results:
+            ...     print(row['path'])
+        """
+        # Add prefixes if not present
+        if "PREFIX" not in sparql.upper():
+            sparql = self._get_sparql_prefixes() + sparql
+
+        results = self.graph.query(sparql)
+        return [
+            {str(var): self._format_result_value(row[i]) for i, var in enumerate(results.vars)}
+            for row in results
+        ]
+
+    def _get_sparql_prefixes(self) -> str:
+        """Get standard SPARQL prefixes."""
+        return """
+            PREFIX doczot: <https://doczot.io/ontology/>
+            PREFIX data: <https://doczot.io/data/>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        """
+
+    def _format_result_value(self, value) -> any:
+        """Format a SPARQL result value for easier use."""
+        if value is None:
+            return None
+        if hasattr(value, 'toPython'):
+            return value.toPython()
+        return str(value)
+
+    def get_all_verbs(self) -> list[dict]:
+        """Get all verbs (endpoints) in the ontology.
+
+        Returns:
+            List of dicts with verb info: uri, name, method, path, description
+        """
+        return self.query("""
+            SELECT ?verb ?name ?method ?path ?description ?sourceFile ?sourceLine
+            WHERE {
+                ?verb a doczot:Verb ;
+                      doczot:name ?name ;
+                      doczot:httpMethod ?method ;
+                      doczot:httpPath ?path .
+                OPTIONAL { ?verb doczot:description ?description }
+                OPTIONAL { ?verb doczot:sourceFile ?sourceFile }
+                OPTIONAL { ?verb doczot:sourceLine ?sourceLine }
+            }
+            ORDER BY ?path
+        """)
+
+    def get_all_nouns(self) -> list[dict]:
+        """Get all nouns (entities) in the ontology.
+
+        Returns:
+            List of dicts with noun info: uri, name, description
+        """
+        return self.query("""
+            SELECT ?noun ?name ?description
+            WHERE {
+                ?noun a doczot:Noun ;
+                      doczot:name ?name .
+                OPTIONAL { ?noun doczot:description ?description }
+            }
+            ORDER BY ?name
+        """)
+
+    def get_undocumented_elements(self) -> list[dict]:
+        """Get all surface elements not covered by any ATM topic.
+
+        Returns:
+            List of undocumented elements with their type and name
+        """
+        return self.query("""
+            SELECT ?element ?type ?name ?signature
+            WHERE {
+                ?element a ?type ;
+                         doczot:name ?name .
+                ?type rdfs:subClassOf* doczot:SurfaceElement .
+                OPTIONAL { ?element doczot:codeSignature ?signature }
+
+                FILTER NOT EXISTS {
+                    ?topic a doczot:Topic ;
+                           doczot:covers ?element .
+                    ?atm a doczot:ActualTopicManifest ;
+                         doczot:hasTopic ?topic .
+                }
+
+                FILTER (?type IN (doczot:Verb, doczot:Noun, doczot:Concept))
+            }
+            ORDER BY ?type ?name
+        """)
+
+    def get_auth_protected_endpoints(self) -> list[dict]:
+        """Get all endpoints that require authentication.
+
+        Returns:
+            List of auth-protected endpoints with constraint details
+        """
+        return self.query("""
+            SELECT ?verb ?path ?method ?authType ?constraintDesc
+            WHERE {
+                ?verb a doczot:Verb ;
+                      doczot:httpPath ?path ;
+                      doczot:httpMethod ?method ;
+                      doczot:constrainedBy ?constraint .
+                ?constraint a doczot:AuthConstraint .
+                OPTIONAL { ?constraint doczot:authType ?authType }
+                OPTIONAL { ?constraint doczot:description ?constraintDesc }
+            }
+            ORDER BY ?path
+        """)
+
+    def get_rate_limited_endpoints(self) -> list[dict]:
+        """Get all endpoints with rate limits.
+
+        Returns:
+            List of rate-limited endpoints with their limits
+        """
+        return self.query("""
+            SELECT ?verb ?path ?method ?rateLimit
+            WHERE {
+                ?verb a doczot:Verb ;
+                      doczot:httpPath ?path ;
+                      doczot:httpMethod ?method ;
+                      doczot:constrainedBy ?constraint .
+                ?constraint a doczot:RateLimitConstraint ;
+                            doczot:rateLimit ?rateLimit .
+            }
+            ORDER BY ?path
+        """)
+
+    def get_noun_hierarchy(self) -> list[dict]:
+        """Get the part-of hierarchy between nouns.
+
+        Returns:
+            List of parent-child relationships
+        """
+        return self.query("""
+            SELECT ?child ?childName ?parent ?parentName
+            WHERE {
+                ?child doczot:partOf ?parent ;
+                       doczot:name ?childName .
+                ?parent doczot:name ?parentName .
+            }
+            ORDER BY ?parentName ?childName
+        """)
+
+    def get_verb_noun_relationships(self) -> list[dict]:
+        """Get all verb-operates_on-noun relationships.
+
+        Returns:
+            List of verb-noun relationships
+        """
+        return self.query("""
+            SELECT ?verb ?verbName ?path ?noun ?nounName
+            WHERE {
+                ?verb a doczot:Verb ;
+                      doczot:name ?verbName ;
+                      doczot:httpPath ?path ;
+                      doczot:operatesOn ?noun .
+                ?noun doczot:name ?nounName .
+            }
+            ORDER BY ?nounName ?path
+        """)
+
+    def get_prerequisites(self) -> list[dict]:
+        """Get all prerequisite relationships.
+
+        Returns:
+            List of prerequisite relationships
+        """
+        return self.query("""
+            SELECT ?prereq ?prereqPath ?target ?targetPath
+            WHERE {
+                ?prereq doczot:prerequisiteOf ?target ;
+                        doczot:httpPath ?prereqPath .
+                ?target doczot:httpPath ?targetPath .
+            }
+            ORDER BY ?targetPath
+        """)
+
+    def get_topic_coverage(self) -> list[dict]:
+        """Get coverage information for all topics.
+
+        Returns:
+            List of topics with their coverage details
+        """
+        return self.query("""
+            SELECT ?topic ?name ?type ?coverageScore ?agentReadiness
+                   (COUNT(?covered) AS ?coveredCount)
+            WHERE {
+                ?topic a doczot:Topic ;
+                       doczot:name ?name ;
+                       doczot:topicType ?type .
+                OPTIONAL { ?topic doczot:coverageScore ?coverageScore }
+                OPTIONAL { ?topic doczot:agentReadinessScore ?agentReadiness }
+                OPTIONAL { ?topic doczot:covers ?covered }
+            }
+            GROUP BY ?topic ?name ?type ?coverageScore ?agentReadiness
+            ORDER BY ?name
+        """)
+
+    def get_coverage_statistics(self) -> dict:
+        """Calculate overall coverage statistics.
+
+        Returns:
+            Dictionary with coverage metrics
+        """
+        # Get total user-facing elements
+        total_query = self.query("""
+            SELECT (COUNT(DISTINCT ?elem) AS ?total)
+            WHERE {
+                ?elem a ?type ;
+                      doczot:isUserFacing true .
+                FILTER (?type IN (doczot:Verb, doczot:Noun, doczot:Concept))
+            }
+        """)
+
+        # Get covered elements
+        covered_query = self.query("""
+            SELECT (COUNT(DISTINCT ?elem) AS ?covered)
+            WHERE {
+                ?elem a ?type ;
+                      doczot:isUserFacing true .
+                FILTER (?type IN (doczot:Verb, doczot:Noun, doczot:Concept))
+
+                ?topic a doczot:Topic ;
+                       doczot:covers ?elem .
+                ?atm a doczot:ActualTopicManifest ;
+                     doczot:hasTopic ?topic .
+            }
+        """)
+
+        total = int(total_query[0]['total']) if total_query else 0
+        covered = int(covered_query[0]['covered']) if covered_query else 0
+
+        return {
+            'total_elements': total,
+            'covered_elements': covered,
+            'uncovered_elements': total - covered,
+            'coverage_percent': round((covered / total * 100), 1) if total > 0 else 0.0,
+        }
+
+    def get_elements_by_noun(self, noun_name: str) -> dict:
+        """Get all elements related to a specific noun.
+
+        Args:
+            noun_name: Name of the noun to search for
+
+        Returns:
+            Dictionary with verbs, related nouns, and concepts
+        """
+        verbs = self.query(f"""
+            SELECT ?verb ?name ?path ?method
+            WHERE {{
+                ?noun a doczot:Noun ;
+                      doczot:name "{noun_name}" .
+                ?verb doczot:operatesOn ?noun ;
+                      doczot:name ?name ;
+                      doczot:httpPath ?path ;
+                      doczot:httpMethod ?method .
+            }}
+            ORDER BY ?path
+        """)
+
+        children = self.query(f"""
+            SELECT ?child ?childName
+            WHERE {{
+                ?parent a doczot:Noun ;
+                        doczot:name "{noun_name}" .
+                ?child doczot:partOf ?parent ;
+                       doczot:name ?childName .
+            }}
+        """)
+
+        parents = self.query(f"""
+            SELECT ?parent ?parentName
+            WHERE {{
+                ?child a doczot:Noun ;
+                       doczot:name "{noun_name}" .
+                ?child doczot:partOf ?parent .
+                ?parent doczot:name ?parentName .
+            }}
+        """)
+
+        return {
+            'noun': noun_name,
+            'verbs': verbs,
+            'children': children,
+            'parents': parents,
+        }
+
+    def find_documentation_gaps(self) -> dict:
+        """Analyze documentation gaps in detail.
+
+        Returns:
+            Dictionary with categorized gaps
+        """
+        # Undocumented verbs
+        undoc_verbs = self.query("""
+            SELECT ?verb ?path ?method
+            WHERE {
+                ?verb a doczot:Verb ;
+                      doczot:httpPath ?path ;
+                      doczot:httpMethod ?method ;
+                      doczot:isUserFacing true .
+
+                FILTER NOT EXISTS {
+                    ?topic doczot:covers ?verb .
+                    ?atm a doczot:ActualTopicManifest ;
+                         doczot:hasTopic ?topic .
+                }
+            }
+            ORDER BY ?path
+        """)
+
+        # Undocumented nouns
+        undoc_nouns = self.query("""
+            SELECT ?noun ?name
+            WHERE {
+                ?noun a doczot:Noun ;
+                      doczot:name ?name ;
+                      doczot:isUserFacing true .
+
+                FILTER NOT EXISTS {
+                    ?topic doczot:covers ?noun .
+                    ?atm a doczot:ActualTopicManifest ;
+                         doczot:hasTopic ?topic .
+                }
+            }
+            ORDER BY ?name
+        """)
+
+        # Undocumented concepts
+        undoc_concepts = self.query("""
+            SELECT ?concept ?name
+            WHERE {
+                ?concept a doczot:Concept ;
+                         doczot:name ?name .
+
+                FILTER NOT EXISTS {
+                    ?topic doczot:covers ?concept .
+                    ?atm a doczot:ActualTopicManifest ;
+                         doczot:hasTopic ?topic .
+                }
+            }
+            ORDER BY ?name
+        """)
+
+        # Constraints without documentation
+        undoc_constraints = self.query("""
+            SELECT DISTINCT ?constraintType ?verb ?path
+            WHERE {
+                ?verb a doczot:Verb ;
+                      doczot:httpPath ?path ;
+                      doczot:constrainedBy ?constraint .
+                ?constraint a ?constraintType .
+                FILTER (?constraintType IN (doczot:AuthConstraint, doczot:RateLimitConstraint))
+
+                FILTER NOT EXISTS {
+                    ?topic doczot:covers ?constraint .
+                    ?atm a doczot:ActualTopicManifest ;
+                         doczot:hasTopic ?topic .
+                }
+            }
+            ORDER BY ?path
+        """)
+
+        return {
+            'undocumented_verbs': undoc_verbs,
+            'undocumented_nouns': undoc_nouns,
+            'undocumented_concepts': undoc_concepts,
+            'undocumented_constraints': undoc_constraints,
+            'summary': {
+                'verbs': len(undoc_verbs),
+                'nouns': len(undoc_nouns),
+                'concepts': len(undoc_concepts),
+                'constraints': len(undoc_constraints),
+            }
+        }
+
+    # =========================================================================
     # STATISTICS
     # =========================================================================
 
