@@ -1221,6 +1221,256 @@ class DoczotOntology:
         }
 
     # =========================================================================
+    # OWL REASONING
+    # =========================================================================
+
+    def run_reasoner(self, infer_property_values: bool = True) -> dict:
+        """Run OWL reasoning to infer additional triples.
+
+        Uses owlready2 with the HermiT reasoner to:
+        - Infer transitive relationships (partOf, prerequisiteOf)
+        - Infer inverse relationships (hasPart from partOf)
+        - Check consistency of the ontology
+        - Classify individuals
+
+        Args:
+            infer_property_values: Whether to infer property values
+
+        Returns:
+            Dictionary with reasoning results:
+            - inferred_triples: Number of new triples inferred
+            - consistent: Whether the ontology is consistent
+            - errors: Any errors encountered
+
+        Note:
+            Requires owlready2 and Java (for HermiT reasoner).
+            Install with: pip install owlready2
+        """
+        try:
+            from owlready2 import get_ontology, sync_reasoner_hermit, default_world
+        except ImportError:
+            return {
+                'inferred_triples': 0,
+                'consistent': None,
+                'errors': ['owlready2 not installed. Install with: pip install owlready2'],
+            }
+
+        import tempfile
+        import os
+
+        errors = []
+        triples_before = len(self.graph)
+
+        try:
+            # Export current graph to a temp file
+            with tempfile.NamedTemporaryFile(suffix=".ttl", delete=False, mode='w') as f:
+                f.write(self.serialize("turtle"))
+                temp_path = f.name
+
+            # Clear owlready2's default world to avoid conflicts
+            default_world.ontologies.clear()
+
+            # Load into owlready2
+            onto = get_ontology(f"file://{temp_path}").load()
+
+            # Run the reasoner
+            try:
+                sync_reasoner_hermit(infer_property_values=infer_property_values)
+                consistent = True
+            except Exception as e:
+                if "inconsistent" in str(e).lower():
+                    consistent = False
+                    errors.append(f"Ontology is inconsistent: {e}")
+                else:
+                    raise
+
+            # Export back to RDF/XML and reload into rdflib
+            with tempfile.NamedTemporaryFile(suffix=".rdf", delete=False, mode='wb') as f:
+                onto.save(file=f, format="rdfxml")
+                output_path = f.name
+
+            # Reload the reasoned ontology
+            self.graph.parse(output_path, format="xml")
+
+            # Cleanup temp files
+            os.unlink(temp_path)
+            os.unlink(output_path)
+
+            triples_after = len(self.graph)
+
+            return {
+                'inferred_triples': triples_after - triples_before,
+                'consistent': consistent,
+                'errors': errors,
+            }
+
+        except Exception as e:
+            errors.append(str(e))
+            return {
+                'inferred_triples': 0,
+                'consistent': None,
+                'errors': errors,
+            }
+
+    def infer_transitive_closure(self) -> int:
+        """Manually compute transitive closure for partOf and prerequisiteOf.
+
+        This is a lightweight alternative to full OWL reasoning that doesn't
+        require Java. It adds inferred triples for transitive properties.
+
+        Returns:
+            Number of new triples added
+        """
+        added = 0
+
+        # Compute transitive closure for partOf
+        # If A partOf B and B partOf C, then A partOf C
+        part_of_query = """
+            SELECT ?a ?c
+            WHERE {
+                ?a doczot:partOf ?b .
+                ?b doczot:partOf ?c .
+                FILTER NOT EXISTS { ?a doczot:partOf ?c }
+            }
+        """
+        results = self.query(part_of_query)
+        for row in results:
+            a_uri = URIRef(row['a']) if isinstance(row['a'], str) else row['a']
+            c_uri = URIRef(row['c']) if isinstance(row['c'], str) else row['c']
+            self.graph.add((a_uri, DOCZOT.partOf, c_uri))
+            added += 1
+
+        # Compute transitive closure for prerequisiteOf
+        prereq_query = """
+            SELECT ?a ?c
+            WHERE {
+                ?a doczot:prerequisiteOf ?b .
+                ?b doczot:prerequisiteOf ?c .
+                FILTER NOT EXISTS { ?a doczot:prerequisiteOf ?c }
+            }
+        """
+        results = self.query(prereq_query)
+        for row in results:
+            a_uri = URIRef(row['a']) if isinstance(row['a'], str) else row['a']
+            c_uri = URIRef(row['c']) if isinstance(row['c'], str) else row['c']
+            self.graph.add((a_uri, DOCZOT.prerequisiteOf, c_uri))
+            added += 1
+
+        # Compute inverse for partOf -> hasPart
+        inverse_query = """
+            SELECT ?child ?parent
+            WHERE {
+                ?child doczot:partOf ?parent .
+                FILTER NOT EXISTS { ?parent doczot:hasPart ?child }
+            }
+        """
+        results = self.query(inverse_query)
+        for row in results:
+            child_uri = URIRef(row['child']) if isinstance(row['child'], str) else row['child']
+            parent_uri = URIRef(row['parent']) if isinstance(row['parent'], str) else row['parent']
+            self.graph.add((parent_uri, DOCZOT.hasPart, child_uri))
+            added += 1
+
+        # Compute symmetric for relatedTo
+        symmetric_query = """
+            SELECT ?a ?b
+            WHERE {
+                ?a doczot:relatedTo ?b .
+                FILTER NOT EXISTS { ?b doczot:relatedTo ?a }
+            }
+        """
+        results = self.query(symmetric_query)
+        for row in results:
+            a_uri = URIRef(row['a']) if isinstance(row['a'], str) else row['a']
+            b_uri = URIRef(row['b']) if isinstance(row['b'], str) else row['b']
+            self.graph.add((b_uri, DOCZOT.relatedTo, a_uri))
+            added += 1
+
+        return added
+
+    def validate_consistency(self) -> dict:
+        """Validate ontology consistency using SPARQL checks.
+
+        Checks for common issues:
+        - Verbs without HTTP methods
+        - Verbs without paths
+        - Circular part-of relationships
+        - Missing required properties
+
+        Returns:
+            Dictionary with validation results
+        """
+        issues = []
+
+        # Check for verbs without HTTP methods
+        results = self.query("""
+            SELECT ?verb ?name
+            WHERE {
+                ?verb a doczot:Verb ;
+                      doczot:name ?name .
+                FILTER NOT EXISTS { ?verb doczot:httpMethod ?m }
+            }
+        """)
+        for r in results:
+            issues.append({
+                'type': 'missing_http_method',
+                'element': r['name'],
+                'message': f"Verb '{r['name']}' has no HTTP method"
+            })
+
+        # Check for verbs without paths
+        results = self.query("""
+            SELECT ?verb ?name
+            WHERE {
+                ?verb a doczot:Verb ;
+                      doczot:name ?name .
+                FILTER NOT EXISTS { ?verb doczot:httpPath ?p }
+            }
+        """)
+        for r in results:
+            issues.append({
+                'type': 'missing_http_path',
+                'element': r['name'],
+                'message': f"Verb '{r['name']}' has no HTTP path"
+            })
+
+        # Check for rate limit constraints without values
+        results = self.query("""
+            SELECT ?constraint
+            WHERE {
+                ?constraint a doczot:RateLimitConstraint .
+                FILTER NOT EXISTS { ?constraint doczot:rateLimit ?r }
+            }
+        """)
+        for r in results:
+            issues.append({
+                'type': 'missing_rate_limit_value',
+                'element': str(r['constraint']),
+                'message': "RateLimitConstraint without rate limit value"
+            })
+
+        # Check for circular part-of (A partOf B and B partOf A)
+        results = self.query("""
+            SELECT ?a ?b
+            WHERE {
+                ?a doczot:partOf ?b .
+                ?b doczot:partOf ?a .
+            }
+        """)
+        for r in results:
+            issues.append({
+                'type': 'circular_part_of',
+                'element': f"{r['a']} <-> {r['b']}",
+                'message': "Circular partOf relationship detected"
+            })
+
+        return {
+            'valid': len(issues) == 0,
+            'issue_count': len(issues),
+            'issues': issues,
+        }
+
+    # =========================================================================
     # STATISTICS
     # =========================================================================
 
