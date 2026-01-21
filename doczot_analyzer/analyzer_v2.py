@@ -213,6 +213,7 @@ def build_surface_graph_python(
             id=f"verb:{ep.method}:{ep.path}",
             type=NodeType.VERB,
             name=verb_name,
+            description=ep.docstring,  # Use docstring/decorator description
             source_file=ep.file_path,
             source_line=ep.line_number,
             code_signature=f"{ep.method} {ep.path}",

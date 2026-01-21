@@ -332,7 +332,7 @@ def _extract_endpoint_from_function(
     for decorator in func_node.decorator_list:
         endpoint_info = _parse_fastapi_decorator(decorator)
         if endpoint_info:
-            method, path, response_model, is_deprecated, router_name = endpoint_info
+            method, path, response_model, is_deprecated, router_name, decorator_desc, decorator_summary, tags = endpoint_info
 
             # Combine router prefix with endpoint path
             prefix = router_prefixes.get(router_name, "")
@@ -343,8 +343,20 @@ def _extract_endpoint_from_function(
                 else:
                     path = prefix + "/" + path
 
-            # Extract docstring
-            docstring = ast.get_docstring(func_node)
+            # Extract docstring from function
+            func_docstring = ast.get_docstring(func_node)
+
+            # Combine decorator description/summary with function docstring
+            # Priority: decorator description > decorator summary > function docstring
+            if decorator_desc:
+                docstring = decorator_desc
+            elif decorator_summary:
+                docstring = decorator_summary
+            elif func_docstring:
+                docstring = func_docstring
+            else:
+                docstring = None
+
             has_docstring = docstring is not None
 
             # Extract parameters
@@ -393,13 +405,15 @@ def _parse_fastapi_decorator(decorator: ast.expr) -> Optional[tuple]:
     - @app.get(path)
     - @router.post(path)
     - @items_router.put(path, response_model=Model, deprecated=True)
+    - @router.get(path, description="...", summary="...", tags=["..."])
 
     Args:
         decorator: AST decorator node
 
     Returns:
-        Tuple of (method, path, response_model, is_deprecated, router_name) if FastAPI decorator,
-        None otherwise. router_name is the variable name (e.g., "router", "app", "items_router")
+        Tuple of (method, path, response_model, is_deprecated, router_name, description, summary, tags)
+        if FastAPI decorator, None otherwise.
+        router_name is the variable name (e.g., "router", "app", "items_router")
     """
     # Decorator must be a Call node (has parentheses)
     if not isinstance(decorator, ast.Call):
@@ -440,6 +454,9 @@ def _parse_fastapi_decorator(decorator: ast.expr) -> Optional[tuple]:
     # Extract optional keyword arguments
     response_model = None
     is_deprecated = False
+    description = None
+    summary = None
+    tags = []
 
     for keyword in decorator.keywords:
         if keyword.arg == "response_model":
@@ -448,8 +465,19 @@ def _parse_fastapi_decorator(decorator: ast.expr) -> Optional[tuple]:
         elif keyword.arg == "deprecated":
             if isinstance(keyword.value, ast.Constant):
                 is_deprecated = bool(keyword.value.value)
+        elif keyword.arg == "description":
+            if isinstance(keyword.value, ast.Constant):
+                description = str(keyword.value.value)
+        elif keyword.arg == "summary":
+            if isinstance(keyword.value, ast.Constant):
+                summary = str(keyword.value.value)
+        elif keyword.arg == "tags":
+            if isinstance(keyword.value, ast.List):
+                for elt in keyword.value.elts:
+                    if isinstance(elt, ast.Constant):
+                        tags.append(str(elt.value))
 
-    return (method, path, response_model, is_deprecated, base_name)
+    return (method, path, response_model, is_deprecated, base_name, description, summary, tags)
 
 
 def _extract_constraints(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[dict]:
