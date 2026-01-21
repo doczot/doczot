@@ -18,11 +18,24 @@ import hashlib
 # HTTP methods to detect (R2)
 HTTP_METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}
 
-# Files to skip (R1)
+# Files to skip (R1) - meta files that don't describe API usage
+# Checking is case-insensitive (done in find_markdown_files)
 SKIP_FILES = {
-    "CHANGELOG.md",
-    "LICENSE.md",
-    "CONTRIBUTING.md",
+    # Standard meta files
+    "changelog.md", "changes.md", "history.md",
+    "license.md", "licence.md",
+    "contributing.md", "contributors.md",
+    "code_of_conduct.md", "codeofconduct.md",
+    # Security files (not API usage docs)
+    "security.md", "security-review.md", "security_review.md",
+    # Task/review files
+    "todo.md", "todos.md",
+    "code_review.md", "codereview.md",
+    # Community/support files
+    "community.md", "support.md", "sponsors.md",
+    "authors.md", "maintainers.md",
+    # Future plans (not current API docs)
+    "future.md", "roadmap.md",
 }
 
 # Translation directories to skip (common language codes)
@@ -216,8 +229,8 @@ def find_markdown_files(directory: str) -> List[str]:
         if any(part.startswith('.') for part in md_file.parts):
             continue
 
-        # Skip files in skip list
-        if md_file.name in SKIP_FILES:
+        # Skip files in skip list (case-insensitive)
+        if md_file.name.lower() in SKIP_FILES:
             continue
 
         # Skip translation directories (e.g., docs/zh/, docs/ja/, etc.)
