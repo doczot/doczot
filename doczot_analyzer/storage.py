@@ -369,10 +369,10 @@ class ManifestStore:
             conn.execute("DELETE FROM surface_nodes WHERE scan_id = ?", (scan_id,))
             conn.execute("DELETE FROM surface_edges WHERE scan_id = ?", (scan_id,))
 
-            # Save nodes
+            # Save nodes (use INSERT OR IGNORE for safety in case of duplicates)
             for node in surface.nodes:
                 conn.execute("""
-                    INSERT INTO surface_nodes
+                    INSERT OR IGNORE INTO surface_nodes
                     (id, scan_id, type, name, description, node_class, source_file,
                      source_line, code_signature, http_method, http_path)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

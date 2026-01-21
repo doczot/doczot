@@ -166,11 +166,15 @@ def build_surface_graph_nodejs(
             )
             edges.append(edge)
 
+    # Deduplicate nodes and edges by their IDs
+    unique_nodes = _deduplicate_nodes(nodes)
+    unique_edges = _deduplicate_edges(edges)
+
     return SurfaceGraph(
         product_name=product_name,
         source_paths=[repo_path],
-        nodes=nodes,
-        edges=edges,
+        nodes=unique_nodes,
+        edges=unique_edges,
     )
 
 
@@ -410,12 +414,37 @@ def build_surface_graph_python(
         )
         nodes.append(concept_node)
 
+    # Deduplicate nodes and edges by their IDs
+    unique_nodes = _deduplicate_nodes(nodes)
+    unique_edges = _deduplicate_edges(edges)
+
     return SurfaceGraph(
         product_name=product_name,
         source_paths=[repo_path],
-        nodes=nodes,
-        edges=edges,
+        nodes=unique_nodes,
+        edges=unique_edges,
     )
+
+
+def _deduplicate_nodes(nodes: list[SurfaceNode]) -> list[SurfaceNode]:
+    """Deduplicate nodes by their ID, keeping the first occurrence."""
+    seen = {}
+    for node in nodes:
+        if node.id not in seen:
+            seen[node.id] = node
+    return list(seen.values())
+
+
+def _deduplicate_edges(edges: list[SurfaceEdge]) -> list[SurfaceEdge]:
+    """Deduplicate edges by (source_id, target_id, edge_type)."""
+    seen = set()
+    unique = []
+    for edge in edges:
+        key = (edge.source_id, edge.target_id, edge.edge_type)
+        if key not in seen:
+            seen.add(key)
+            unique.append(edge)
+    return unique
 
 
 def detect_part_of_relationships(
