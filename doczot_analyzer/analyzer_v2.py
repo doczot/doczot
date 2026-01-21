@@ -839,19 +839,45 @@ def discover_atm(
     quality: dict[str, TopicQuality] = {}
     topic_id_counter = 0
 
-    # Group doc chunks by file (each file = potential topic)
-    files_to_chunks: dict[str, list] = {}
-    for chunk in doc_chunks:
-        if chunk.file_path not in files_to_chunks:
-            files_to_chunks[chunk.file_path] = []
-        files_to_chunks[chunk.file_path].append(chunk)
+    # Group doc chunks - README files by section, other files by file
+    # key = (file_path, section_name) for READMEs, (file_path, None) for others
+    topic_groups: dict[tuple[str, str | None], list] = {}
 
-    for file_path, chunks in files_to_chunks.items():
+    for chunk in doc_chunks:
+        file_name = Path(chunk.file_path).name.upper()
+        is_readme = file_name.startswith('README')
+
+        if is_readme and chunk.section_header:
+            # For READMEs, group by H2 section (second level after the project name)
+            # e.g., "FastAPI Blog API > Overview > Details" -> "Overview"
+            # e.g., "Overview" -> "Overview"
+            section_parts = chunk.section_header.split(' > ')
+            if len(section_parts) >= 2:
+                # Has H1 (project name) and H2 - use H2
+                h2_section = section_parts[1].strip()
+            elif len(section_parts) == 1:
+                # Only H1 (or direct H2 without H1) - use it
+                h2_section = section_parts[0].strip()
+            else:
+                h2_section = None
+            key = (chunk.file_path, h2_section)
+        else:
+            # For other files, group by file
+            key = (chunk.file_path, None)
+
+        if key not in topic_groups:
+            topic_groups[key] = []
+        topic_groups[key].append(chunk)
+
+    for (file_path, section_name), chunks in topic_groups.items():
         topic_id_counter += 1
         topic_id = f"atm_topic_{topic_id_counter}"
 
-        # Derive topic name from file
-        name = Path(file_path).stem.replace("-", " ").replace("_", " ").title()
+        # Derive topic name from section (if README) or file
+        if section_name:
+            name = section_name
+        else:
+            name = Path(file_path).stem.replace("-", " ").replace("_", " ").title()
 
         # Match chunks to surface elements
         covered_ids = set()
@@ -882,10 +908,23 @@ def discover_atm(
             results = vector_store.search(sig, limit=1)
             if results:
                 chunk, score = results[0]
-                # Check if this chunk is in current file
+                # Check if this chunk is in current file/section
                 # Lowered threshold from 0.4 to 0.28 based on analysis
                 if chunk.file_path == file_path and score >= 0.28:
-                    covered_ids.add(node.id)
+                    # For section-based topics, also check section match
+                    if section_name:
+                        section_parts = (chunk.section_header or "").split(' > ')
+                        # Match H2 section (second level) for READMEs
+                        if len(section_parts) >= 2:
+                            chunk_h2_section = section_parts[1].strip()
+                        elif len(section_parts) == 1:
+                            chunk_h2_section = section_parts[0].strip()
+                        else:
+                            chunk_h2_section = ""
+                        if chunk_h2_section == section_name:
+                            covered_ids.add(node.id)
+                    else:
+                        covered_ids.add(node.id)
 
         if covered_ids:  # Only create topic if it covers something
             topic = Topic(
