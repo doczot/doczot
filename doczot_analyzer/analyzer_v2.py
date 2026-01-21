@@ -220,11 +220,77 @@ def build_surface_graph_python(
         # Extract nouns from path AND from code analysis
         path_nouns = extract_nouns_from_path(ep.path)
 
-        # Filter code nouns: skip plurals, compound types, and infrastructure
-        skip_code_nouns = {'items', 'users', 'access', 'userregister', 'privateuser',
-                          'userbase', 'usercreate', 'userupdate', 'userpublic',
-                          'itembase', 'itemcreate', 'itemupdate', 'itempublic'}
-        code_nouns = [n for n in ep.entity_references if n not in skip_code_nouns]
+        # Filter code nouns: skip plurals, compound types, infrastructure, and generic words
+        skip_code_nouns = {
+            # Plurals (should use singular)
+            'items', 'users', 'posts', 'tasks', 'jobs', 'files', 'tiers', 'keys',
+            # Generic words that are NOT entities
+            'all', 'single', 'one', 'many', 'multi', 'new', 'old', 'my', 'self',
+            'first', 'last', 'current', 'next', 'prev', 'previous',
+            # Infrastructure / constraints (not entities)
+            'access', 'token', 'session', 'cookie', 'context', 'settings',
+            'config', 'cache', 'rate', 'limit', 'ratelimit', 'rate_limit',
+            'ready', 'readycheck', 'health', 'healthcheck', 'status', 'check',
+            'root', 'home', 'index', 'base', 'main', 'app', 'tier', 'usertier',
+            # Auth/security (not entities)
+            'secret', 'key', 'apikey', 'password', 'hash', 'salt', 'credential',
+            # URL/path components (not entities)
+            'slug', 'id', 'uuid', 'url', 'path', 'route',
+        }
+
+        def is_valid_noun(noun: str) -> bool:
+            """Check if a noun candidate is a valid domain entity."""
+            n = noun.lower()
+
+            # Skip if in explicit skip list
+            if n in skip_code_nouns:
+                return False
+
+            # Skip database model prefixes (db_user, dbuser, DB_User)
+            if n.startswith('db_') or n.startswith('db'):
+                # But allow "database" as a word
+                if n not in ('database', 'db'):
+                    return False
+
+            # Skip DTO suffixes that slipped through
+            dto_patterns = ['create', 'update', 'read', 'write', 'base', 'public',
+                           'private', 'login', 'edit', 'register', 'schema', 'model',
+                           # Pydantic input/output patterns (from variable names like tags_in)
+                           'in', 'out', 'input', 'output', 'response', 'request']
+            for pattern in dto_patterns:
+                if n.endswith(pattern) and len(n) > len(pattern):
+                    return False
+
+            # Skip compound patterns like "listofarticlesin", "usersinlist"
+            if 'listof' in n or 'list' in n:
+                return False
+
+            # Skip compound patterns with 'in' in the middle (userinlog, articleindb)
+            if 'inlog' in n or 'indb' in n or 'inlist' in n:
+                return False
+
+            # Skip names that look truncated (end in consonant cluster unlikely for entities)
+            # e.g., "articl" instead of "article"
+            if len(n) >= 4 and n[-1] not in 'aeiouy' and n[-2] not in 'aeiouy':
+                # But allow common patterns like "post", "task"
+                if n not in {'post', 'task', 'user', 'item', 'job', 'blog', 'tag', 'key'}:
+                    # Check if this looks like a truncated version of a known word
+                    # If articl + e = article, then articl is truncated -> skip it
+                    known_words = {'article', 'profile', 'comment', 'project', 'product',
+                                  'secret', 'select', 'content', 'document', 'element'}
+                    if any(n + suffix in known_words for suffix in ['e', 'le', 'ent', 'ect', 'uct', 'et']):
+                        return False
+                    # Also skip if it's too short to be meaningful after consonant cluster
+                    if len(n) < 4:
+                        return False
+
+            # Skip "my" prefix patterns (MyUser -> skip)
+            if n.startswith('my') and len(n) > 2:
+                return False
+
+            return True
+
+        code_nouns = [n for n in ep.entity_references if is_valid_noun(n)]
 
         # Combine and dedupe, preferring singularized forms
         all_nouns = set(path_nouns)
@@ -555,6 +621,18 @@ def extract_nouns_from_path(path: str) -> list[str]:
     """Extract noun candidates from an API path."""
     nouns = []
 
+    # Skip paths that are clearly not entity-related
+    skip_path_segments = {
+        # Rate limiting / constraints
+        'rate_limit', 'rate-limit', 'ratelimit', 'rate_limits', 'rate-limits',
+        'limit', 'limits', 'rate', 'rates', 'quota', 'quotas',
+        # Tiers (constraint, not entity)
+        'tier', 'tiers', 'plan', 'plans', 'pricing',
+        # Other non-entities
+        'config', 'settings', 'admin', 'internal', 'system',
+        'health', 'status', 'metrics', 'debug', 'test',
+    }
+
     # Strip common prefixes
     path = re.sub(r'/api/v\d+', '', path)
     path = re.sub(r'/v\d+', '', path)
@@ -565,6 +643,10 @@ def extract_nouns_from_path(path: str) -> list[str]:
         segment_lower = segment.lower()
 
         if segment_lower in ACTION_WORDS:
+            continue
+
+        # Skip constraint-related path segments
+        if segment_lower in skip_path_segments:
             continue
 
         if '-' in segment_lower and not segment_lower.endswith('s'):
@@ -593,7 +675,14 @@ def extract_nouns_from_path(path: str) -> list[str]:
         elif noun.endswith('s') and not noun.endswith('ss'):
             noun = noun[:-1]
 
-        if noun and noun not in nouns:
+        # Strip db_ prefix (db_user -> user, db_post -> post)
+        if noun.startswith('db_'):
+            noun = noun[3:]
+        elif noun.startswith('db') and len(noun) > 2 and noun[2:3].isupper():
+            # Handle DbUser -> user (camelCase after db)
+            noun = noun[2:].lower()
+
+        if noun and noun not in nouns and len(noun) > 1:
             nouns.append(noun)
 
     return nouns

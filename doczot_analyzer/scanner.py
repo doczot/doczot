@@ -36,13 +36,45 @@ def _extract_entity_from_type(type_name: str) -> Optional[str]:
     if not type_name or not ENTITY_PATTERN.match(type_name):
         return None
 
-    # Common suffixes to strip
-    suffixes = ['Create', 'Update', 'Public', 'Private', 'Base', 'Response',
-                'Request', 'Schema', 'Model', 'DTO', 'In', 'Out', 'Read', 'Write']
-
+    # Strip database prefixes first
     result = type_name
+    db_prefixes = ['DB', 'Db', 'db_']
+    for prefix in db_prefixes:
+        if result.startswith(prefix):
+            result = result[len(prefix):]
+            # Capitalize first letter if it was lowercased
+            if result and result[0].islower():
+                result = result[0].upper() + result[1:]
+            break
+
+    # Common suffixes to strip (DTO patterns)
+    # Note: Order matters - longer suffixes first to avoid partial matches
+    suffixes = [
+        # Compound suffixes (check first)
+        'InDB', 'InDb', 'CreateIn', 'UpdateIn', 'ReadOut', 'WriteOut',
+        # Standard CRUD suffixes
+        'Create', 'Update', 'Delete', 'Read', 'Write',
+        # Access level suffixes
+        'Public', 'Private', 'Internal', 'Admin',
+        # Schema/model suffixes
+        'Base', 'Schema', 'Model', 'DTO', 'Entity',
+        # Request/Response suffixes
+        'Response', 'Request', 'Payload',
+        # Input/Output suffixes (Pydantic patterns)
+        'Input', 'Output', 'In', 'Out',
+        # Auth-related suffixes
+        'Login', 'Logout', 'Register', 'Auth',
+        # Form suffixes
+        'Form', 'Edit', 'View', 'Detail', 'Summary', 'List',
+        # Database suffixes
+        'Table', 'Row', 'Record',
+        # Setting/Config suffixes
+        'Setting', 'Settings', 'Config', 'Configuration',
+    ]
+
     for suffix in suffixes:
-        if result.endswith(suffix) and len(result) > len(suffix):
+        # Case-insensitive suffix check
+        if result.lower().endswith(suffix.lower()) and len(result) > len(suffix):
             result = result[:-len(suffix)]
             break
 
@@ -52,9 +84,17 @@ def _extract_entity_from_type(type_name: str) -> Optional[str]:
                   'Message', 'Token', 'Session', 'Response', 'Request', 'HTML',
                   'SessionDep', 'CurrentUser', 'Str', 'Int', 'Bool', 'Float',
                   'HTTPException', 'EmailStr', 'NewPassword', 'Form', 'File',
-                  'UploadFile', 'BackgroundTasks', 'Callable', 'Coroutine'}
+                  'UploadFile', 'BackgroundTasks', 'Callable', 'Coroutine',
+                  'Cookie', 'Context', 'Settings', 'Config', 'Pagination',
+                  'Filter', 'Sort', 'Order', 'Page', 'Limit', 'Offset',
+                  'My', 'Current', 'Self', 'Ready', 'Check', 'Health',
+                  'Status', 'Info', 'Version', 'Meta', 'Metadata'}
 
     if result in skip_types:
+        return None
+
+    # Skip if result is too short or too generic
+    if len(result) < 3:
         return None
 
     return result.lower()
@@ -78,13 +118,32 @@ def _extract_entities_from_body(func_node: ast.FunctionDef | ast.AsyncFunctionDe
                 if isinstance(target, ast.Name):
                     var_name = target.id.lower()
                     # Skip common non-entity variables (infrastructure, not domain)
-                    skip_vars = {'session', 'db', 'result', 'data', 'response', 'request',
-                                 'form', 'body', 'token', 'email', 'password', 'query',
-                                 'params', 'config', 'settings', 'count', 'statement',
-                                 'items', 'users', 'results', 'access', 'hashed', 'expires',
-                                 'content', 'subject', 'html', 'text', 'message', 'error',
-                                 'exception', 'status', 'code', 'headers', 'cookies',
-                                 'key', 'value', 'obj', 'model', 'schema', 'payload'}
+                    skip_vars = {
+                        # Database/ORM
+                        'session', 'db', 'conn', 'connection', 'cursor', 'transaction',
+                        'statement', 'query', 'result', 'results', 'rows', 'record',
+                        # HTTP/Request
+                        'request', 'response', 'form', 'body', 'headers', 'cookies',
+                        'params', 'args', 'kwargs', 'data', 'payload', 'content',
+                        # Auth
+                        'token', 'email', 'password', 'credentials', 'access', 'hashed',
+                        'expires', 'secret', 'key', 'api_key', 'apikey',
+                        # Common variables
+                        'config', 'settings', 'options', 'context', 'ctx',
+                        'count', 'total', 'index', 'i', 'j', 'k', 'n', 'x', 'y',
+                        'value', 'values', 'obj', 'model', 'schema', 'instance',
+                        # Messaging
+                        'subject', 'html', 'text', 'message', 'msg', 'notification',
+                        # Errors
+                        'error', 'err', 'exception', 'exc', 'status', 'code',
+                        # Plurals of common entities (should use singular form)
+                        'items', 'users', 'posts', 'tasks', 'jobs', 'files',
+                        # Generic words that are NOT entities
+                        'all', 'single', 'one', 'many', 'multi', 'new', 'old',
+                        'first', 'last', 'current', 'next', 'prev', 'previous',
+                        'tmp', 'temp', 'cache', 'buffer', 'output', 'input',
+                        'cookie', 'ready', 'check', 'health', 'info', 'meta',
+                    }
                     if var_name not in skip_vars:
                         # Check if it looks like an entity (short, noun-like)
                         if len(var_name) > 2 and len(var_name) < 15 and var_name.isalpha():
