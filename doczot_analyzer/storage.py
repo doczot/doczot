@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Optional
 
 from doczot_analyzer.manifest import TopicManifest
-from doczot_analyzer.models_v2 import SurfaceGraph, SurfaceNode, SurfaceEdge, NodeType, EdgeType, ConfidenceLevel
+from doczot_analyzer.models_v2 import SystemGraph, SystemNode, SystemEdge, NodeType, EdgeType, ConfidenceLevel
 
 
 DEFAULT_DB_PATH = ".doczot/manifests.db"
@@ -69,7 +69,7 @@ class ManifestStore:
                 ON manifests(generated_at)
             """)
 
-            # v3: Surface Graph persistence tables
+            # v3: System Graph persistence tables (tables keep "surface_" prefix for DB compatibility)
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS scans (
                     id TEXT PRIMARY KEY,
@@ -112,7 +112,7 @@ class ManifestStore:
                 )
             """)
 
-            # Indexes for Surface Graph queries
+            # Indexes for System Graph queries
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_scan_id
                 ON surface_nodes(scan_id)
@@ -336,18 +336,18 @@ class ManifestStore:
             conn.commit()
             return cursor.rowcount
 
-    # v3: Surface Graph persistence methods
+    # v3: System Graph persistence methods
 
-    def save_surface_graph(self, surface: SurfaceGraph) -> str:
-        """Save a Surface Graph to the database.
+    def save_system_graph(self, graph: SystemGraph) -> str:
+        """Save a System Graph to the database.
 
         Args:
-            surface: The SurfaceGraph to save
+            graph: The SystemGraph to save
 
         Returns:
             The scan_id for reference
         """
-        scan_id = f"{surface.product_name}:{surface.scanned_at.isoformat()}"
+        scan_id = f"{graph.product_name}:{graph.scanned_at.isoformat()}"
 
         with sqlite3.connect(self.db_path) as conn:
             # Save scan metadata
@@ -357,12 +357,12 @@ class ManifestStore:
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
                 scan_id,
-                surface.product_name,
-                surface.scanned_at.isoformat(),
-                json.dumps(surface.source_paths),
-                len(surface.nodes),
-                len(surface.edges),
-                json.dumps({"version": surface.version} if surface.version else {}),
+                graph.product_name,
+                graph.scanned_at.isoformat(),
+                json.dumps(graph.source_paths),
+                len(graph.nodes),
+                len(graph.edges),
+                json.dumps({"version": graph.version} if graph.version else {}),
             ))
 
             # Delete existing nodes and edges for this scan (if replacing)
@@ -370,7 +370,7 @@ class ManifestStore:
             conn.execute("DELETE FROM surface_edges WHERE scan_id = ?", (scan_id,))
 
             # Save nodes (use INSERT OR IGNORE for safety in case of duplicates)
-            for node in surface.nodes:
+            for node in graph.nodes:
                 conn.execute("""
                     INSERT OR IGNORE INTO surface_nodes
                     (id, scan_id, type, name, description, node_class, source_file,
@@ -391,7 +391,7 @@ class ManifestStore:
                 ))
 
             # Save edges
-            for edge in surface.edges:
+            for edge in graph.edges:
                 conn.execute("""
                     INSERT INTO surface_edges
                     (scan_id, source_id, target_id, edge_type, confidence)
@@ -408,19 +408,19 @@ class ManifestStore:
 
         return scan_id
 
-    def load_surface_graph(
+    def load_system_graph(
         self,
         product_name: str,
         scan_id: Optional[str] = None
-    ) -> Optional[SurfaceGraph]:
-        """Load a Surface Graph from the database.
+    ) -> Optional[SystemGraph]:
+        """Load a System Graph from the database.
 
         Args:
             product_name: Name of the product
             scan_id: Optional specific scan ID. If None, loads latest.
 
         Returns:
-            The SurfaceGraph if found, None otherwise
+            The SystemGraph if found, None otherwise
         """
         with sqlite3.connect(self.db_path) as conn:
             # Get scan metadata
@@ -459,7 +459,7 @@ class ManifestStore:
 
             nodes = []
             for row in cursor.fetchall():
-                node = SurfaceNode(
+                node = SystemNode(
                     id=row[0],
                     type=NodeType(row[1]),
                     name=row[2],
@@ -482,7 +482,7 @@ class ManifestStore:
 
             edges = []
             for row in cursor.fetchall():
-                edge = SurfaceEdge(
+                edge = SystemEdge(
                     source_id=row[0],
                     target_id=row[1],
                     edge_type=EdgeType(row[2]),
@@ -490,7 +490,7 @@ class ManifestStore:
                 )
                 edges.append(edge)
 
-            return SurfaceGraph(
+            return SystemGraph(
                 product_name=product_name,
                 version=metadata.get("version"),
                 scanned_at=scanned_at,
@@ -549,3 +549,7 @@ class ManifestStore:
             """, (scan_id,))
             conn.commit()
             return cursor.rowcount > 0
+
+    # Backward compatibility aliases for method names
+    save_surface_graph = save_system_graph
+    load_surface_graph = load_system_graph

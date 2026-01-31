@@ -1,13 +1,13 @@
 """DocZot v2 CLI - Four Layer Documentation Analysis.
 
 Commands:
-    analyze          Run full analysis (surface, ITM, ATM, gaps)
-    surface          Explore the product surface graph
-    itm              View/edit the intended topic manifest
-    atm              View the actual topic manifest
-    gaps             View the gap report and sprint plan
+    analyze          Run full analysis (graph, checklist, inventory, drift)
+    surface          Explore the System Graph (code structure)
+    itm              View/edit the Coverage Checklist
+    atm              View the Content Inventory
+    gaps             View the Drift Report and sprint plan
     visualize        Interactive HTML visualization
-    diff             Compare two Surface Graph scans
+    diff             Compare two System Graph scans
     export-ontology  Export to RDF/OWL ontology formats
 """
 import argparse
@@ -17,20 +17,28 @@ from pathlib import Path
 from datetime import datetime
 
 from doczot_analyzer.analyzer_v2 import (
-    build_surface_graph,
-    discover_atm,
+    build_system_graph,
+    discover_content_inventory,
     analyze_repository,
     print_analysis_summary,
+    diff_system_graphs,
+    # Backward compatibility aliases
+    build_surface_graph,
+    discover_atm,
     diff_surface_graphs,
 )
 from doczot_analyzer.models_v2 import (
-    SurfaceGraph,
+    SystemGraph,
     TopicManifest,
     Topic,
     TopicType,
     ManifestType,
-    GapReport,
+    DriftReport,
     generate_default_itm,
+    compute_drift_report,
+    # Backward compatibility aliases
+    SurfaceGraph,
+    GapReport,
     compute_gap_report,
 )
 from doczot_analyzer.storage import ManifestStore
@@ -52,11 +60,11 @@ def cmd_analyze(args):
 
     print_analysis_summary(surface, itm, atm, gap_report)
 
-    # v3: Persist Surface Graph to database (always, for diff capability)
+    # v3: Persist System Graph to database (always, for diff capability)
     db_path = args.db_path or ".doczot/manifests.db"
     store = ManifestStore(db_path)
-    scan_id = store.save_surface_graph(surface)
-    print(f"\nSurface graph saved to database: {scan_id}")
+    scan_id = store.save_system_graph(surface)
+    print(f"\nSystem graph saved to database: {scan_id}")
 
     # Save artifacts if requested
     if args.output:
@@ -82,15 +90,15 @@ def cmd_analyze(args):
 # =============================================================================
 
 def cmd_surface(args):
-    """Explore the product surface graph."""
+    """Explore the System Graph (code structure)."""
     repo_path = args.repo_path or "."
     repo_path = str(Path(repo_path).resolve())
 
-    print(f"Building surface graph for: {repo_path}")
-    surface = build_surface_graph(repo_path, args.name)
+    print(f"Building system graph for: {repo_path}")
+    surface = build_system_graph(repo_path, args.name)
 
     print(f"\n{'=' * 60}")
-    print(f"SURFACE GRAPH: {surface.product_name}")
+    print(f"SYSTEM GRAPH: {surface.product_name}")
     print(f"{'=' * 60}")
 
     # Show nodes by type
@@ -141,8 +149,8 @@ def cmd_itm(args):
     repo_path = args.repo_path or "."
     repo_path = str(Path(repo_path).resolve())
 
-    # Build surface first
-    surface = build_surface_graph(repo_path, args.name)
+    # Build system graph first
+    surface = build_system_graph(repo_path, args.name)
 
     # Load or generate ITM
     if args.load:
@@ -151,7 +159,7 @@ def cmd_itm(args):
         print(f"Loaded ITM from: {args.load}")
     else:
         itm = generate_default_itm(surface)
-        print("Generated default ITM from surface")
+        print("Generated default Coverage Checklist from system graph")
 
     print(f"\n{'=' * 60}")
     print(f"INTENDED TOPIC MANIFEST: {itm.product_name}")
@@ -172,10 +180,10 @@ def cmd_itm(args):
             cover_count = len(topic.covers)
             print(f"  [{topic.id}] {topic.name:<25} (covers {cover_count} elements)")
 
-    # Check for uncovered surface elements
+    # Check for uncovered graph elements
     uncovered = itm.uncovered_surface_ids(surface)
     if uncovered:
-        print(f"\n--- Uncovered Surface Elements ({len(uncovered)}) ---")
+        print(f"\n--- Uncovered Graph Elements ({len(uncovered)}) ---")
         for node_id in uncovered[:10]:
             node = surface.get_node(node_id)
             if node:
@@ -202,11 +210,11 @@ def cmd_atm(args):
 
     print(f"Discovering documentation in: {repo_path}")
 
-    # Build surface
-    surface = build_surface_graph(repo_path, args.name)
+    # Build system graph
+    surface = build_system_graph(repo_path, args.name)
 
-    # Discover ATM
-    atm = discover_atm(repo_path, surface)
+    # Discover Content Inventory
+    atm = discover_content_inventory(repo_path, surface)
 
     print(f"\n{'=' * 60}")
     print(f"ACTUAL TOPIC MANIFEST: {atm.product_name}")
@@ -215,7 +223,7 @@ def cmd_atm(args):
 
     covered = atm.covered_surface_ids()
     total = len(surface.user_facing_nodes())
-    print(f"Surface coverage: {len(covered)}/{total} elements")
+    print(f"Documentation coverage: {len(covered)}/{total} elements")
 
     print(f"\n--- Discovered Topics ---")
     for topic in atm.topics:
@@ -228,7 +236,7 @@ def cmd_atm(args):
     # Show what's not covered
     uncovered = [n for n in surface.user_facing_nodes() if n.id not in covered]
     if uncovered:
-        print(f"\n--- Undocumented Surface Elements ({len(uncovered)}) ---")
+        print(f"\n--- Undocumented Graph Elements ({len(uncovered)}) ---")
         for node in uncovered[:10]:
             print(f"  {node.name} ({node.type.value})")
         if len(uncovered) > 10:
@@ -527,7 +535,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     </div>
                     <div class="stat">
                         <div class="stat-value">{total_surface}</div>
-                        <div class="stat-label">Surface Elements</div>
+                        <div class="stat-label">Graph Elements</div>
                     </div>
                     <div class="stat">
                         <div class="stat-value">{total_itm}</div>
@@ -544,10 +552,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
 
             <div class="tabs">
-                <div class="tab active" onclick="showTab('surface')">Surface</div>
-                <div class="tab" onclick="showTab('itm')">ITM</div>
-                <div class="tab" onclick="showTab('atm')">ATM</div>
-                <div class="tab" onclick="showTab('gaps')">Gaps</div>
+                <div class="tab active" onclick="showTab('surface')">Graph</div>
+                <div class="tab" onclick="showTab('itm')">Checklist</div>
+                <div class="tab" onclick="showTab('atm')">Inventory</div>
+                <div class="tab" onclick="showTab('gaps')">Drift</div>
             </div>
 
             <div id="tab-surface" class="tab-content active">
@@ -1060,7 +1068,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 # =============================================================================
 
 def cmd_diff(args):
-    """Compare two Surface Graph scans and report changes."""
+    """Compare two System Graph scans and report changes."""
     db_path = args.db_path or ".doczot/manifests.db"
     store = ManifestStore(db_path)
 
@@ -1071,8 +1079,8 @@ def cmd_diff(args):
 
     # Load scans
     try:
-        old_scan = store.load_surface_graph(args.product, args.old_scan)
-        new_scan = store.load_surface_graph(args.product, args.new_scan)
+        old_scan = store.load_system_graph(args.product, args.old_scan)
+        new_scan = store.load_system_graph(args.product, args.new_scan)
     except Exception as e:
         print(f"Error loading scans: {e}")
         return 1
@@ -1095,7 +1103,7 @@ def cmd_diff(args):
         return 1
 
     # Compute diff
-    diff = diff_surface_graphs(old_scan, new_scan)
+    diff = diff_system_graphs(old_scan, new_scan)
 
     # Print report
     print(f"\n{'='*60}")
@@ -1161,7 +1169,7 @@ def cmd_diff(args):
 # =============================================================================
 
 def cmd_export_ontology(args):
-    """Export surface graph and manifests to RDF/OWL ontology."""
+    """Export System Graph and manifests to RDF/OWL ontology."""
     try:
         from doczot_analyzer.ontology import (
             full_analysis_to_ontology,
@@ -1181,10 +1189,10 @@ def cmd_export_ontology(args):
 
     # Convert to ontology
     if args.surface_only:
-        print("Converting surface graph to ontology...")
+        print("Converting System Graph to ontology...")
         onto = surface_graph_to_ontology(surface, include_schema=not args.no_schema)
     else:
-        print("Converting full analysis (surface + ITM + ATM) to ontology...")
+        print("Converting full analysis (graph + checklist + inventory) to ontology...")
         onto = full_analysis_to_ontology(surface, itm, atm)
 
     # Run reasoning if requested
@@ -1286,31 +1294,31 @@ def main():
     p.add_argument("--db-path", default=".doczot/manifests.db", help="Database path")
     p.set_defaults(func=cmd_analyze)
 
-    # surface
-    p = subparsers.add_parser("surface", help="Explore product surface")
+    # surface (System Graph)
+    p = subparsers.add_parser("surface", help="Explore System Graph (code structure)")
     p.add_argument("repo_path", nargs="?", default=".")
     p.add_argument("--name", help="Product name")
     p.add_argument("--type", choices=["all", "verbs", "nouns", "concepts", "orphans"], default="all")
     p.add_argument("--output", "-o", help="Save to JSON")
     p.set_defaults(func=cmd_surface)
 
-    # itm
-    p = subparsers.add_parser("itm", help="View intended topic manifest")
+    # itm (Coverage Checklist)
+    p = subparsers.add_parser("itm", help="View Coverage Checklist (what should be documented)")
     p.add_argument("repo_path", nargs="?", default=".")
     p.add_argument("--name", help="Product name")
-    p.add_argument("--load", help="Load ITM from JSON file")
+    p.add_argument("--load", help="Load checklist from JSON file")
     p.add_argument("--output", "-o", help="Save to JSON")
     p.set_defaults(func=cmd_itm)
 
-    # atm
-    p = subparsers.add_parser("atm", help="View actual topic manifest")
+    # atm (Content Inventory)
+    p = subparsers.add_parser("atm", help="View Content Inventory (what is documented)")
     p.add_argument("repo_path", nargs="?", default=".")
     p.add_argument("--name", help="Product name")
     p.add_argument("--output", "-o", help="Save to JSON")
     p.set_defaults(func=cmd_atm)
 
-    # gaps
-    p = subparsers.add_parser("gaps", help="View gap report")
+    # gaps (Drift Report)
+    p = subparsers.add_parser("gaps", help="View Drift Report (code vs docs divergence)")
     p.add_argument("repo_path", nargs="?", default=".")
     p.add_argument("--name", help="Product name")
     p.add_argument("--output", "-o", help="Save to JSON")
@@ -1325,7 +1333,7 @@ def main():
     p.set_defaults(func=cmd_visualize)
 
     # diff
-    p = subparsers.add_parser("diff", help="Compare two Surface Graph scans")
+    p = subparsers.add_parser("diff", help="Compare two System Graph scans")
     p.add_argument("--product", required=True, help="Product name")
     p.add_argument("--old-scan", help="Old scan ID (default: previous)")
     p.add_argument("--new-scan", help="New scan ID (default: latest)")
@@ -1343,7 +1351,7 @@ def main():
                    help="Output format (default: turtle)")
     p.add_argument("--output", "-o", help="Save to file (otherwise prints to stdout)")
     p.add_argument("--surface-only", action="store_true",
-                   help="Export only surface graph (not ITM/ATM)")
+                   help="Export only System Graph (not checklist/inventory)")
     p.add_argument("--no-schema", action="store_true",
                    help="Omit ontology schema (T-Box), only export instances")
     p.add_argument("--reason", action="store_true",

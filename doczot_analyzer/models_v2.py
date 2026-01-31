@@ -2,45 +2,52 @@
 
 This module defines the core data structures for documentation coverage analysis:
 
-Layer 1: SURFACE GRAPH (auto-scanned)
-    Raw product elements from code: endpoints, entities, concepts
-    Immutable snapshot of the codebase at a point in time
+Layer 1: SYSTEM GRAPH (auto-scanned)
+    Graph of code entities, endpoints, and relationships.
+    Immutable snapshot of the codebase at a point in time.
 
-Layer 2: TOPIC MANIFEST - ITM (Intended)
-    The PLAN: Topics that SHOULD exist, covering surface elements
-    Auto-suggested from surface, then human-curated
+Layer 2: COVERAGE CHECKLIST (the plan)
+    The checklist of required documentation topics based on the System Graph.
+    Auto-suggested from graph, then human-curated.
 
-Layer 3: TOPIC MANIFEST - ATM (Actual)
-    The REALITY: Topics that DO exist, discovered from docs
-    Auto-parsed from actual documentation
+Layer 3: CONTENT INVENTORY (the reality)
+    The discovered catalog of existing documentation assets.
+    Auto-parsed from actual documentation, scored for quality.
 
-Layer 4: GAP REPORT (computed: ITM - ATM)
-    Missing topics, incomplete coverage, quality scores
-    Drives the sprint plan
+Layer 4: DRIFT REPORT (computed: Checklist - Inventory)
+    The divergence between Code State (System Graph) and Documentation State.
+    Missing topics, incomplete coverage, quality scores. Drives the sprint plan.
 
 Architecture:
     ┌─────────────────────────────────────────────────────────────────┐
-    │  SURFACE GRAPH (immutable scan)                                 │
-    │  Nodes: verbs, nouns, concepts                                  │
-    │  Edges: operates_on, part_of, related_to                        │
+    │  SYSTEM GRAPH (immutable scan)                                  │
+    │  Nodes: verbs, nouns, concepts, constraints                     │
+    │  Edges: operates_on, part_of, related_to, constrained_by        │
     └─────────────────────────────────────────────────────────────────┘
                               ↓ grouped into
     ┌─────────────────────────────────────────────────────────────────┐
-    │  ITM - INTENDED TOPIC MANIFEST                                  │
-    │  Topics covering surface elements                               │
+    │  COVERAGE CHECKLIST (the plan)                                  │
+    │  Topics covering graph elements                                 │
     │  "User Management" covers [POST /users, GET /users, user noun]  │
     └─────────────────────────────────────────────────────────────────┘
                               ↓ compared against
     ┌─────────────────────────────────────────────────────────────────┐
-    │  ATM - ACTUAL TOPIC MANIFEST                                    │
+    │  CONTENT INVENTORY (the reality)                                │
     │  Topics discovered from existing documentation                  │
     │  "Users API" found in docs/api/users.md                         │
     └─────────────────────────────────────────────────────────────────┘
                               ↓ produces
     ┌─────────────────────────────────────────────────────────────────┐
-    │  GAP REPORT                                                     │
-    │  Missing topics, coverage %, quality scores, sprint plan        │
+    │  DRIFT REPORT                                                   │
+    │  Documentation drift, coverage %, quality scores, sprint plan   │
     └─────────────────────────────────────────────────────────────────┘
+
+Terminology Mapping (internal → industry standard):
+    SurfaceGraph → SystemGraph
+    ITM (TopicManifest) → CoverageChecklist
+    ATM (TopicManifest) → ContentInventory
+    GapReport → DriftReport
+    Coverage → Documentation Coverage
 """
 from __future__ import annotations
 from datetime import datetime
@@ -60,7 +67,7 @@ except ImportError:
 # =============================================================================
 
 class NodeType(str, Enum):
-    """Types of nodes in the product surface graph."""
+    """Types of nodes in the system graph."""
     NOUN = "noun"           # Entities: User, Project, Invoice
     VERB = "verb"           # Actions: create, delete, configure
     CONCEPT = "concept"     # Ideas: authentication, rate limiting
@@ -76,7 +83,7 @@ class NodeClass(str, Enum):
 
 
 class EdgeType(str, Enum):
-    """Types of relationships between surface nodes."""
+    """Types of relationships between system graph nodes."""
     OPERATES_ON = "operates_on"         # verb -> noun
     PART_OF = "part_of"                 # noun -> noun
     RELATED_TO = "related_to"           # any -> any
@@ -94,9 +101,12 @@ class TopicType(str, Enum):
 
 
 class ManifestType(str, Enum):
-    """Whether a topic manifest is intended or actual."""
-    INTENDED = "intended"  # ITM - the plan
-    ACTUAL = "actual"      # ATM - the reality
+    """Type of topic manifest: Coverage Matrix (plan) or Content Inventory (reality)."""
+    INTENDED = "intended"  # Coverage Checklist - the plan
+    ACTUAL = "actual"      # Content Inventory - the reality
+    # Aliases for new terminology
+    COVERAGE_MATRIX = "intended"  # Alias
+    INVENTORY = "actual"  # Alias
 
 
 class ConfidenceLevel(str, Enum):
@@ -107,13 +117,13 @@ class ConfidenceLevel(str, Enum):
 
 
 # =============================================================================
-# LAYER 1: SURFACE GRAPH
+# LAYER 1: KNOWLEDGE GRAPH (formerly Surface Graph)
 # =============================================================================
 
-class SurfaceNode(BaseModel):
-    """A node in the product surface graph.
+class SystemNode(BaseModel):
+    """A node in the software system graph.
 
-    Represents a raw element from the codebase: an endpoint, entity, or concept.
+    Represents a semantic element from the codebase: an endpoint, entity, or concept.
     """
     id: str                          # e.g., "verb:POST:/users", "noun:user"
     type: NodeType
@@ -136,24 +146,24 @@ class SurfaceNode(BaseModel):
         return hash(self.id)
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, SurfaceNode):
+        if isinstance(other, SystemNode):
             return self.id == other.id
         return False
 
 
-class SurfaceEdge(BaseModel):
-    """A relationship between two surface nodes."""
+class SystemEdge(BaseModel):
+    """A relationship between two system graph nodes."""
     source_id: str
     target_id: str
     edge_type: EdgeType
     confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM
 
 
-class SurfaceGraph(BaseModel):
-    """Layer 1: The product surface - raw scan of code.
+class SystemGraph(BaseModel):
+    """Layer 1: System Graph - semantic map of code.
 
-    Immutable snapshot of all endpoints, entities, and concepts
-    discovered in the codebase.
+    Immutable snapshot of all endpoints, entities, concepts, and their
+    relationships discovered in the codebase.
     """
     # Metadata
     product_name: str
@@ -162,41 +172,41 @@ class SurfaceGraph(BaseModel):
     source_paths: list[str] = Field(default_factory=list)
 
     # Graph data
-    nodes: list[SurfaceNode] = Field(default_factory=list)
-    edges: list[SurfaceEdge] = Field(default_factory=list)
+    nodes: list[SystemNode] = Field(default_factory=list)
+    edges: list[SystemEdge] = Field(default_factory=list)
 
     # ==========================================================================
     # GRAPH ACCESSORS
     # ==========================================================================
 
-    def get_node(self, node_id: str) -> Optional[SurfaceNode]:
+    def get_node(self, node_id: str) -> Optional[SystemNode]:
         """Get a node by ID."""
         for node in self.nodes:
             if node.id == node_id:
                 return node
         return None
 
-    def nodes_by_type(self, node_type: NodeType) -> list[SurfaceNode]:
+    def nodes_by_type(self, node_type: NodeType) -> list[SystemNode]:
         """Get all nodes of a specific type."""
         return [n for n in self.nodes if n.type == node_type]
 
     @property
-    def nouns(self) -> list[SurfaceNode]:
+    def nouns(self) -> list[SystemNode]:
         return self.nodes_by_type(NodeType.NOUN)
 
     @property
-    def verbs(self) -> list[SurfaceNode]:
+    def verbs(self) -> list[SystemNode]:
         return self.nodes_by_type(NodeType.VERB)
 
     @property
-    def concepts(self) -> list[SurfaceNode]:
+    def concepts(self) -> list[SystemNode]:
         return self.nodes_by_type(NodeType.CONCEPT)
 
     @property
-    def constraints(self) -> list[SurfaceNode]:
+    def constraints(self) -> list[SystemNode]:
         return self.nodes_by_type(NodeType.CONSTRAINT)
 
-    def verbs_for_noun(self, noun_id: str) -> list[SurfaceNode]:
+    def verbs_for_noun(self, noun_id: str) -> list[SystemNode]:
         """Get all verbs that operate on a noun."""
         verb_ids = [
             e.source_id for e in self.edges
@@ -204,14 +214,14 @@ class SurfaceGraph(BaseModel):
         ]
         return [n for n in self.nodes if n.id in verb_ids]
 
-    def noun_for_verb(self, verb_id: str) -> Optional[SurfaceNode]:
+    def noun_for_verb(self, verb_id: str) -> Optional[SystemNode]:
         """Get the primary noun a verb operates on."""
         for edge in self.edges:
             if edge.source_id == verb_id and edge.edge_type == EdgeType.OPERATES_ON:
                 return self.get_node(edge.target_id)
         return None
 
-    def orphan_verbs(self) -> list[SurfaceNode]:
+    def orphan_verbs(self) -> list[SystemNode]:
         """Get verbs not connected to any noun."""
         connected_verb_ids = {
             e.source_id for e in self.edges
@@ -219,7 +229,7 @@ class SurfaceGraph(BaseModel):
         }
         return [v for v in self.verbs if v.id not in connected_verb_ids]
 
-    def user_facing_nodes(self) -> list[SurfaceNode]:
+    def user_facing_nodes(self) -> list[SystemNode]:
         """Get nodes that should be documented."""
         return [n for n in self.nodes if n.node_class == NodeClass.USER_FACING]
 
@@ -242,14 +252,14 @@ class SurfaceGraph(BaseModel):
 
 
 # =============================================================================
-# LAYER 2 & 3: TOPIC MANIFEST (ITM and ATM)
+# LAYER 2 & 3: CONTENT COVERAGE MATRIX / CONTENT INVENTORY
 # =============================================================================
 
 class Topic(BaseModel):
-    """A documentation topic that covers surface elements.
+    """A documentation topic that covers system graph elements.
 
     Topics are the logical groupings that organize documentation.
-    A single topic might cover multiple surface nodes.
+    A single topic might cover multiple graph nodes.
     """
     id: str
     name: str                        # "User Management", "Authentication"
@@ -305,14 +315,14 @@ class TopicQuality(BaseModel):
 
 
 class TopicManifest(BaseModel):
-    """Layer 2/3: Topic organization - either intended (ITM) or actual (ATM).
+    """Layer 2/3: Topic organization - Coverage Checklist or Content Inventory.
 
-    ITM: The plan - topics that SHOULD exist
-    ATM: The reality - topics that DO exist in docs
+    Coverage Checklist (INTENDED): The plan - topics that SHOULD exist
+    Content Inventory (ACTUAL): The reality - topics that DO exist in docs
     """
     # Identity
     manifest_type: ManifestType
-    surface_id: str              # Links to which SurfaceGraph this covers
+    graph_id: str              # Links to which SystemGraph this covers
 
     # Metadata
     product_name: str
@@ -355,10 +365,10 @@ class TopicManifest(BaseModel):
             covered.update(topic.covers)
         return covered
 
-    def uncovered_surface_ids(self, surface: SurfaceGraph) -> list[str]:
-        """Get surface node IDs not covered by any topic."""
+    def uncovered_node_ids(self, graph: SystemGraph) -> list[str]:
+        """Get system graph node IDs not covered by any topic."""
         covered = self.covered_surface_ids()
-        return [n.id for n in surface.user_facing_nodes() if n.id not in covered]
+        return [n.id for n in graph.user_facing_nodes() if n.id not in covered]
 
     def topics_covering(self, surface_id: str) -> list[Topic]:
         """Get all topics that cover a specific surface node."""
@@ -366,47 +376,48 @@ class TopicManifest(BaseModel):
 
 
 # =============================================================================
-# LAYER 4: GAP REPORT
+# LAYER 4: DRIFT REPORT (formerly Gap Report)
 # =============================================================================
 
-class TopicGap(BaseModel):
-    """A gap between an ITM topic and ATM coverage."""
-    itm_topic_id: str
-    itm_topic_name: str
-    atm_topic_id: Optional[str] = None  # Matched ATM topic, if any
+class DriftItem(BaseModel):
+    """A drift item between Coverage Matrix and Content Inventory."""
+    matrix_topic_id: str       # Topic from Coverage Checklist
+    matrix_topic_name: str
+    inventory_topic_id: Optional[str] = None  # Matched inventory topic, if any
 
     # Coverage status
     status: Literal["missing", "partial", "complete", "extra"]
 
-    # What's missing?
-    missing_surface_ids: list[str] = Field(default_factory=list)
+    # What's drifted/missing?
+    missing_node_ids: list[str] = Field(default_factory=list)
 
-    # Quality gaps (if ATM topic exists)
-    quality_gaps: list[str] = Field(default_factory=list)
+    # Quality issues (if inventory topic exists)
+    quality_issues: list[str] = Field(default_factory=list)
 
     # Sprint plan action
     action: str = ""
     priority: int = 0
 
 
-class GapReport(BaseModel):
-    """Layer 4: Computed gap between ITM and ATM.
+class DriftReport(BaseModel):
+    """Layer 4: Documentation Drift Report.
 
-    This drives the sprint plan and coverage metrics.
+    Measures the divergence between Code State (System Graph) and
+    Documentation State (Content Inventory). Drives the sprint plan.
     """
     # Links
-    surface_id: str
-    itm_id: str
-    atm_id: str
+    graph_id: str              # System Graph ID
+    matrix_id: str             # Coverage Checklist ID
+    inventory_id: str          # Content Inventory ID
 
     # Metadata
     generated_at: datetime = Field(default_factory=datetime.now)
     product_name: str
 
-    # Gaps
-    gaps: list[TopicGap] = Field(default_factory=list)
+    # Drift items
+    drift_items: list[DriftItem] = Field(default_factory=list)
 
-    # Extra topics in ATM not in ITM (potential undocumented features)
+    # Extra topics in inventory not in matrix (potential undocumented features)
     extra_topics: list[str] = Field(default_factory=list)
 
     # ==========================================================================
@@ -414,14 +425,14 @@ class GapReport(BaseModel):
     # ==========================================================================
 
     def coverage_stats(self) -> dict:
-        """Get overall coverage statistics."""
-        total = len(self.gaps)
+        """Get documentation coverage statistics."""
+        total = len(self.drift_items)
         if total == 0:
             return {"coverage_percentage": 0.0, "total": 0}
 
-        complete = sum(1 for g in self.gaps if g.status == "complete")
-        partial = sum(1 for g in self.gaps if g.status == "partial")
-        missing = sum(1 for g in self.gaps if g.status == "missing")
+        complete = sum(1 for d in self.drift_items if d.status == "complete")
+        partial = sum(1 for d in self.drift_items if d.status == "partial")
+        missing = sum(1 for d in self.drift_items if d.status == "missing")
 
         return {
             "total_topics": total,
@@ -433,17 +444,17 @@ class GapReport(BaseModel):
         }
 
     def sprint_plan(self) -> list[dict]:
-        """Generate prioritized sprint plan."""
+        """Generate prioritized sprint plan to fix drift."""
         plan = []
-        for gap in sorted(self.gaps, key=lambda g: g.priority, reverse=True):
-            if gap.status in ("missing", "partial"):
+        for item in sorted(self.drift_items, key=lambda d: d.priority, reverse=True):
+            if item.status in ("missing", "partial"):
                 plan.append({
-                    "topic": gap.itm_topic_name,
-                    "status": gap.status,
-                    "action": gap.action,
-                    "missing_items": len(gap.missing_surface_ids),
-                    "quality_gaps": gap.quality_gaps,
-                    "priority": gap.priority,
+                    "topic": item.matrix_topic_name,
+                    "status": item.status,
+                    "action": item.action,
+                    "missing_items": len(item.missing_node_ids),
+                    "quality_issues": item.quality_issues,
+                    "priority": item.priority,
                 })
         return plan
 
@@ -452,8 +463,8 @@ class GapReport(BaseModel):
 # FACTORY FUNCTIONS
 # =============================================================================
 
-def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
-    """Generate default ITM from a surface graph.
+def generate_default_itm(graph: SystemGraph) -> TopicManifest:
+    """Generate default Coverage Checklist from a System Graph.
 
     Default strategy: Type-first hierarchical structure.
     - Reference > API > [Entity] > [Endpoint topics]
@@ -467,7 +478,7 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
         topic_id_counter += 1
         return f"topic_{topic_id_counter}"
 
-    def verb_to_title(verb: SurfaceNode) -> str:
+    def verb_to_title(verb: SystemNode) -> str:
         """Generate a readable title for an endpoint."""
         method = verb.http_method or "CALL"
         # Extract resource from path
@@ -496,8 +507,8 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
     api_entity_ids = []
 
     # Create entity groups under API
-    for noun in surface.nouns:
-        related_verbs = surface.verbs_for_noun(noun.id)
+    for noun in graph.nouns:
+        related_verbs = graph.verbs_for_noun(noun.id)
         entity_topic_id = next_id()
         api_entity_ids.append(entity_topic_id)
         endpoint_ids = []
@@ -530,9 +541,9 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
         topics.append(entity_topic)
 
     # Handle orphan verbs - group by theme under API
-    orphans = surface.orphan_verbs()
+    orphans = graph.orphan_verbs()
     if orphans:
-        themes: dict[str, list[SurfaceNode]] = {}
+        themes: dict[str, list[SystemNode]] = {}
         for verb in orphans:
             if verb.http_path:
                 parts = [p for p in verb.http_path.split('/') if p and not p.startswith('{')]
@@ -603,7 +614,7 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
     entity_concept_ids = []
 
     # Create concept topic for each entity (noun)
-    for noun in surface.nouns:
+    for noun in graph.nouns:
         entity_concept_id = next_id()
         entity_concept_ids.append(entity_concept_id)
 
@@ -641,7 +652,7 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
     topics.append(concept_topic)
 
     # 3. Concept topics for standalone concepts
-    for concept in surface.concepts:
+    for concept in graph.concepts:
         topic = Topic(
             id=next_id(),
             name=concept.name.replace("_", " ").title(),
@@ -661,7 +672,7 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
     def find_verbs_by_pattern(patterns: list[str]) -> list[str]:
         """Find verb IDs matching path patterns."""
         matches = []
-        for verb in surface.verbs:
+        for verb in graph.verbs:
             if verb.http_path:
                 for pattern in patterns:
                     if pattern in verb.http_path.lower():
@@ -675,7 +686,7 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
         howto_id = next_id()
         howto_ids.append(howto_id)
         # Auth flows operate on users, so include user noun if present
-        user_noun = next((n for n in surface.nouns if n.name == 'user'), None)
+        user_noun = next((n for n in graph.nouns if n.name == 'user'), None)
         auth_covers = ([user_noun.id] if user_noun else []) + auth_verbs
         topics.append(Topic(
             id=howto_id,
@@ -715,8 +726,8 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
         ))
 
     # Detect CRUD flows for each entity (if has create + list/get)
-    for noun in surface.nouns:
-        verbs = surface.verbs_for_noun(noun.id)
+    for noun in graph.nouns:
+        verbs = graph.verbs_for_noun(noun.id)
         methods = {v.http_method for v in verbs if v.http_method}
         # Only suggest CRUD how-to if entity has meaningful operations
         if 'POST' in methods and ('GET' in methods or 'PUT' in methods):
@@ -748,49 +759,49 @@ def generate_default_itm(surface: SurfaceGraph) -> TopicManifest:
 
     return TopicManifest(
         manifest_type=ManifestType.INTENDED,
-        surface_id=f"{surface.product_name}:{surface.scanned_at.isoformat()}",
-        product_name=surface.product_name,
+        graph_id=f"{graph.product_name}:{graph.scanned_at.isoformat()}",
+        product_name=graph.product_name,
         topics=topics,
     )
 
 
-def compute_gap_report(
-    surface: SurfaceGraph,
-    itm: TopicManifest,
-    atm: TopicManifest,
-) -> GapReport:
-    """Compute the gap between ITM and ATM.
+def compute_drift_report(
+    graph: SystemGraph,
+    matrix: TopicManifest,
+    inventory: TopicManifest,
+) -> DriftReport:
+    """Compute documentation drift between Coverage Matrix and Content Inventory.
 
-    Matches ITM topics to ATM topics and identifies coverage gaps.
+    Matches matrix topics to inventory topics and identifies drift.
     """
-    gaps = []
-    matched_atm_ids = set()
+    drift_items = []
+    matched_inventory_ids = set()
 
-    for itm_topic in itm.topics:
+    for matrix_topic in matrix.topics:
         # Skip structural parent topics that don't cover anything directly
         # These are just organizational hierarchy (e.g., "Reference", "API", "Entity")
-        if not itm_topic.covers and itm_topic.children:
+        if not matrix_topic.covers and matrix_topic.children:
             continue
-        # Find matching ATM topic (by name similarity or coverage overlap)
+        # Find matching inventory topic (by name similarity or coverage overlap)
         best_match = None
         best_overlap = 0
 
-        for atm_topic in atm.topics:
+        for inv_topic in inventory.topics:
             # Check coverage overlap
-            itm_covers = set(itm_topic.covers)
-            atm_covers = set(atm_topic.covers)
-            overlap = len(itm_covers & atm_covers)
+            matrix_covers = set(matrix_topic.covers)
+            inv_covers = set(inv_topic.covers)
+            overlap = len(matrix_covers & inv_covers)
 
             if overlap > best_overlap:
                 best_overlap = overlap
-                best_match = atm_topic
+                best_match = inv_topic
 
-        # Determine gap status
+        # Determine drift status
         if best_match and best_overlap > 0:
-            matched_atm_ids.add(best_match.id)
-            itm_covers = set(itm_topic.covers)
-            atm_covers = set(best_match.covers)
-            missing = itm_covers - atm_covers
+            matched_inventory_ids.add(best_match.id)
+            matrix_covers = set(matrix_topic.covers)
+            inv_covers = set(best_match.covers)
+            missing = matrix_covers - inv_covers
 
             if not missing:
                 status = "complete"
@@ -800,46 +811,76 @@ def compute_gap_report(
                 action = f"Add coverage for {len(missing)} missing elements"
 
             # Check quality
-            quality_gaps = []
-            if best_match.id in atm.quality:
-                q = atm.quality[best_match.id]
+            quality_issues = []
+            if best_match.id in inventory.quality:
+                q = inventory.quality[best_match.id]
                 if q.has_errors == "no":
-                    quality_gaps.append("missing error docs")
+                    quality_issues.append("missing error docs")
                 if not q.has_examples:
-                    quality_gaps.append("missing examples")
+                    quality_issues.append("missing examples")
                 if not q.has_use_cases:
-                    quality_gaps.append("missing use cases")
+                    quality_issues.append("missing use cases")
 
-            gap = TopicGap(
-                itm_topic_id=itm_topic.id,
-                itm_topic_name=itm_topic.name,
-                atm_topic_id=best_match.id,
+            item = DriftItem(
+                matrix_topic_id=matrix_topic.id,
+                matrix_topic_name=matrix_topic.name,
+                inventory_topic_id=best_match.id,
                 status=status,
-                missing_surface_ids=list(missing),
-                quality_gaps=quality_gaps,
+                missing_node_ids=list(missing),
+                quality_issues=quality_issues,
                 action=action,
-                priority=itm_topic.priority or 0,
+                priority=matrix_topic.priority or 0,
             )
         else:
-            gap = TopicGap(
-                itm_topic_id=itm_topic.id,
-                itm_topic_name=itm_topic.name,
+            item = DriftItem(
+                matrix_topic_id=matrix_topic.id,
+                matrix_topic_name=matrix_topic.name,
                 status="missing",
-                missing_surface_ids=itm_topic.covers,
-                action=f"Create new {itm_topic.topic_type.value} topic: {itm_topic.name}",
-                priority=itm_topic.priority or 0,
+                missing_node_ids=matrix_topic.covers,
+                action=f"Create new {matrix_topic.topic_type.value} topic: {matrix_topic.name}",
+                priority=matrix_topic.priority or 0,
             )
 
-        gaps.append(gap)
+        drift_items.append(item)
 
-    # Find extra ATM topics not in ITM
-    extra = [t.id for t in atm.topics if t.id not in matched_atm_ids]
+    # Find extra inventory topics not in matrix (potential undocumented features)
+    extra = [t.id for t in inventory.topics if t.id not in matched_inventory_ids]
 
-    return GapReport(
-        surface_id=surface.product_name,
-        itm_id=itm.surface_id,
-        atm_id=atm.surface_id,
-        product_name=surface.product_name,
-        gaps=gaps,
+    return DriftReport(
+        graph_id=graph.product_name,
+        matrix_id=matrix.graph_id,
+        inventory_id=inventory.graph_id,
+        product_name=graph.product_name,
+        drift_items=drift_items,
         extra_topics=extra,
     )
+
+
+# =============================================================================
+# BACKWARD COMPATIBILITY ALIASES
+# These aliases maintain compatibility with code using old terminology.
+# New code should use: SystemGraph, SystemNode, SystemEdge,
+#                      DriftReport, DriftItem, compute_drift_report
+# =============================================================================
+
+# Layer 1: Surface Graph → System Graph
+SurfaceGraph = SystemGraph
+SurfaceNode = SystemNode
+SurfaceEdge = SystemEdge
+
+# Layer 4: Gap Report → Drift Report
+GapReport = DriftReport
+TopicGap = DriftItem
+compute_gap_report = compute_drift_report
+
+# Type aliases for clarity
+CoverageChecklist = TopicManifest       # When manifest_type == INTENDED (the plan)
+ContentInventory = TopicManifest        # When manifest_type == ACTUAL (the reality)
+
+# Also support legacy name
+ContentCoverageMatrix = TopicManifest   # Legacy alias
+
+# Additional aliases for Knowledge Graph terminology (for users preferring that)
+KnowledgeGraph = SystemGraph
+KnowledgeNode = SystemNode
+KnowledgeEdge = SystemEdge

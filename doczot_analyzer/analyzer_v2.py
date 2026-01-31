@@ -1,10 +1,16 @@
-"""DocZot v2 Analyzer - Build Surface Graph, ITM, and ATM.
+"""DocZot v2 Analyzer - Build System Graph, Coverage Checklist, and Content Inventory.
 
 This module provides functions to:
-1. Build a SurfaceGraph from code scanning
-2. Generate default ITM from surface
-3. Discover ATM from existing documentation
-4. Compute gap reports
+1. Build a SystemGraph from code scanning (endpoints, entities, constraints)
+2. Generate a Coverage Checklist from the system graph (what should be documented)
+3. Discover Content Inventory from existing documentation (what is documented)
+4. Compute Drift Reports (documentation drift detection)
+
+Terminology:
+    SystemGraph = Code structure graph (formerly SurfaceGraph, KnowledgeGraph)
+    Coverage Checklist = ITM (Intended Topic Manifest) - the plan
+    Content Inventory = ATM (Actual Topic Manifest) - the reality
+    Drift Report = Gap Report - divergence between code and docs
 """
 from pathlib import Path
 from typing import Optional
@@ -19,9 +25,20 @@ from doczot_analyzer.docs_parser import (
 from doczot_analyzer.vector_store import LocalVectorStore
 from doczot_analyzer.scanner_nodejs import scan_nodejs_directory  # v3
 from doczot_analyzer.models_v2 import (
+    # New terminology
+    SystemGraph,
+    SystemNode,
+    SystemEdge,
+    DriftReport,
+    DriftItem,
+    compute_drift_report,
+    # Backward compatibility aliases
     SurfaceGraph,
     SurfaceNode,
     SurfaceEdge,
+    GapReport,
+    compute_gap_report,
+    # Shared types
     NodeType,
     NodeClass,
     EdgeType,
@@ -30,10 +47,8 @@ from doczot_analyzer.models_v2 import (
     TopicType,
     TopicQuality,
     ManifestType,
-    GapReport,
     ConfidenceLevel,
     generate_default_itm,
-    compute_gap_report,
 )
 
 
@@ -98,11 +113,11 @@ def detect_repo_type(repo_path: str) -> str:
     return "unknown"
 
 
-def build_surface_graph_nodejs(
+def build_system_graph_nodejs(
     repo_path: str,
     product_name: Optional[str] = None,
-) -> SurfaceGraph:
-    """Build a SurfaceGraph from a Node.js CLI repository.
+) -> SystemGraph:
+    """Build a System Graph from a Node.js CLI repository.
 
     Creates:
     - Verb nodes for CLI commands
@@ -122,13 +137,13 @@ def build_surface_graph_nodejs(
 
     commands = scan_nodejs_directory(repo_path)
 
-    nodes: list[SurfaceNode] = []
-    edges: list[SurfaceEdge] = []
+    nodes: list[SystemNode] = []
+    edges: list[SystemEdge] = []
     seen_flags: set[str] = set()
 
     # Create verb nodes for each command and noun nodes for flags
     for cmd in commands:
-        verb_node = SurfaceNode(
+        verb_node = SystemNode(
             id=f"verb:CLI:{cmd.name}",
             type=NodeType.VERB,
             name=cmd.name,
@@ -147,7 +162,7 @@ def build_surface_graph_nodejs(
 
             seen_flags.add(flag_name)
 
-            flag_node = SurfaceNode(
+            flag_node = SystemNode(
                 id=f"noun:flag:{flag_name}",
                 type=NodeType.NOUN,
                 name=flag_name,
@@ -158,7 +173,7 @@ def build_surface_graph_nodejs(
             nodes.append(flag_node)
 
             # Create edge: command operates_on flag
-            edge = SurfaceEdge(
+            edge = SystemEdge(
                 source_id=verb_node.id,
                 target_id=flag_node.id,
                 edge_type=EdgeType.OPERATES_ON,
@@ -170,7 +185,7 @@ def build_surface_graph_nodejs(
     unique_nodes = _deduplicate_nodes(nodes)
     unique_edges = _deduplicate_edges(edges)
 
-    return SurfaceGraph(
+    return SystemGraph(
         product_name=product_name,
         source_paths=[repo_path],
         nodes=unique_nodes,
@@ -178,11 +193,11 @@ def build_surface_graph_nodejs(
     )
 
 
-def build_surface_graph_python(
+def build_system_graph_python(
     repo_path: str,
     product_name: Optional[str] = None,
-) -> SurfaceGraph:
-    """Build a SurfaceGraph from a Python/FastAPI repository.
+) -> SystemGraph:
+    """Build a System Graph from a Python/FastAPI repository.
 
     Scans code for endpoints and extracts:
     - Verb nodes (API endpoints)
@@ -198,8 +213,8 @@ def build_surface_graph_python(
     # Scan code for endpoints
     endpoints = scan_directory(repo_path)
 
-    nodes: list[SurfaceNode] = []
-    edges: list[SurfaceEdge] = []
+    nodes: list[SystemNode] = []
+    edges: list[SystemEdge] = []
     seen_nouns: set[str] = set()
 
     for ep in endpoints:
@@ -209,7 +224,7 @@ def build_surface_graph_python(
         resource = path_segments[-1] if path_segments else "resource"
         verb_name = f"{base_verb}_{resource}"
 
-        verb_node = SurfaceNode(
+        verb_node = SystemNode(
             id=f"verb:{ep.method}:{ep.path}",
             type=NodeType.VERB,
             name=verb_name,
@@ -313,7 +328,7 @@ def build_surface_graph_python(
 
             if noun not in seen_nouns:
                 seen_nouns.add(noun)
-                noun_node = SurfaceNode(
+                noun_node = SystemNode(
                     id=noun_id,
                     type=NodeType.NOUN,
                     name=noun,
@@ -321,7 +336,7 @@ def build_surface_graph_python(
                 nodes.append(noun_node)
 
             # Create edge: verb operates_on noun
-            edge = SurfaceEdge(
+            edge = SystemEdge(
                 source_id=verb_node.id,
                 target_id=noun_id,
                 edge_type=EdgeType.OPERATES_ON,
@@ -348,7 +363,7 @@ def build_surface_graph_python(
             else:
                 description = str(constraint.get('value', ''))
 
-            constraint_node = SurfaceNode(
+            constraint_node = SystemNode(
                 id=constraint_id,
                 type=NodeType.CONSTRAINT,
                 name=constraint['type'],
@@ -359,7 +374,7 @@ def build_surface_graph_python(
             nodes.append(constraint_node)
 
             # Create constrained_by edge
-            edge = SurfaceEdge(
+            edge = SystemEdge(
                 source_id=verb_id,
                 target_id=constraint_id,
                 edge_type=EdgeType.CONSTRAINED_BY,
@@ -375,7 +390,7 @@ def build_surface_graph_python(
         child_id = f"noun:{child_name}"
         parent_id = f"noun:{parent_name}"
 
-        edges.append(SurfaceEdge(
+        edges.append(SystemEdge(
             source_id=child_id,
             target_id=parent_id,
             edge_type=EdgeType.PART_OF,
@@ -386,7 +401,7 @@ def build_surface_graph_python(
     prereq_rels = detect_prerequisite_relationships(nodes, edges)
 
     for source_id, target_id in prereq_rels:
-        edges.append(SurfaceEdge(
+        edges.append(SystemEdge(
             source_id=source_id,
             target_id=target_id,
             edge_type=EdgeType.PREREQUISITE,
@@ -405,7 +420,7 @@ def build_surface_graph_python(
             continue
         seen_concept_names.add(concept_data['name'])
 
-        concept_node = SurfaceNode(
+        concept_node = SystemNode(
             id=f"concept:{concept_data['name']}",
             type=NodeType.CONCEPT,
             name=concept_data['name'],
@@ -419,7 +434,7 @@ def build_surface_graph_python(
     unique_nodes = _deduplicate_nodes(nodes)
     unique_edges = _deduplicate_edges(edges)
 
-    return SurfaceGraph(
+    return SystemGraph(
         product_name=product_name,
         source_paths=[repo_path],
         nodes=unique_nodes,
@@ -427,7 +442,7 @@ def build_surface_graph_python(
     )
 
 
-def _deduplicate_nodes(nodes: list[SurfaceNode]) -> list[SurfaceNode]:
+def _deduplicate_nodes(nodes: list[SystemNode]) -> list[SystemNode]:
     """Deduplicate nodes by their ID, keeping the first occurrence."""
     seen = {}
     for node in nodes:
@@ -436,7 +451,7 @@ def _deduplicate_nodes(nodes: list[SurfaceNode]) -> list[SurfaceNode]:
     return list(seen.values())
 
 
-def _deduplicate_edges(edges: list[SurfaceEdge]) -> list[SurfaceEdge]:
+def _deduplicate_edges(edges: list[SystemEdge]) -> list[SystemEdge]:
     """Deduplicate edges by (source_id, target_id, edge_type)."""
     seen = set()
     unique = []
@@ -501,8 +516,8 @@ def detect_part_of_relationships(
 
 
 def detect_prerequisite_relationships(
-    nodes: list[SurfaceNode],
-    edges: list[SurfaceEdge]
+    nodes: list[SystemNode],
+    edges: list[SystemEdge]
 ) -> list[tuple[str, str]]:
     """Detect prerequisite relationships.
 
@@ -718,12 +733,15 @@ def extract_nouns_from_path(path: str) -> list[str]:
     return nouns
 
 
-def build_surface_graph(
+def build_system_graph(
     repo_path: str,
     product_name: Optional[str] = None,
     force_type: Optional[str] = None,
-) -> SurfaceGraph:
-    """Build a SurfaceGraph from a repository (auto-detects type).
+) -> SystemGraph:
+    """Build a Software System Graph from a repository (auto-detects type).
+
+    Scans code to extract semantic elements: endpoints, entities, concepts,
+    and their relationships.
 
     Supports:
     - Python/FastAPI repositories (REST APIs)
@@ -735,16 +753,23 @@ def build_surface_graph(
         force_type: Optional type override ('python' or 'nodejs')
 
     Returns:
-        SurfaceGraph with nodes and edges extracted from code
+        SystemGraph with nodes and edges extracted from code
     """
     repo_type = force_type or detect_repo_type(repo_path)
 
     if repo_type == "nodejs":
-        return build_surface_graph_nodejs(repo_path, product_name)
+        return build_system_graph_nodejs(repo_path, product_name)
     elif repo_type == "python":
-        return build_surface_graph_python(repo_path, product_name)
+        return build_system_graph_python(repo_path, product_name)
     else:
         raise ValueError(f"Unknown repository type: {repo_type}. Expected 'python' or 'nodejs'.")
+
+
+# Backward compatibility aliases
+build_surface_graph = build_system_graph
+build_surface_graph_python = build_system_graph_python
+build_surface_graph_nodejs = build_system_graph_nodejs
+build_knowledge_graph = build_system_graph
 
 
 # =============================================================================
@@ -775,14 +800,16 @@ def _find_git_root(start_path: str) -> Optional[str]:
     return None
 
 
-def discover_atm(
+def discover_content_inventory(
     repo_path: str,
-    surface: SurfaceGraph,
+    graph: SystemGraph,
 ) -> TopicManifest:
-    """Discover actual topics from existing documentation.
+    """Discover Content Inventory from existing documentation.
 
-    Parses markdown files and matches content to surface elements.
+    Parses markdown files and matches content to system graph elements.
     Searches in the scanned directory and parent directories (up to git root).
+
+    Returns a TopicManifest with manifest_type=ACTUAL (Content Inventory).
     """
     repo_path = str(Path(repo_path).resolve())
 
@@ -880,9 +907,9 @@ def discover_atm(
         else:
             name = Path(file_path).stem.replace("-", " ").replace("_", " ").title()
 
-        # Match chunks to surface elements
+        # Match chunks to system graph elements
         covered_ids = set()
-        for node in surface.user_facing_nodes():
+        for node in graph.user_facing_nodes():
             # Create search signature - include entity names for better matching
             sig_parts = []
 
@@ -983,11 +1010,15 @@ def discover_atm(
 
     return TopicManifest(
         manifest_type=ManifestType.ACTUAL,
-        surface_id=f"{surface.product_name}:{surface.scanned_at.isoformat()}",
-        product_name=surface.product_name,
+        graph_id=f"{graph.product_name}:{graph.scanned_at.isoformat()}",
+        product_name=graph.product_name,
         topics=topics,
         quality=quality,
     )
+
+
+# Backward compatibility alias
+discover_atm = discover_content_inventory
 
 
 # =============================================================================
@@ -997,33 +1028,33 @@ def discover_atm(
 def analyze_repository(
     repo_path: str,
     product_name: Optional[str] = None,
-) -> tuple[SurfaceGraph, TopicManifest, TopicManifest, GapReport]:
-    """Run full analysis on a repository.
+) -> tuple[SystemGraph, TopicManifest, TopicManifest, DriftReport]:
+    """Run full documentation analysis on a repository.
 
     Returns:
-        Tuple of (SurfaceGraph, ITM, ATM, GapReport)
+        Tuple of (SystemGraph, ContentCoverageMatrix, ContentInventory, DriftReport)
     """
-    # Layer 1: Build surface graph
-    surface = build_surface_graph(repo_path, product_name)
+    # Layer 1: Build System Graph
+    graph = build_system_graph(repo_path, product_name)
 
-    # Layer 2: Generate default ITM
-    itm = generate_default_itm(surface)
+    # Layer 2: Generate default Coverage Checklist
+    matrix = generate_default_itm(graph)
 
-    # Layer 3: Discover ATM from docs
-    atm = discover_atm(repo_path, surface)
+    # Layer 3: Discover Content Inventory from docs
+    inventory = discover_content_inventory(repo_path, graph)
 
-    # Layer 4: Compute gap report
-    gap_report = compute_gap_report(surface, itm, atm)
+    # Layer 4: Compute Drift Report
+    drift_report = compute_drift_report(graph, matrix, inventory)
 
-    return surface, itm, atm, gap_report
+    return graph, matrix, inventory, drift_report
 
 
-def diff_surface_graphs(old: SurfaceGraph, new: SurfaceGraph) -> dict:
-    """Compare two surface graphs and report changes.
+def diff_system_graphs(old: SystemGraph, new: SystemGraph) -> dict:
+    """Compare two system graphs and report changes.
 
     Args:
-        old: Previous Surface Graph
-        new: Current Surface Graph
+        old: Previous System Graph
+        new: Current System Graph
 
     Returns:
         Dictionary with added/removed nodes and edges, plus summary stats
@@ -1077,53 +1108,58 @@ def diff_surface_graphs(old: SurfaceGraph, new: SurfaceGraph) -> dict:
     }
 
 
+# Backward compatibility aliases
+diff_surface_graphs = diff_system_graphs
+diff_knowledge_graphs = diff_system_graphs
+
+
 def print_analysis_summary(
-    surface: SurfaceGraph,
-    itm: TopicManifest,
-    atm: TopicManifest,
-    gap_report: GapReport,
+    graph: SystemGraph,
+    matrix: TopicManifest,
+    inventory: TopicManifest,
+    drift_report: DriftReport,
 ) -> None:
-    """Print a summary of the analysis."""
+    """Print a summary of the documentation analysis."""
     print("=" * 60)
-    print(f"DOCZOT ANALYSIS: {surface.product_name}")
+    print(f"DOCZOT ANALYSIS: {graph.product_name}")
     print("=" * 60)
 
-    # Surface stats
-    print(f"\n--- Surface Graph ---")
-    print(f"Verbs (endpoints): {len(surface.verbs)}")
-    print(f"Nouns (entities): {len(surface.nouns)}")
-    print(f"Concepts: {len(surface.concepts)}")
-    print(f"Constraints: {len(surface.constraints)}")  # v3
-    print(f"Edges: {len(surface.edges)}")
+    # System Graph stats
+    print(f"\n--- System Graph ---")
+    print(f"Verbs (endpoints): {len(graph.verbs)}")
+    print(f"Nouns (entities): {len(graph.nouns)}")
+    print(f"Concepts: {len(graph.concepts)}")
+    print(f"Constraints: {len(graph.constraints)}")
+    print(f"Edges: {len(graph.edges)}")
 
-    # ITM stats
-    print(f"\n--- ITM (Intended Topics) ---")
-    print(f"Total topics: {len(itm.topics)}")
+    # Coverage Checklist stats
+    print(f"\n--- Coverage Checklist (Plan) ---")
+    print(f"Total topics: {len(matrix.topics)}")
     by_type = {}
-    for t in itm.topics:
+    for t in matrix.topics:
         by_type[t.topic_type.value] = by_type.get(t.topic_type.value, 0) + 1
     for ttype, count in by_type.items():
         print(f"  {ttype}: {count}")
 
-    # ATM stats
-    print(f"\n--- ATM (Actual Topics) ---")
-    print(f"Total topics discovered: {len(atm.topics)}")
-    covered = atm.covered_surface_ids()
-    total_surface = len(surface.user_facing_nodes())
-    print(f"Surface coverage: {len(covered)}/{total_surface}")
+    # Content Inventory stats
+    print(f"\n--- Content Inventory (Reality) ---")
+    print(f"Total topics discovered: {len(inventory.topics)}")
+    covered = inventory.covered_surface_ids()
+    total_nodes = len(graph.user_facing_nodes())
+    print(f"Graph coverage: {len(covered)}/{total_nodes}")
 
-    # Gap report
-    print(f"\n--- Gap Report ---")
-    stats = gap_report.coverage_stats()
-    print(f"Coverage: {stats['coverage_percentage']:.1f}%")
+    # Drift Report
+    print(f"\n--- Drift Report ---")
+    stats = drift_report.coverage_stats()
+    print(f"Documentation Coverage: {stats['coverage_percentage']:.1f}%")
     print(f"Complete topics: {stats['complete']}")
     print(f"Partial topics: {stats['partial']}")
     print(f"Missing topics: {stats['missing']}")
     if stats['extra'] > 0:
-        print(f"Extra topics (in ATM but not ITM): {stats['extra']}")
+        print(f"Extra topics (undocumented features): {stats['extra']}")
 
     # Sprint plan preview
-    plan = gap_report.sprint_plan()
+    plan = drift_report.sprint_plan()
     if plan:
         print(f"\n--- Sprint Plan ({len(plan)} items) ---")
         for item in plan[:5]:
