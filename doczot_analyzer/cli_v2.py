@@ -8,6 +8,7 @@ Commands:
     gaps             View the Drift Report and sprint plan
     visualize        Interactive HTML visualization
     diff             Compare two System Graph scans
+    export           Export for AI agents (MCP, llms.txt, JSON-LD)
     export-ontology  Export to RDF/OWL ontology formats
 """
 import argparse
@@ -1165,6 +1166,42 @@ def cmd_diff(args):
 
 
 # =============================================================================
+# EXPORT COMMAND (MCP, llms.txt, JSON-LD)
+# =============================================================================
+
+def cmd_export(args):
+    """Export system graph in agent-oriented formats."""
+    from doczot_analyzer.exports import export_mcp_resources, export_llms_txt, export_jsonld
+
+    repo_path = args.repo_path or "."
+    repo_path = str(Path(repo_path).resolve())
+
+    print(f"Analyzing: {repo_path}")
+    surface, itm, atm, gap_report = analyze_repository(repo_path, args.name)
+
+    fmt = args.format
+
+    if fmt == "mcp":
+        output = json.dumps(export_mcp_resources(surface), indent=2)
+    elif fmt == "llms":
+        output = export_llms_txt(surface, itm)
+    elif fmt == "json-ld":
+        output = json.dumps(export_jsonld(surface), indent=2)
+    else:
+        print(f"Unknown format: {fmt}")
+        return 1
+
+    if args.output:
+        output_path = Path(args.output)
+        output_path.write_text(output)
+        print(f"\nExported {fmt} to: {output_path}")
+    else:
+        print(output)
+
+    return 0
+
+
+# =============================================================================
 # EXPORT-ONTOLOGY COMMAND
 # =============================================================================
 
@@ -1341,6 +1378,16 @@ def main():
     p.add_argument("--verbose", "-v", action="store_true", help="Show detailed changes")
     p.add_argument("--output", "-o", help="Save diff to JSON file")
     p.set_defaults(func=cmd_diff)
+
+    # export (MCP, llms.txt, JSON-LD)
+    p = subparsers.add_parser("export", help="Export for AI agents (MCP, llms.txt, JSON-LD)")
+    p.add_argument("repo_path", nargs="?", default=".")
+    p.add_argument("--name", help="Product name")
+    p.add_argument("--format", "-f", required=True,
+                   choices=["mcp", "llms", "json-ld"],
+                   help="Export format: mcp (resource defs), llms (llms.txt), json-ld")
+    p.add_argument("--output", "-o", help="Save to file (otherwise prints to stdout)")
+    p.set_defaults(func=cmd_export)
 
     # export-ontology
     p = subparsers.add_parser("export-ontology", help="Export to RDF/OWL ontology")
