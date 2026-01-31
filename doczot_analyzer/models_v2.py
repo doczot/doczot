@@ -820,6 +820,26 @@ def compute_drift_report(
                     quality_issues.append("missing examples")
                 if not q.has_use_cases:
                     quality_issues.append("missing use cases")
+                # v3: Constraint coverage gaps
+                # Check if covered verbs have constraints that aren't documented
+                covered_verbs = [nid for nid in best_match.covers if nid.startswith("verb:")]
+                has_auth_constraint = False
+                has_rate_constraint = False
+                for verb_id in covered_verbs:
+                    for edge in graph.edges:
+                        if edge.source_id == verb_id and edge.edge_type == EdgeType.CONSTRAINED_BY:
+                            target = next((n for n in graph.nodes if n.id == edge.target_id), None)
+                            if target and "auth" in target.name:
+                                has_auth_constraint = True
+                            if target and "rate_limit" in target.name:
+                                has_rate_constraint = True
+                if has_auth_constraint and q.has_auth_requirements == "no":
+                    quality_issues.append("auth-protected endpoint but no auth docs")
+                if has_rate_constraint and q.has_rate_limits == "no":
+                    quality_issues.append("rate-limited endpoint but no rate limit docs")
+                # Terminology consistency
+                if not q.terminology_consistent:
+                    quality_issues.append("inconsistent terminology with codebase")
 
             item = DriftItem(
                 matrix_topic_id=matrix_topic.id,

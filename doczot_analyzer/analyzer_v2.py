@@ -740,6 +740,66 @@ def extract_concepts_from_docs(repo_path: str) -> list[dict]:
 extract_concepts_from_readme = extract_concepts_from_docs
 
 
+def _check_terminology_consistency(
+    doc_content: str,
+    graph_nouns: set[str],
+    covered_node_ids: set[str],
+    graph: 'SystemGraph',
+) -> list[str]:
+    """Check if documentation uses consistent terminology with the codebase.
+
+    Compares noun references in documentation against the canonical noun names
+    from the system graph. Reports inconsistencies where docs use different
+    terms for the same entity.
+
+    Args:
+        doc_content: Full text content of the documentation topic
+        graph_nouns: Set of canonical noun names from the system graph
+        covered_node_ids: IDs of graph nodes this topic covers
+        graph: The system graph for looking up node details
+
+    Returns:
+        List of terminology issue descriptions (empty = consistent)
+    """
+    issues = []
+    content_lower = doc_content.lower()
+
+    # Common variant patterns: plural/singular mismatches, synonyms
+    common_variants = {
+        'user': ['users', 'account', 'accounts', 'member', 'members'],
+        'item': ['items', 'product', 'products', 'entry', 'entries'],
+        'project': ['projects', 'workspace', 'workspaces', 'repo', 'repos'],
+        'team': ['teams', 'group', 'groups', 'organization', 'org'],
+        'task': ['tasks', 'job', 'jobs', 'work item', 'ticket'],
+        'message': ['messages', 'notification', 'notifications', 'alert', 'alerts'],
+        'file': ['files', 'document', 'documents', 'attachment', 'attachments'],
+        'role': ['roles', 'permission', 'permissions'],
+    }
+
+    # For each noun covered by this topic, check if the docs use
+    # a different term than the canonical noun name
+    covered_nouns = set()
+    for node_id in covered_node_ids:
+        if node_id.startswith('noun:'):
+            covered_nouns.add(node_id[5:])  # strip "noun:" prefix
+
+    for noun in covered_nouns:
+        if noun not in content_lower:
+            # The canonical noun name isn't in the docs at all
+            # Check if a known variant is used instead
+            variants = common_variants.get(noun, [])
+            used_variant = None
+            for variant in variants:
+                if variant in content_lower:
+                    used_variant = variant
+                    break
+
+            if used_variant:
+                issues.append(f"docs use '{used_variant}' but code uses '{noun}'")
+
+    return issues
+
+
 def extract_nouns_from_path(path: str) -> list[str]:
     """Extract noun candidates from an API path."""
     nouns = []
@@ -1048,8 +1108,16 @@ def discover_content_inventory(
             content_lower = full_content.lower()
 
             # Check for constraint documentation (v3)
-            auth_mentioned = any(kw in content_lower for kw in ['authentication', 'auth', 'login', 'token'])
-            rate_mentioned = any(kw in content_lower for kw in ['rate limit', 'throttle', 'quota'])
+            auth_mentioned = any(kw in content_lower for kw in ['authentication', 'auth', 'login', 'token', 'authorization', 'oauth'])
+            rate_mentioned = any(kw in content_lower for kw in ['rate limit', 'throttle', 'quota', 'rate-limit', 'ratelimit'])
+            prereq_mentioned = any(kw in content_lower for kw in ['prerequisite', 'requires', 'must first', 'before you', 'depends on', 'required before'])
+
+            # Check for machine-readable spec references
+            spec_mentioned = any(kw in content_lower for kw in ['openapi', 'swagger', 'json schema', 'graphql schema', 'api spec', '.yaml', '.json'])
+
+            # Check terminology consistency against graph nouns
+            graph_nouns = {n.name.lower() for n in graph.nodes if n.type == NodeType.NOUN}
+            term_issues = _check_terminology_consistency(full_content, graph_nouns, covered_ids, graph)
 
             q = TopicQuality(
                 has_parameters="partial" if "param" in content_lower else "no",
@@ -1062,6 +1130,10 @@ def discover_content_inventory(
                 # v3: Constraint coverage
                 has_auth_requirements="yes" if auth_mentioned else "no",
                 has_rate_limits="yes" if rate_mentioned else "no",
+                has_prerequisites="yes" if prereq_mentioned else "no",
+                # v3: Agent navigability
+                has_machine_readable_spec=spec_mentioned,
+                terminology_consistent=len(term_issues) == 0,
             )
 
             # Compute coverage score
@@ -1078,11 +1150,19 @@ def discover_content_inventory(
             constraint_score_parts = [
                 1.0 if q.has_auth_requirements == "yes" else 0.5 if q.has_auth_requirements == "partial" else 0.0,
                 1.0 if q.has_rate_limits == "yes" else 0.5 if q.has_rate_limits == "partial" else 0.0,
+                1.0 if q.has_prerequisites == "yes" else 0.5 if q.has_prerequisites == "partial" else 0.0,
             ]
             q.constraint_score = sum(constraint_score_parts) / len(constraint_score_parts) if constraint_score_parts else 0.0
 
-            # v3: Agent readiness score (combination of coverage and constraints)
-            q.agent_readiness_score = (q.coverage_score + q.constraint_score) / 2
+            # v3: Agent readiness score (coverage + constraints + terminology)
+            term_score = 1.0 if q.terminology_consistent else 0.5
+            spec_score = 1.0 if q.has_machine_readable_spec else 0.0
+            q.agent_readiness_score = (
+                q.coverage_score * 0.4
+                + q.constraint_score * 0.3
+                + term_score * 0.2
+                + spec_score * 0.1
+            )
 
             quality[topic_id] = q
 
