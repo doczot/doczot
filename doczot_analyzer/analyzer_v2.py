@@ -408,11 +408,11 @@ def build_system_graph_python(
             confidence=ConfidenceLevel.MEDIUM,
         ))
 
-    # v3: Extract concepts from docstrings and README
+    # v3: Extract concepts from docstrings and documentation files
     docstring_concepts = extract_concepts_from_docstrings(endpoints)
-    readme_concepts = extract_concepts_from_readme(repo_path)
+    doc_concepts = extract_concepts_from_docs(repo_path)
 
-    all_concepts = docstring_concepts + readme_concepts
+    all_concepts = docstring_concepts + doc_concepts
     seen_concept_names = set()
 
     for concept_data in all_concepts:
@@ -429,6 +429,18 @@ def build_system_graph_python(
             source_line=concept_data.get('source_line'),
         )
         nodes.append(concept_node)
+
+        # Create RELATED_TO edges from concept to nouns it mentions
+        if concept_data.get('definition'):
+            definition_lower = concept_data['definition'].lower()
+            for noun_name in seen_nouns:
+                if noun_name in definition_lower:
+                    edges.append(SystemEdge(
+                        source_id=concept_node.id,
+                        target_id=f"noun:{noun_name}",
+                        edge_type=EdgeType.RELATED_TO,
+                        confidence=ConfidenceLevel.MEDIUM,
+                    ))
 
     # Deduplicate nodes and edges by their IDs
     unique_nodes = _deduplicate_nodes(nodes)
@@ -573,9 +585,12 @@ def detect_prerequisite_relationships(
 
 
 def extract_concepts_from_docstrings(endpoints: list) -> list[dict]:
-    """Extract concepts from endpoint docstrings.
+    """Extract concepts from endpoint docstrings using definition patterns.
 
-    Looks for capitalized words in docstrings that might be domain concepts.
+    Looks for definition sentences in docstrings like:
+    - "Authentication is the process of..."
+    - "A rate limit refers to..."
+    - "The workspace represents..."
 
     Args:
         endpoints: List of endpoint objects
@@ -585,81 +600,144 @@ def extract_concepts_from_docstrings(endpoints: list) -> list[dict]:
     """
     concepts = {}  # Use dict to dedupe by name
 
+    # Patterns that indicate a definition sentence
+    definition_verbs = r'(?:is|are|refers?\s+to|represents?|describes?|means?|defines?|provides?|handles?|manages?|controls?)'
+    definition_pattern = re.compile(
+        rf'(?:^|\.)\s*(?:(?:The|A|An)\s+)?([A-Za-z][a-z]+(?:\s+[a-z]+)*)\s+{definition_verbs}\s+(.+?)(?:\.|$)',
+        re.MULTILINE
+    )
+
+    # Skip terms that are just CRUD actions or infrastructure
+    skip_terms = {
+        'this', 'the', 'that', 'each', 'every', 'some', 'any',
+        'create', 'update', 'delete', 'get', 'list', 'retrieve',
+        'check', 'return', 'response', 'request', 'endpoint',
+        'function', 'method', 'handler', 'route', 'path',
+    }
+
     for ep in endpoints:
         if not ep.docstring:
             continue
 
-        # Get first sentence
-        sentences = ep.docstring.split('.')
-        if not sentences:
-            continue
+        for match in definition_pattern.finditer(ep.docstring):
+            term = match.group(1).strip()
+            definition = match.group(2).strip()
 
-        first_sentence = sentences[0].strip()
-        words = first_sentence.split()
+            concept_name = term.lower()
+            if concept_name in skip_terms:
+                continue
+            if len(concept_name) < 3:
+                continue
 
-        for word in words:
-            # Look for capitalized words (potential entities/concepts)
-            clean = word.strip('.,;:()"\'')
-            if len(clean) > 3 and clean[0].isupper():
-                # Skip common action words
-                if clean in {'Create', 'Update', 'Delete', 'Get', 'List', 'Retrieve', 'Check', 'Return'}:
-                    continue
-
-                concept_name = clean.lower()
-                if concept_name not in concepts:
-                    concepts[concept_name] = {
-                        "name": concept_name,
-                        "definition": first_sentence,
-                        "source_file": ep.file_path,
-                        "source_line": ep.line_number,
-                    }
+            if concept_name not in concepts:
+                concepts[concept_name] = {
+                    "name": concept_name,
+                    "definition": definition[:200],
+                    "source_file": ep.file_path,
+                    "source_line": ep.line_number,
+                }
 
     return list(concepts.values())
 
 
-def extract_concepts_from_readme(repo_path: str) -> list[dict]:
-    """Extract concepts from README headers and definitions.
+def extract_concepts_from_docs(repo_path: str) -> list[dict]:
+    """Extract concepts from all documentation files in the repository.
 
-    Looks for markdown headers followed by definition text.
+    Scans markdown files for concept definitions using multiple patterns:
+    - H2/H3 headers followed by definition text
+    - Bold terms followed by definitions ("**term**: definition")
+    - Definition list patterns ("- **term** - definition")
 
     Args:
         repo_path: Path to the repository
 
     Returns:
-        List of concept dictionaries
+        List of concept dictionaries with name, definition, source_file, source_line
     """
-    concepts = []
+    from doczot_analyzer.docs_parser import find_markdown_files
 
+    concepts = {}  # Dedupe by name
+    md_files = find_markdown_files(repo_path)
+
+    # Also check root README if find_markdown_files missed it
     readme_path = Path(repo_path) / "README.md"
-    if not readme_path.exists():
-        return concepts
+    if readme_path.exists() and str(readme_path) not in md_files:
+        md_files.append(str(readme_path))
 
-    try:
-        content = readme_path.read_text(encoding='utf-8')
-    except Exception:
-        return concepts
+    # Headers to skip (meta sections, not domain concepts)
+    skip_headers = {
+        'install', 'installation', 'usage', 'license', 'licence',
+        'contributing', 'features', 'setup', 'requirements',
+        'prerequisites', 'getting started', 'quick start', 'quickstart',
+        'table of contents', 'toc', 'changelog', 'changes',
+        'development', 'deployment', 'testing', 'tests',
+        'configuration', 'environment variables', 'docker',
+        'acknowledgements', 'credits', 'about', 'overview',
+    }
 
-    # Pattern: ## Header followed by definition text
-    header_pattern = r'^##\s+(.+?)\n+(.+?)(?=\n##|\n\n##|\Z)'
-    matches = re.findall(header_pattern, content, re.MULTILINE | re.DOTALL)
-
-    for header, text in matches:
-        # Skip common headers
-        if header.lower() in {'install', 'installation', 'usage', 'license', 'contributing', 'features', 'setup'}:
+    for file_path in md_files:
+        try:
+            content = Path(file_path).read_text(encoding='utf-8')
+        except Exception:
             continue
 
-        # Get first meaningful sentence
-        first_sentence = text.strip().split('.')[0] + '.'
+        try:
+            rel_path = str(Path(file_path).relative_to(repo_path))
+        except ValueError:
+            rel_path = file_path
 
-        if len(first_sentence) > 20:  # Meaningful definition
-            concepts.append({
-                "name": header.strip().lower(),
-                "definition": first_sentence[:200],  # Limit length
-                "source_file": str(readme_path),
-                "source_line": 0,
-            })
+        # Pattern 1: ## or ### Header followed by definition text
+        header_pattern = r'^(#{2,3})\s+(.+?)\n+(.+?)(?=\n#{1,3}\s|\Z)'
+        for match in re.finditer(header_pattern, content, re.MULTILINE | re.DOTALL):
+            header = match.group(2).strip()
+            body = match.group(3).strip()
 
-    return concepts
+            if header.lower() in skip_headers:
+                continue
+            # Skip headers that are just a single common word
+            if len(header.split()) == 1 and header.lower() in {'api', 'endpoints', 'routes', 'models'}:
+                continue
+
+            # Get first meaningful sentence from body
+            first_sentence = body.split('\n')[0].strip()
+            # Remove leading markdown formatting
+            first_sentence = re.sub(r'^[>\-*]\s*', '', first_sentence)
+
+            if len(first_sentence) > 15:
+                name = header.lower().strip()
+                if name not in concepts:
+                    line_num = content[:match.start()].count('\n') + 1
+                    concepts[name] = {
+                        "name": name,
+                        "definition": first_sentence[:200],
+                        "source_file": rel_path,
+                        "source_line": line_num,
+                    }
+
+        # Pattern 2: **Bold term**: definition or **Bold term** - definition
+        bold_pattern = r'\*\*([A-Z][^*]+?)\*\*\s*[:\-–—]\s*(.+?)(?:\n|$)'
+        for match in re.finditer(bold_pattern, content):
+            term = match.group(1).strip()
+            definition = match.group(2).strip()
+
+            if len(term) > 50 or len(definition) < 10:
+                continue
+
+            name = term.lower()
+            if name not in concepts and name not in skip_headers:
+                line_num = content[:match.start()].count('\n') + 1
+                concepts[name] = {
+                    "name": name,
+                    "definition": definition[:200],
+                    "source_file": rel_path,
+                    "source_line": line_num,
+                }
+
+    return list(concepts.values())
+
+
+# Backward compatibility alias
+extract_concepts_from_readme = extract_concepts_from_docs
 
 
 def extract_nouns_from_path(path: str) -> list[str]:
