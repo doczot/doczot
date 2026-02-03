@@ -93,6 +93,10 @@ HTTP_METHOD_TO_VERB = {
 def detect_repo_type(repo_path: str) -> str:
     """Detect if repository is Python/FastAPI or Node.js/CLI.
 
+    For full-stack repos with both package.json and Python files,
+    prefers Python if FastAPI markers are found (pyproject.toml,
+    requirements.txt with fastapi, or files importing fastapi).
+
     Args:
         repo_path: Path to the repository
 
@@ -101,13 +105,32 @@ def detect_repo_type(repo_path: str) -> str:
     """
     repo_path_obj = Path(repo_path)
 
-    # Check for package.json (Node.js)
-    if (repo_path_obj / "package.json").exists():
+    has_package_json = (repo_path_obj / "package.json").exists()
+    has_python = any(True for _ in repo_path_obj.rglob("*.py"))
+
+    if has_python and has_package_json:
+        # Full-stack repo: check for Python API indicators
+        python_indicators = [
+            repo_path_obj / "pyproject.toml",
+            repo_path_obj / "setup.py",
+            repo_path_obj / "requirements.txt",
+        ]
+        # Also check subdirectories (e.g. backend/pyproject.toml)
+        for subdir in repo_path_obj.iterdir():
+            if subdir.is_dir() and not subdir.name.startswith('.'):
+                python_indicators.extend([
+                    subdir / "pyproject.toml",
+                    subdir / "setup.py",
+                    subdir / "requirements.txt",
+                ])
+        if any(p.exists() for p in python_indicators):
+            return "python"
         return "nodejs"
 
-    # Check for Python files
-    py_files = list(repo_path_obj.rglob("*.py"))
-    if py_files:
+    if has_package_json:
+        return "nodejs"
+
+    if has_python:
         return "python"
 
     return "unknown"

@@ -31,7 +31,7 @@ dependencies = [
 ]
 
 [project.scripts]
-doczot = "doczot_analyzer.cli:main"
+doczot = "doczot_analyzer.cli_v2:main"
 
 [project.urls]
 Homepage = "https://github.com/yourusername/doczot"
