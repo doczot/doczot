@@ -1068,52 +1068,77 @@ def discover_content_inventory(
         else:
             name = Path(file_path).stem.replace("-", " ").replace("_", " ").title()
 
-        # Match chunks to system graph elements
+        # Match chunks to system graph elements using two strategies:
+        # 1. Direct references: regex-extracted endpoint mentions (high confidence)
+        # 2. Semantic similarity: vector search (requires higher threshold)
         covered_ids = set()
-        for node in graph.user_facing_nodes():
-            # Create search signature - include entity names for better matching
-            sig_parts = []
 
-            if node.type == NodeType.VERB:
-                # Include HTTP method and path
-                if node.code_signature:
-                    sig_parts.append(node.code_signature)
-                # Extract entity names from path (e.g., /users/me -> users)
-                if node.http_path:
-                    path_segments = [s for s in node.http_path.split('/') if s and not s.startswith('{')]
-                    sig_parts.extend(path_segments)
-                # Include function name (e.g., get_me -> get me)
-                if node.name:
-                    sig_parts.append(node.name.replace('_', ' '))
-            else:
-                sig_parts.append(node.name)
+        # Collect all content for this topic group for depth checking
+        group_content = " ".join(c.content for c in chunks)
+        group_content_len = len(group_content)
 
-            # Include description/docstring if available
-            if node.description:
-                sig_parts.append(node.description)
+        # Strategy 1: Direct endpoint references from doc parser
+        # These are high-confidence matches (explicit GET /users/ in the text)
+        for ref in doc_references:
+            # Normalize file paths for comparison
+            try:
+                ref_rel = str(Path(ref.file_path).relative_to(repo_path))
+            except ValueError:
+                ref_rel = ref.file_path
+            if ref_rel != file_path:
+                continue
+            for node in graph.user_facing_nodes():
+                if node.type != NodeType.VERB:
+                    continue
+                if (node.http_method and node.http_path
+                        and node.http_method in ref.mentioned_methods
+                        and node.http_path in ref.mentioned_paths):
+                    covered_ids.add(node.id)
 
-            sig = ' '.join(sig_parts)
+        # Strategy 2: Semantic similarity search (stricter threshold)
+        # Only count a match if the doc has enough substance to be
+        # genuine documentation, not just a passing mention.
+        SEMANTIC_THRESHOLD = 0.35
+        MIN_CONTENT_LENGTH = 200  # chars - filters out one-liner mentions
 
-            results = vector_store.search(sig, limit=1)
-            if results:
-                chunk, score = results[0]
-                # Check if this chunk is in current file/section
-                # Lowered threshold from 0.4 to 0.28 based on analysis
-                if chunk.file_path == file_path and score >= 0.28:
-                    # For section-based topics, also check section match
-                    if section_name:
-                        section_parts = (chunk.section_header or "").split(' > ')
-                        # Match H2 section (second level) for READMEs
-                        if len(section_parts) >= 2:
-                            chunk_h2_section = section_parts[1].strip()
-                        elif len(section_parts) == 1:
-                            chunk_h2_section = section_parts[0].strip()
+        if group_content_len >= MIN_CONTENT_LENGTH:
+            for node in graph.user_facing_nodes():
+                if node.id in covered_ids:
+                    continue  # Already matched by direct reference
+
+                sig_parts = []
+                if node.type == NodeType.VERB:
+                    if node.code_signature:
+                        sig_parts.append(node.code_signature)
+                    if node.http_path:
+                        path_segments = [s for s in node.http_path.split('/') if s and not s.startswith('{')]
+                        sig_parts.extend(path_segments)
+                    if node.name:
+                        sig_parts.append(node.name.replace('_', ' '))
+                else:
+                    sig_parts.append(node.name)
+
+                if node.description:
+                    sig_parts.append(node.description)
+
+                sig = ' '.join(sig_parts)
+
+                results = vector_store.search(sig, limit=1)
+                if results:
+                    chunk, score = results[0]
+                    if chunk.file_path == file_path and score >= SEMANTIC_THRESHOLD:
+                        if section_name:
+                            section_parts = (chunk.section_header or "").split(' > ')
+                            if len(section_parts) >= 2:
+                                chunk_h2_section = section_parts[1].strip()
+                            elif len(section_parts) == 1:
+                                chunk_h2_section = section_parts[0].strip()
+                            else:
+                                chunk_h2_section = ""
+                            if chunk_h2_section == section_name:
+                                covered_ids.add(node.id)
                         else:
-                            chunk_h2_section = ""
-                        if chunk_h2_section == section_name:
                             covered_ids.add(node.id)
-                    else:
-                        covered_ids.add(node.id)
 
         if covered_ids:  # Only create topic if it covers something
             topic = Topic(

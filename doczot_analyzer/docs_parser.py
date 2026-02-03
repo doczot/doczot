@@ -23,6 +23,7 @@ HTTP_METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}
 SKIP_FILES = {
     # Standard meta files
     "changelog.md", "changes.md", "history.md",
+    "release-notes.md", "release_notes.md", "releases.md",
     "license.md", "licence.md",
     "contributing.md", "contributors.md",
     "code_of_conduct.md", "codeofconduct.md",
