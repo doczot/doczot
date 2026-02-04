@@ -1,0 +1,1051 @@
+{
+  "manifest_type": "actual",
+  "graph_id": "full-stack-fastapi-template:2026-02-04T12:03:45.221165",
+  "product_name": "full-stack-fastapi-template",
+  "created_at": "2026-02-04 12:04:26.360970",
+  "updated_at": "2026-02-04 12:04:26.360990",
+  "topics": [
+    {
+      "id": "atm_topic_2",
+      "name": "Technology Stack and Features",
+      "topic_type": "reference",
+      "covers": [
+        "concept:dashboard - dark mode",
+        "concept:interactive api documentation",
+        "concept:dashboard - admin",
+        "concept:technology stack and features",
+        "concept:dashboard login",
+        "concept:dashboard - items"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:technology stack and features",
+          "strategy": "semantic",
+          "confidence": 0.767,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > Technology Stack and Features",
+          "doc_snippet": "- \u26a1 [**FastAPI**](https://fastapi.tiangolo.com) for the Python backend API.\n  - \ud83e\uddf0 [SQLModel](https://sqlmodel.tiangolo.com) for the Python SQL database interactions (ORM).\n  - \ud83d\udd0d [Pydantic](https://doc",
+          "match_detail": "similarity: 0.767"
+        },
+        {
+          "node_id": "concept:dashboard login",
+          "strategy": "semantic",
+          "confidence": 0.916,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > Technology Stack and Features > Dashboard Login",
+          "doc_snippet": "[![API docs](img/login.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+          "match_detail": "similarity: 0.916"
+        },
+        {
+          "node_id": "concept:dashboard - admin",
+          "strategy": "semantic",
+          "confidence": 0.933,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > Technology Stack and Features > Dashboard - Admin",
+          "doc_snippet": "[![API docs](img/dashboard.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+          "match_detail": "similarity: 0.933"
+        },
+        {
+          "node_id": "concept:dashboard - items",
+          "strategy": "semantic",
+          "confidence": 0.928,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > Technology Stack and Features > Dashboard - Items",
+          "doc_snippet": "[![API docs](img/dashboard-items.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+          "match_detail": "similarity: 0.928"
+        },
+        {
+          "node_id": "concept:dashboard - dark mode",
+          "strategy": "semantic",
+          "confidence": 0.934,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > Technology Stack and Features > Dashboard - Dark Mode",
+          "doc_snippet": "[![API docs](img/dashboard-dark.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+          "match_detail": "similarity: 0.934"
+        },
+        {
+          "node_id": "concept:interactive api documentation",
+          "strategy": "semantic",
+          "confidence": 0.928,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > Technology Stack and Features > Interactive API Documentation",
+          "doc_snippet": "[![API docs](img/docs.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+          "match_detail": "similarity: 0.928"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_3",
+      "name": "How To Use It",
+      "topic_type": "reference",
+      "covers": [
+        "concept:how to use it",
+        "concept:generate secret keys",
+        "concept:update from the original template",
+        "concept:how to use a private repository"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:how to use it",
+          "strategy": "semantic",
+          "confidence": 0.621,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It",
+          "doc_snippet": "You can **just fork or clone** this repository and use it as is.\n\n\u2728 It just works. \u2728",
+          "match_detail": "similarity: 0.621"
+        },
+        {
+          "node_id": "concept:how to use a private repository",
+          "strategy": "semantic",
+          "confidence": 0.49,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It > How to Use a Private Repository",
+          "doc_snippet": "If you want to have a private repository, GitHub won't allow you to simply fork it as it doesn't allow changing the visibility of forks.\n\nBut you can do the following:\n\n- Create a new GitHub repo, for",
+          "match_detail": "similarity: 0.490"
+        },
+        {
+          "node_id": "concept:update from the original template",
+          "strategy": "semantic",
+          "confidence": 0.567,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It > Update From the Original Template",
+          "doc_snippet": "After cloning the repository, and after doing changes, you might want to get the latest changes from this original template.\n\n- Make sure you added the original repository as a remote, you can check i",
+          "match_detail": "similarity: 0.567"
+        },
+        {
+          "node_id": "concept:generate secret keys",
+          "strategy": "semantic",
+          "confidence": 0.572,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It > Generate Secret Keys",
+          "doc_snippet": "Some environment variables in the `.env` file have a default value of `changethis`.\n\nYou have to change them with a secret key, to generate secret keys you can run the following command:\n\n```bash\npyth",
+          "match_detail": "similarity: 0.572"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_4",
+      "name": "How To Use It - Alternative With Copier",
+      "topic_type": "reference",
+      "covers": [
+        "concept:install copier",
+        "concept:input variables",
+        "concept:note",
+        "concept:how to use it - alternative with copier",
+        "concept:generate a project with copier"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:how to use it - alternative with copier",
+          "strategy": "semantic",
+          "confidence": 0.668,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It - Alternative With Copier",
+          "doc_snippet": "This repository also supports generating a new project using [Copier](https://copier.readthedocs.io).\n\nIt will copy all the files, ask you configuration questions, and update the `.env` files with you",
+          "match_detail": "similarity: 0.668"
+        },
+        {
+          "node_id": "concept:install copier",
+          "strategy": "semantic",
+          "confidence": 0.652,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It - Alternative With Copier > Install Copier",
+          "doc_snippet": "You can install Copier with:\n\n```bash\npip install copier\n```\n\nOr better, if you have [`pipx`](https://pipx.pypa.io/), you can run it with:\n\n```bash\npipx install copier\n```\n\n**Note**: If you have `pipx",
+          "match_detail": "similarity: 0.652"
+        },
+        {
+          "node_id": "concept:generate a project with copier",
+          "strategy": "semantic",
+          "confidence": 0.598,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It - Alternative With Copier > Generate a Project With Copier",
+          "doc_snippet": "Decide a name for your new project's directory, you will use it below. For example, `my-awesome-project`.\n\nGo to the directory that will be the parent of your project, and run the command with your pr",
+          "match_detail": "similarity: 0.598"
+        },
+        {
+          "node_id": "concept:input variables",
+          "strategy": "semantic",
+          "confidence": 0.538,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It - Alternative With Copier",
+          "doc_snippet": "This repository also supports generating a new project using [Copier](https://copier.readthedocs.io).\n\nIt will copy all the files, ask you configuration questions, and update the `.env` files with you",
+          "match_detail": "similarity: 0.538"
+        },
+        {
+          "node_id": "concept:note",
+          "strategy": "semantic",
+          "confidence": 0.797,
+          "doc_file": "README.md",
+          "doc_section": "Full Stack FastAPI Template > How To Use It - Alternative With Copier > Install Copier",
+          "doc_snippet": "You can install Copier with:\n\n```bash\npip install copier\n```\n\nOr better, if you have [`pipx`](https://pipx.pypa.io/), you can run it with:\n\n```bash\npipx install copier\n```\n\n**Note**: If you have `pipx",
+          "match_detail": "similarity: 0.797"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_11",
+      "name": "Deployment",
+      "topic_type": "reference",
+      "covers": [
+        "concept:traefik environment variables",
+        "concept:required environment variables",
+        "concept:set secrets",
+        "concept:main traefik dashboard",
+        "concept:traefik public network",
+        "concept:github actions environment variables",
+        "concept:start the traefik docker compose",
+        "concept:continuous deployment (cd)",
+        "concept:urls",
+        "concept:production",
+        "concept:public traefik",
+        "concept:deploy with docker compose",
+        "concept:install github actions runner",
+        "concept:staging",
+        "concept:github action deployment workflows",
+        "concept:deploy the fastapi project",
+        "concept:traefik docker compose"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:public traefik",
+          "strategy": "semantic",
+          "confidence": 0.596,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Public Traefik > Traefik Public Network",
+          "doc_snippet": "This Traefik will expect a Docker \"public network\" named `traefik-public` to communicate with your stack(s).\n\nThis way, there will be a single public Traefik proxy that handles the communication (HTTP",
+          "match_detail": "similarity: 0.596"
+        },
+        {
+          "node_id": "concept:traefik docker compose",
+          "strategy": "semantic",
+          "confidence": 0.814,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Public Traefik > Start the Traefik Docker Compose",
+          "doc_snippet": "Go to the directory where you copied the Traefik Docker Compose file in your remote server:\n\n```bash\ncd /root/code/traefik-public/\n```\n\nNow with the environment variables set and the `compose.traefik.",
+          "match_detail": "similarity: 0.814"
+        },
+        {
+          "node_id": "concept:traefik public network",
+          "strategy": "semantic",
+          "confidence": 0.745,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Public Traefik > Traefik Public Network",
+          "doc_snippet": "This Traefik will expect a Docker \"public network\" named `traefik-public` to communicate with your stack(s).\n\nThis way, there will be a single public Traefik proxy that handles the communication (HTTP",
+          "match_detail": "similarity: 0.745"
+        },
+        {
+          "node_id": "concept:traefik environment variables",
+          "strategy": "semantic",
+          "confidence": 0.833,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Public Traefik > Start the Traefik Docker Compose",
+          "doc_snippet": "Go to the directory where you copied the Traefik Docker Compose file in your remote server:\n\n```bash\ncd /root/code/traefik-public/\n```\n\nNow with the environment variables set and the `compose.traefik.",
+          "match_detail": "similarity: 0.833"
+        },
+        {
+          "node_id": "concept:start the traefik docker compose",
+          "strategy": "semantic",
+          "confidence": 0.859,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Public Traefik > Start the Traefik Docker Compose",
+          "doc_snippet": "Go to the directory where you copied the Traefik Docker Compose file in your remote server:\n\n```bash\ncd /root/code/traefik-public/\n```\n\nNow with the environment variables set and the `compose.traefik.",
+          "match_detail": "similarity: 0.859"
+        },
+        {
+          "node_id": "concept:deploy the fastapi project",
+          "strategy": "semantic",
+          "confidence": 0.963,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Deploy the FastAPI Project",
+          "doc_snippet": "Now that you have Traefik in place you can deploy your FastAPI project with Docker Compose.\n\n**Note**: You might want to jump ahead to the section about Continuous Deployment with GitHub Actions.",
+          "match_detail": "similarity: 0.963"
+        },
+        {
+          "node_id": "concept:required environment variables",
+          "strategy": "semantic",
+          "confidence": 0.53,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Environment Variables > Required Environment Variables",
+          "doc_snippet": "Set the `ENVIRONMENT`, by default `local` (for development), but when deploying to a server you would put something like `staging` or `production`:\n\n```bash\nexport ENVIRONMENT=production\n```\n\nSet the ",
+          "match_detail": "similarity: 0.530"
+        },
+        {
+          "node_id": "concept:github actions environment variables",
+          "strategy": "semantic",
+          "confidence": 0.642,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Continuous Deployment (CD) > Set Secrets",
+          "doc_snippet": "On your repository, configure secrets for the environment variables you need, the same ones described above, including `SECRET_KEY`, etc. Follow the [official GitHub guide for setting repository secre",
+          "match_detail": "similarity: 0.642"
+        },
+        {
+          "node_id": "concept:deploy with docker compose",
+          "strategy": "semantic",
+          "confidence": 0.672,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > GitHub Actions Environment Variables > Deploy with Docker Compose",
+          "doc_snippet": "With the environment variables in place, you can deploy with Docker Compose:\n\n```bash\ncd /root/code/app/\ndocker compose -f compose.yml build\ndocker compose -f compose.yml up -d\n```\n\nFor production you",
+          "match_detail": "similarity: 0.672"
+        },
+        {
+          "node_id": "concept:continuous deployment (cd)",
+          "strategy": "semantic",
+          "confidence": 0.733,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Continuous Deployment (CD)",
+          "doc_snippet": "You can use GitHub Actions to deploy your project automatically. \ud83d\ude0e\n\nYou can have multiple environment deployments.\n\nThere are already two environments configured, `staging` and `production`. \ud83d\ude80",
+          "match_detail": "similarity: 0.733"
+        },
+        {
+          "node_id": "concept:install github actions runner",
+          "strategy": "semantic",
+          "confidence": 0.639,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Continuous Deployment (CD) > Install GitHub Actions Runner",
+          "doc_snippet": "* On your remote server, create a user for your GitHub Actions:\n\n```bash\nsudo adduser github\n```\n\n* Add Docker permissions to the `github` user:\n\n```bash\nsudo usermod -aG docker github\n```\n\n* Temporar",
+          "match_detail": "similarity: 0.639"
+        },
+        {
+          "node_id": "concept:set secrets",
+          "strategy": "semantic",
+          "confidence": 0.712,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > Continuous Deployment (CD) > Set Secrets",
+          "doc_snippet": "On your repository, configure secrets for the environment variables you need, the same ones described above, including `SECRET_KEY`, etc. Follow the [official GitHub guide for setting repository secre",
+          "match_detail": "similarity: 0.712"
+        },
+        {
+          "node_id": "concept:github action deployment workflows",
+          "strategy": "semantic",
+          "confidence": 0.761,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > GitHub Action Deployment Workflows",
+          "doc_snippet": "There are GitHub Action workflows in the `.github/workflows` directory already configured for deploying to the environments (GitHub Actions runners with the labels):\n\n* `staging`: after pushing (or me",
+          "match_detail": "similarity: 0.761"
+        },
+        {
+          "node_id": "concept:urls",
+          "strategy": "semantic",
+          "confidence": 0.884,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > URLs",
+          "doc_snippet": "Replace `fastapi-project.example.com` with your domain.",
+          "match_detail": "similarity: 0.884"
+        },
+        {
+          "node_id": "concept:main traefik dashboard",
+          "strategy": "semantic",
+          "confidence": 0.925,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > URLs > Main Traefik Dashboard",
+          "doc_snippet": "Traefik UI: `https://traefik.fastapi-project.example.com`",
+          "match_detail": "similarity: 0.925"
+        },
+        {
+          "node_id": "concept:production",
+          "strategy": "semantic",
+          "confidence": 0.802,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > URLs > Production",
+          "doc_snippet": "Frontend: `https://dashboard.fastapi-project.example.com`\n\nBackend API docs: `https://api.fastapi-project.example.com/docs`\n\nBackend API base URL: `https://api.fastapi-project.example.com`\n\nAdminer: `",
+          "match_detail": "similarity: 0.802"
+        },
+        {
+          "node_id": "concept:staging",
+          "strategy": "semantic",
+          "confidence": 0.81,
+          "doc_file": "deployment.md",
+          "doc_section": "FastAPI Project - Deployment > URLs > Staging",
+          "doc_snippet": "Frontend: `https://dashboard.staging.fastapi-project.example.com`\n\nBackend API docs: `https://api.staging.fastapi-project.example.com/docs`\n\nBackend API base URL: `https://api.staging.fastapi-project.",
+          "match_detail": "similarity: 0.810"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "deployment.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_12",
+      "name": "Development",
+      "topic_type": "reference",
+      "covers": [
+        "concept:the .env file",
+        "concept:development urls",
+        "concept:docker compose files and env vars",
+        "concept:manually",
+        "concept:local development",
+        "concept:configure",
+        "concept:pre-commits and code linting",
+        "concept:development urls with `localhost.tiangolo.com` configured",
+        "verb:POST:/utils/test-email/",
+        "concept:docker compose override",
+        "concept:docker compose in `localhost.tiangolo.com`",
+        "concept:mailcatcher"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "verb:POST:/utils/test-email/",
+          "strategy": "semantic",
+          "confidence": 0.392,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > Mailcatcher",
+          "doc_snippet": "Mailcatcher is a simple SMTP server that catches all emails sent by the backend during local development. Instead of sending real emails, they are captured and displayed in a web interface.\n\nThis is u",
+          "match_detail": "similarity: 0.392"
+        },
+        {
+          "node_id": "concept:configure",
+          "strategy": "semantic",
+          "confidence": 0.457,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > The .env file",
+          "doc_snippet": "The `.env` file is the one that contains all your configurations, generated keys and passwords, etc.\n\nDepending on your workflow, you could want to exclude it from Git, for example if your project is ",
+          "match_detail": "similarity: 0.457"
+        },
+        {
+          "node_id": "concept:mailcatcher",
+          "strategy": "semantic",
+          "confidence": 0.758,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > Mailcatcher",
+          "doc_snippet": "Mailcatcher is a simple SMTP server that catches all emails sent by the backend during local development. Instead of sending real emails, they are captured and displayed in a web interface.\n\nThis is u",
+          "match_detail": "similarity: 0.758"
+        },
+        {
+          "node_id": "concept:local development",
+          "strategy": "semantic",
+          "confidence": 0.708,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > Docker Compose in `localhost.tiangolo.com`",
+          "doc_snippet": "When you start the Docker Compose stack, it uses `localhost` by default, with different ports for each service (backend, frontend, adminer, etc).\n\nWhen you deploy it to production (or staging), it wil",
+          "match_detail": "similarity: 0.708"
+        },
+        {
+          "node_id": "concept:docker compose in `localhost.tiangolo.com`",
+          "strategy": "semantic",
+          "confidence": 0.767,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > Docker Compose in `localhost.tiangolo.com`",
+          "doc_snippet": "When you start the Docker Compose stack, it uses `localhost` by default, with different ports for each service (backend, frontend, adminer, etc).\n\nWhen you deploy it to production (or staging), it wil",
+          "match_detail": "similarity: 0.767"
+        },
+        {
+          "node_id": "concept:docker compose files and env vars",
+          "strategy": "semantic",
+          "confidence": 0.791,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > Docker Compose files and env vars",
+          "doc_snippet": "There is a main `compose.yml` file with all the configurations that apply to the whole stack, it is used automatically by `docker compose`.\n\nAnd there's also a `compose.override.yml` with overrides fo",
+          "match_detail": "similarity: 0.791"
+        },
+        {
+          "node_id": "concept:the .env file",
+          "strategy": "semantic",
+          "confidence": 0.593,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > The .env file",
+          "doc_snippet": "The `.env` file is the one that contains all your configurations, generated keys and passwords, etc.\n\nDepending on your workflow, you could want to exclude it from Git, for example if your project is ",
+          "match_detail": "similarity: 0.593"
+        },
+        {
+          "node_id": "concept:pre-commits and code linting",
+          "strategy": "semantic",
+          "confidence": 0.729,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > Pre-commits and code linting",
+          "doc_snippet": "we are using a tool called [prek](https://prek.j178.dev/) (modern alternative to [Pre-commit](https://pre-commit.com/)) for code linting and formatting.\n\nWhen you install it, it runs right before maki",
+          "match_detail": "similarity: 0.729"
+        },
+        {
+          "node_id": "concept:development urls",
+          "strategy": "semantic",
+          "confidence": 0.462,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > URLs",
+          "doc_snippet": "The production or staging URLs would use these same paths, but with your own domain.",
+          "match_detail": "similarity: 0.462"
+        },
+        {
+          "node_id": "concept:development urls with `localhost.tiangolo.com` configured",
+          "strategy": "semantic",
+          "confidence": 0.656,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > URLs > Development URLs with `localhost.tiangolo.com` Configured",
+          "doc_snippet": "Development URLs, for local development.\n\nFrontend: <http://dashboard.localhost.tiangolo.com>\n\nBackend: <http://api.localhost.tiangolo.com>\n\nAutomatic Interactive Docs (Swagger UI): <http://api.localh",
+          "match_detail": "similarity: 0.656"
+        },
+        {
+          "node_id": "concept:manually",
+          "strategy": "semantic",
+          "confidence": 0.554,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > Docker Compose files and env vars",
+          "doc_snippet": "There is a main `compose.yml` file with all the configurations that apply to the whole stack, it is used automatically by `docker compose`.\n\nAnd there's also a `compose.override.yml` with overrides fo",
+          "match_detail": "similarity: 0.554"
+        },
+        {
+          "node_id": "concept:docker compose override",
+          "strategy": "semantic",
+          "confidence": 0.684,
+          "doc_file": "development.md",
+          "doc_section": "FastAPI Project - Development > Docker Compose files and env vars",
+          "doc_snippet": "There is a main `compose.yml` file with all the configurations that apply to the whole stack, it is used automatically by `docker compose`.\n\nAnd there's also a `compose.override.yml` with overrides fo",
+          "match_detail": "similarity: 0.684"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "development.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_15",
+      "name": "Quick Start",
+      "topic_type": "reference",
+      "covers": [
+        "concept:removing the frontend"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:removing the frontend",
+          "strategy": "semantic",
+          "confidence": 0.764,
+          "doc_file": "frontend/README.md",
+          "doc_section": "FastAPI Project - Frontend > Quick Start > Removing the frontend",
+          "doc_snippet": "If you are developing an API-only app and want to remove the frontend, you can do it easily:\n\n* Remove the `./frontend` directory.\n\n* In the `compose.yml` file, remove the whole service / section `fro",
+          "match_detail": "similarity: 0.764"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "frontend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_16",
+      "name": "Generate Client",
+      "topic_type": "reference",
+      "covers": [
+        "concept:generate client"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:generate client",
+          "strategy": "semantic",
+          "confidence": 0.411,
+          "doc_file": "frontend/README.md",
+          "doc_section": "FastAPI Project - Frontend > Generate Client > Automatically",
+          "doc_snippet": "* Activate the backend virtual environment.\n* From the top level project directory, run the script:\n\n```bash\nbash ./scripts/generate-client.sh\n```\n\n* Commit the changes.",
+          "match_detail": "similarity: 0.411"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "frontend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_17",
+      "name": "Using a Remote API",
+      "topic_type": "reference",
+      "covers": [
+        "concept:using a remote api"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:using a remote api",
+          "strategy": "semantic",
+          "confidence": 0.699,
+          "doc_file": "frontend/README.md",
+          "doc_section": "FastAPI Project - Frontend > Using a Remote API",
+          "doc_snippet": "If you want to use a remote API, you can set the environment variable `VITE_API_URL` to the URL of the remote API. For example, you can set it in the `frontend/.env` file:\n\n```env\nVITE_API_URL=https:/",
+          "match_detail": "similarity: 0.699"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "frontend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_18",
+      "name": "Code Structure",
+      "topic_type": "reference",
+      "covers": [
+        "concept:code structure"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:code structure",
+          "strategy": "semantic",
+          "confidence": 0.566,
+          "doc_file": "frontend/README.md",
+          "doc_section": "FastAPI Project - Frontend > Code Structure",
+          "doc_snippet": "The frontend code is structured as follows:\n\n* `frontend/src` - The main frontend code.\n* `frontend/src/assets` - Static assets.\n* `frontend/src/client` - The generated OpenAPI client.\n* `frontend/src",
+          "match_detail": "similarity: 0.566"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "frontend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_19",
+      "name": "End-to-End Testing with Playwright",
+      "topic_type": "reference",
+      "covers": [
+        "concept:end-to-end testing with playwright"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:end-to-end testing with playwright",
+          "strategy": "semantic",
+          "confidence": 0.836,
+          "doc_file": "frontend/README.md",
+          "doc_section": "FastAPI Project - Frontend > End-to-End Testing with Playwright",
+          "doc_snippet": "The frontend includes initial end-to-end tests using Playwright. To run the tests, you need to have the Docker Compose stack running. Start the stack with the following command:\n\n```bash\ndocker compos",
+          "match_detail": "similarity: 0.836"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "frontend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_23",
+      "name": "VS Code",
+      "topic_type": "reference",
+      "covers": [
+        "concept:vs code"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:vs code",
+          "strategy": "semantic",
+          "confidence": 0.702,
+          "doc_file": "backend/README.md",
+          "doc_section": "FastAPI Project - Backend > VS Code",
+          "doc_snippet": "There are already configurations in place to run the backend through the VS Code debugger, so that you can use breakpoints, pause and explore variables, etc.\n\nThe setup is also already configured so y",
+          "match_detail": "similarity: 0.702"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "backend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_25",
+      "name": "Backend tests",
+      "topic_type": "reference",
+      "covers": [
+        "concept:test running stack",
+        "concept:backend tests",
+        "concept:test coverage"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:backend tests",
+          "strategy": "semantic",
+          "confidence": 0.628,
+          "doc_file": "backend/README.md",
+          "doc_section": "FastAPI Project - Backend > Backend tests",
+          "doc_snippet": "To test the backend run:\n\n```console\n$ bash ./scripts/test.sh\n```\n\nThe tests run with Pytest, modify and add tests to `./backend/tests/`.\n\nIf you use GitHub Actions the tests will run automatically.",
+          "match_detail": "similarity: 0.628"
+        },
+        {
+          "node_id": "concept:test running stack",
+          "strategy": "semantic",
+          "confidence": 0.523,
+          "doc_file": "backend/README.md",
+          "doc_section": "FastAPI Project - Backend > Backend tests > Test running stack",
+          "doc_snippet": "If your stack is already up and you just want to run the tests, you can use:\n\n```bash\ndocker compose exec backend bash scripts/tests-start.sh\n```\n\nThat `/app/scripts/tests-start.sh` script just calls ",
+          "match_detail": "similarity: 0.523"
+        },
+        {
+          "node_id": "concept:test coverage",
+          "strategy": "semantic",
+          "confidence": 0.801,
+          "doc_file": "backend/README.md",
+          "doc_section": "FastAPI Project - Backend > Backend tests > Test Coverage",
+          "doc_snippet": "When the tests are run, a file `htmlcov/index.html` is generated, you can open it in your browser to see the coverage of the tests.",
+          "match_detail": "similarity: 0.801"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "backend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_26",
+      "name": "Migrations",
+      "topic_type": "reference",
+      "covers": [
+        "concept:migrations"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:migrations",
+          "strategy": "semantic",
+          "confidence": 0.596,
+          "doc_file": "backend/README.md",
+          "doc_section": "FastAPI Project - Backend > Migrations",
+          "doc_snippet": "As during local development your app directory is mounted as a volume inside the container, you can also run the migrations with `alembic` commands inside the container and the migration code will be ",
+          "match_detail": "similarity: 0.596"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "backend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "atm_topic_27",
+      "name": "Email Templates",
+      "topic_type": "reference",
+      "covers": [
+        "concept:email templates"
+      ],
+      "match_evidence": [
+        {
+          "node_id": "concept:email templates",
+          "strategy": "semantic",
+          "confidence": 0.659,
+          "doc_file": "backend/README.md",
+          "doc_section": "FastAPI Project - Backend > Email Templates",
+          "doc_snippet": "The email templates are in `./backend/app/email-templates/`. Here, there are two directories: `build` and `src`. The `src` directory contains the source files that are used to build the final email te",
+          "match_detail": "similarity: 0.659"
+        }
+      ],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": "backend/README.md",
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    }
+  ],
+  "quality": {
+    "atm_topic_2": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": false,
+      "has_examples": false,
+      "has_auth_requirements": "yes",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.2,
+      "constraint_score": 0.3333333333333333,
+      "agent_readiness_score": 0.38
+    },
+    "atm_topic_3": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "yes",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.4,
+      "constraint_score": 0.3333333333333333,
+      "agent_readiness_score": 0.46
+    },
+    "atm_topic_4": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.4,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.36000000000000004
+    },
+    "atm_topic_11": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "yes",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.4,
+      "constraint_score": 0.3333333333333333,
+      "agent_readiness_score": 0.46
+    },
+    "atm_topic_12": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": true,
+      "terminology_consistent": true,
+      "coverage_score": 0.4,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.4600000000000001
+    },
+    "atm_topic_15": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": false,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": true,
+      "terminology_consistent": true,
+      "coverage_score": 0.4,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.4600000000000001
+    },
+    "atm_topic_16": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": false,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": true,
+      "terminology_consistent": true,
+      "coverage_score": 0.4,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.4600000000000001
+    },
+    "atm_topic_17": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.4,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.36000000000000004
+    },
+    "atm_topic_18": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": false,
+      "has_examples": false,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": true,
+      "terminology_consistent": true,
+      "coverage_score": 0.2,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.38
+    },
+    "atm_topic_19": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": false,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.4,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.36000000000000004
+    },
+    "atm_topic_23": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": false,
+      "has_examples": false,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.2,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.28
+    },
+    "atm_topic_25": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "partial",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.5,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.4
+    },
+    "atm_topic_26": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "partial",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": true,
+      "has_examples": true,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.5,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.4
+    },
+    "atm_topic_27": {
+      "has_parameters": "no",
+      "has_returns": "no",
+      "has_errors": "no",
+      "has_warnings": false,
+      "has_description": true,
+      "has_use_cases": false,
+      "has_examples": false,
+      "has_auth_requirements": "no",
+      "has_rate_limits": "no",
+      "has_prerequisites": "no",
+      "has_machine_readable_spec": false,
+      "terminology_consistent": true,
+      "coverage_score": 0.2,
+      "constraint_score": 0.0,
+      "agent_readiness_score": 0.28
+    }
+  }
+}

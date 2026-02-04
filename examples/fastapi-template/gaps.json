@@ -1,0 +1,1156 @@
+{
+  "graph_id": "full-stack-fastapi-template",
+  "matrix_id": "full-stack-fastapi-template:2026-02-04T12:03:45.221165",
+  "inventory_id": "full-stack-fastapi-template:2026-02-04T12:03:45.221165",
+  "generated_at": "2026-02-04 12:04:26.361782",
+  "product_name": "full-stack-fastapi-template",
+  "drift_items": [
+    {
+      "matrix_topic_id": "topic_4",
+      "matrix_topic_name": "List users",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:GET:/users/"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: List users",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_5",
+      "matrix_topic_name": "Create users",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/users/"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create users",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_6",
+      "matrix_topic_name": "Update me",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:PATCH:/users/me"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Update me",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_7",
+      "matrix_topic_name": "Update password",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:PATCH:/users/me/password"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Update password",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_8",
+      "matrix_topic_name": "List me",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:GET:/users/me"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: List me",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_9",
+      "matrix_topic_name": "Delete me",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:DELETE:/users/me"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Delete me",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_10",
+      "matrix_topic_name": "Create signup",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/users/signup"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create signup",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_11",
+      "matrix_topic_name": "Get users",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:GET:/users/{user_id}"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Get users",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_12",
+      "matrix_topic_name": "Update users",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:PATCH:/users/{user_id}"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Update users",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_13",
+      "matrix_topic_name": "Delete users",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:DELETE:/users/{user_id}"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Delete users",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_14",
+      "matrix_topic_name": "Create access-token",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/login/access-token"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create access-token",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_15",
+      "matrix_topic_name": "Create test-token",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/login/test-token"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create test-token",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_16",
+      "matrix_topic_name": "Create password-recovery",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/password-recovery/{email}"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create password-recovery",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_17",
+      "matrix_topic_name": "Create reset-password",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/reset-password/"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create reset-password",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_18",
+      "matrix_topic_name": "Create password-recovery-html-content",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/password-recovery-html-content/{email}"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create password-recovery-html-content",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_19",
+      "matrix_topic_name": "Create users",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/private/users/"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create users",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_21",
+      "matrix_topic_name": "Create test-email",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_22",
+      "matrix_topic_name": "List health-check",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:GET:/utils/health-check/"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: List health-check",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_24",
+      "matrix_topic_name": "List items",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:GET:/items/"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: List items",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_25",
+      "matrix_topic_name": "Get items",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:GET:/items/{id}"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Get items",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_26",
+      "matrix_topic_name": "Create items",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/items/"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Create items",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_27",
+      "matrix_topic_name": "Update items",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:PUT:/items/{id}"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Update items",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_28",
+      "matrix_topic_name": "Delete items",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:DELETE:/items/{id}"
+      ],
+      "quality_issues": [],
+      "action": "Create new reference topic: Delete items",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_31",
+      "matrix_topic_name": "User",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "noun:user"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: User",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_32",
+      "matrix_topic_name": "Util",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "noun:util"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: Util",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_33",
+      "matrix_topic_name": "Item",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "noun:item"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: Item",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_34",
+      "matrix_topic_name": "Technology Stack And Features",
+      "inventory_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_35",
+      "matrix_topic_name": "Dashboard Login",
+      "inventory_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_36",
+      "matrix_topic_name": "Dashboard - Admin",
+      "inventory_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_37",
+      "matrix_topic_name": "Dashboard - Items",
+      "inventory_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_38",
+      "matrix_topic_name": "Dashboard - Dark Mode",
+      "inventory_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_39",
+      "matrix_topic_name": "Interactive Api Documentation",
+      "inventory_topic_id": "atm_topic_2",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_40",
+      "matrix_topic_name": "How To Use It",
+      "inventory_topic_id": "atm_topic_3",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_41",
+      "matrix_topic_name": "How To Use A Private Repository",
+      "inventory_topic_id": "atm_topic_3",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_42",
+      "matrix_topic_name": "Update From The Original Template",
+      "inventory_topic_id": "atm_topic_3",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_43",
+      "matrix_topic_name": "Configure",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_44",
+      "matrix_topic_name": "Generate Secret Keys",
+      "inventory_topic_id": "atm_topic_3",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_45",
+      "matrix_topic_name": "How To Use It - Alternative With Copier",
+      "inventory_topic_id": "atm_topic_4",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_46",
+      "matrix_topic_name": "Install Copier",
+      "inventory_topic_id": "atm_topic_4",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_47",
+      "matrix_topic_name": "Generate A Project With Copier",
+      "inventory_topic_id": "atm_topic_4",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_48",
+      "matrix_topic_name": "Input Variables",
+      "inventory_topic_id": "atm_topic_4",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_49",
+      "matrix_topic_name": "Backend Development",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "concept:backend development"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: Backend Development",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_50",
+      "matrix_topic_name": "Frontend Development",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "concept:frontend development"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: Frontend Development",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_51",
+      "matrix_topic_name": "Release Notes",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "concept:release notes"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: Release Notes",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_52",
+      "matrix_topic_name": "Note",
+      "inventory_topic_id": "atm_topic_4",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_53",
+      "matrix_topic_name": "Preparation",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "concept:preparation"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: Preparation",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_54",
+      "matrix_topic_name": "Public Traefik",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_55",
+      "matrix_topic_name": "Traefik Docker Compose",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_56",
+      "matrix_topic_name": "Traefik Public Network",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_57",
+      "matrix_topic_name": "Traefik Environment Variables",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_58",
+      "matrix_topic_name": "Start The Traefik Docker Compose",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_59",
+      "matrix_topic_name": "Deploy The Fastapi Project",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_60",
+      "matrix_topic_name": "Required Environment Variables",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_61",
+      "matrix_topic_name": "Github Actions Environment Variables",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_62",
+      "matrix_topic_name": "Deploy With Docker Compose",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_63",
+      "matrix_topic_name": "Continuous Deployment (Cd)",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_64",
+      "matrix_topic_name": "Install Github Actions Runner",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_65",
+      "matrix_topic_name": "Set Secrets",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_66",
+      "matrix_topic_name": "Github Action Deployment Workflows",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_67",
+      "matrix_topic_name": "Urls",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_68",
+      "matrix_topic_name": "Main Traefik Dashboard",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_69",
+      "matrix_topic_name": "Production",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_70",
+      "matrix_topic_name": "Staging",
+      "inventory_topic_id": "atm_topic_11",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_71",
+      "matrix_topic_name": "Docker Compose",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "concept:docker compose"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: Docker Compose",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_72",
+      "matrix_topic_name": "Mailcatcher",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_73",
+      "matrix_topic_name": "Local Development",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_74",
+      "matrix_topic_name": "Docker Compose In `Localhost.Tiangolo.Com`",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_75",
+      "matrix_topic_name": "Docker Compose Files And Env Vars",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_76",
+      "matrix_topic_name": "The .Env File",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_77",
+      "matrix_topic_name": "Pre-Commits And Code Linting",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_78",
+      "matrix_topic_name": "Development Urls",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_79",
+      "matrix_topic_name": "Development Urls With `Localhost.Tiangolo.Com` Configured",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_80",
+      "matrix_topic_name": "Removing The Frontend",
+      "inventory_topic_id": "atm_topic_15",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_81",
+      "matrix_topic_name": "Generate Client",
+      "inventory_topic_id": "atm_topic_16",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_82",
+      "matrix_topic_name": "Manually",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_83",
+      "matrix_topic_name": "Using A Remote Api",
+      "inventory_topic_id": "atm_topic_17",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_84",
+      "matrix_topic_name": "Code Structure",
+      "inventory_topic_id": "atm_topic_18",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_85",
+      "matrix_topic_name": "End-To-End Testing With Playwright",
+      "inventory_topic_id": "atm_topic_19",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_86",
+      "matrix_topic_name": "General Workflow",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "concept:general workflow"
+      ],
+      "quality_issues": [],
+      "action": "Create new concept topic: General Workflow",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_87",
+      "matrix_topic_name": "Vs Code",
+      "inventory_topic_id": "atm_topic_23",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_88",
+      "matrix_topic_name": "Docker Compose Override",
+      "inventory_topic_id": "atm_topic_12",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "auth-protected endpoint but no auth docs"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_89",
+      "matrix_topic_name": "Backend Tests",
+      "inventory_topic_id": "atm_topic_25",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_90",
+      "matrix_topic_name": "Test Running Stack",
+      "inventory_topic_id": "atm_topic_25",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_91",
+      "matrix_topic_name": "Test Coverage",
+      "inventory_topic_id": "atm_topic_25",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_92",
+      "matrix_topic_name": "Migrations",
+      "inventory_topic_id": "atm_topic_26",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_93",
+      "matrix_topic_name": "Email Templates",
+      "inventory_topic_id": "atm_topic_27",
+      "status": "complete",
+      "missing_node_ids": [],
+      "quality_issues": [
+        "missing error docs",
+        "missing examples",
+        "missing use cases"
+      ],
+      "action": "",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_95",
+      "matrix_topic_name": "How to authenticate",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "noun:user",
+        "verb:POST:/users/signup",
+        "verb:POST:/login/access-token",
+        "verb:POST:/login/test-token"
+      ],
+      "quality_issues": [],
+      "action": "Create new task topic: How to authenticate",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_96",
+      "matrix_topic_name": "How to manage your account",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:PATCH:/users/me",
+        "verb:PATCH:/users/me/password",
+        "verb:GET:/users/me",
+        "verb:DELETE:/users/me"
+      ],
+      "quality_issues": [],
+      "action": "Create new task topic: How to manage your account",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_97",
+      "matrix_topic_name": "How to recover your password",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "verb:POST:/password-recovery/{email}",
+        "verb:POST:/reset-password/",
+        "verb:POST:/password-recovery-html-content/{email}"
+      ],
+      "quality_issues": [],
+      "action": "Create new task topic: How to recover your password",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_98",
+      "matrix_topic_name": "How to work with Users",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "noun:user",
+        "verb:GET:/users/",
+        "verb:POST:/users/",
+        "verb:PATCH:/users/me",
+        "verb:PATCH:/users/me/password",
+        "verb:GET:/users/me",
+        "verb:DELETE:/users/me",
+        "verb:POST:/users/signup",
+        "verb:GET:/users/{user_id}",
+        "verb:PATCH:/users/{user_id}",
+        "verb:DELETE:/users/{user_id}",
+        "verb:POST:/login/access-token",
+        "verb:POST:/login/test-token",
+        "verb:POST:/password-recovery/{email}",
+        "verb:POST:/reset-password/",
+        "verb:POST:/password-recovery-html-content/{email}",
+        "verb:POST:/private/users/"
+      ],
+      "quality_issues": [],
+      "action": "Create new task topic: How to work with Users",
+      "priority": 0
+    },
+    {
+      "matrix_topic_id": "topic_99",
+      "matrix_topic_name": "How to work with Items",
+      "inventory_topic_id": null,
+      "status": "missing",
+      "missing_node_ids": [
+        "noun:item",
+        "verb:GET:/items/",
+        "verb:GET:/items/{id}",
+        "verb:POST:/items/",
+        "verb:PUT:/items/{id}",
+        "verb:DELETE:/items/{id}"
+      ],
+      "quality_issues": [],
+      "action": "Create new task topic: How to work with Items",
+      "priority": 0
+    }
+  ],
+  "extra_topics": []
+}

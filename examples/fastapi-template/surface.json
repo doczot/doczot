@@ -1,0 +1,1338 @@
+{
+  "product_name": "full-stack-fastapi-template",
+  "version": null,
+  "scanned_at": "2026-02-04 12:03:45.221165",
+  "source_paths": [
+    "/private/tmp/fastapi-template"
+  ],
+  "nodes": [
+    {
+      "id": "verb:GET:/users/",
+      "type": "verb",
+      "name": "get_users",
+      "description": "Retrieve users.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 37,
+      "code_signature": "GET /users/",
+      "http_method": "GET",
+      "http_path": "/users/"
+    },
+    {
+      "id": "noun:user",
+      "type": "noun",
+      "name": "user",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "verb:POST:/users/",
+      "type": "verb",
+      "name": "create_users",
+      "description": "Create new user.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 56,
+      "code_signature": "POST /users/",
+      "http_method": "POST",
+      "http_path": "/users/"
+    },
+    {
+      "id": "verb:PATCH:/users/me",
+      "type": "verb",
+      "name": "patch_me",
+      "description": "Update own user.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 81,
+      "code_signature": "PATCH /users/me",
+      "http_method": "PATCH",
+      "http_path": "/users/me"
+    },
+    {
+      "id": "verb:PATCH:/users/me/password",
+      "type": "verb",
+      "name": "patch_password",
+      "description": "Update own password.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 103,
+      "code_signature": "PATCH /users/me/password",
+      "http_method": "PATCH",
+      "http_path": "/users/me/password"
+    },
+    {
+      "id": "verb:GET:/users/me",
+      "type": "verb",
+      "name": "get_me",
+      "description": "Get current user.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 124,
+      "code_signature": "GET /users/me",
+      "http_method": "GET",
+      "http_path": "/users/me"
+    },
+    {
+      "id": "verb:DELETE:/users/me",
+      "type": "verb",
+      "name": "delete_me",
+      "description": "Delete own user.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 132,
+      "code_signature": "DELETE /users/me",
+      "http_method": "DELETE",
+      "http_path": "/users/me"
+    },
+    {
+      "id": "verb:POST:/users/signup",
+      "type": "verb",
+      "name": "create_signup",
+      "description": "Create new user without the need to be logged in.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 146,
+      "code_signature": "POST /users/signup",
+      "http_method": "POST",
+      "http_path": "/users/signup"
+    },
+    {
+      "id": "verb:GET:/users/{user_id}",
+      "type": "verb",
+      "name": "get_users",
+      "description": "Get a specific user by id.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 162,
+      "code_signature": "GET /users/{user_id}",
+      "http_method": "GET",
+      "http_path": "/users/{user_id}"
+    },
+    {
+      "id": "verb:PATCH:/users/{user_id}",
+      "type": "verb",
+      "name": "patch_users",
+      "description": "Update a user.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 186,
+      "code_signature": "PATCH /users/{user_id}",
+      "http_method": "PATCH",
+      "http_path": "/users/{user_id}"
+    },
+    {
+      "id": "verb:DELETE:/users/{user_id}",
+      "type": "verb",
+      "name": "delete_users",
+      "description": "Delete a user.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 214,
+      "code_signature": "DELETE /users/{user_id}",
+      "http_method": "DELETE",
+      "http_path": "/users/{user_id}"
+    },
+    {
+      "id": "verb:POST:/utils/test-email/",
+      "type": "verb",
+      "name": "create_test-email",
+      "description": "Test emails.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/utils.py",
+      "source_line": 16,
+      "code_signature": "POST /utils/test-email/",
+      "http_method": "POST",
+      "http_path": "/utils/test-email/"
+    },
+    {
+      "id": "noun:util",
+      "type": "noun",
+      "name": "util",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "verb:GET:/utils/health-check/",
+      "type": "verb",
+      "name": "get_health-check",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/utils.py",
+      "source_line": 30,
+      "code_signature": "GET /utils/health-check/",
+      "http_method": "GET",
+      "http_path": "/utils/health-check/"
+    },
+    {
+      "id": "verb:POST:/login/access-token",
+      "type": "verb",
+      "name": "create_access-token",
+      "description": "OAuth2 compatible token login, get an access token for future requests",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/login.py",
+      "source_line": 24,
+      "code_signature": "POST /login/access-token",
+      "http_method": "POST",
+      "http_path": "/login/access-token"
+    },
+    {
+      "id": "verb:POST:/login/test-token",
+      "type": "verb",
+      "name": "create_test-token",
+      "description": "Test access token",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/login.py",
+      "source_line": 46,
+      "code_signature": "POST /login/test-token",
+      "http_method": "POST",
+      "http_path": "/login/test-token"
+    },
+    {
+      "id": "verb:POST:/password-recovery/{email}",
+      "type": "verb",
+      "name": "create_password-recovery",
+      "description": "Password Recovery",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/login.py",
+      "source_line": 54,
+      "code_signature": "POST /password-recovery/{email}",
+      "http_method": "POST",
+      "http_path": "/password-recovery/{email}"
+    },
+    {
+      "id": "verb:POST:/reset-password/",
+      "type": "verb",
+      "name": "create_reset-password",
+      "description": "Reset password",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/login.py",
+      "source_line": 78,
+      "code_signature": "POST /reset-password/",
+      "http_method": "POST",
+      "http_path": "/reset-password/"
+    },
+    {
+      "id": "verb:POST:/password-recovery-html-content/{email}",
+      "type": "verb",
+      "name": "create_password-recovery-html-content",
+      "description": "HTML Content for Password Recovery",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/login.py",
+      "source_line": 105,
+      "code_signature": "POST /password-recovery-html-content/{email}",
+      "http_method": "POST",
+      "http_path": "/password-recovery-html-content/{email}"
+    },
+    {
+      "id": "verb:GET:/items/",
+      "type": "verb",
+      "name": "get_items",
+      "description": "Retrieve items.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/items.py",
+      "source_line": 14,
+      "code_signature": "GET /items/",
+      "http_method": "GET",
+      "http_path": "/items/"
+    },
+    {
+      "id": "noun:item",
+      "type": "noun",
+      "name": "item",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "verb:GET:/items/{id}",
+      "type": "verb",
+      "name": "get_items",
+      "description": "Get item by ID.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/items.py",
+      "source_line": 48,
+      "code_signature": "GET /items/{id}",
+      "http_method": "GET",
+      "http_path": "/items/{id}"
+    },
+    {
+      "id": "verb:POST:/items/",
+      "type": "verb",
+      "name": "create_items",
+      "description": "Create new item.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/items.py",
+      "source_line": 61,
+      "code_signature": "POST /items/",
+      "http_method": "POST",
+      "http_path": "/items/"
+    },
+    {
+      "id": "verb:PUT:/items/{id}",
+      "type": "verb",
+      "name": "update_items",
+      "description": "Update an item.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/items.py",
+      "source_line": 75,
+      "code_signature": "PUT /items/{id}",
+      "http_method": "PUT",
+      "http_path": "/items/{id}"
+    },
+    {
+      "id": "verb:DELETE:/items/{id}",
+      "type": "verb",
+      "name": "delete_items",
+      "description": "Delete an item.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/items.py",
+      "source_line": 99,
+      "code_signature": "DELETE /items/{id}",
+      "http_method": "DELETE",
+      "http_path": "/items/{id}"
+    },
+    {
+      "id": "verb:POST:/private/users/",
+      "type": "verb",
+      "name": "create_users",
+      "description": "Create a new user.",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/private.py",
+      "source_line": 24,
+      "code_signature": "POST /private/users/",
+      "http_method": "POST",
+      "http_path": "/private/users/"
+    },
+    {
+      "id": "constraint:auth_required:verb:GET:/users/",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 37,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:POST:/users/",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 56,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:PATCH:/users/{user_id}",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 186,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:DELETE:/users/{user_id}",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/users.py",
+      "source_line": 214,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:POST:/utils/test-email/",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/utils.py",
+      "source_line": 16,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "constraint:auth_required:verb:POST:/password-recovery-html-content/{email}",
+      "type": "constraint",
+      "name": "auth_required",
+      "description": "Authentication required: get_current_active_superuser",
+      "node_class": "user-facing",
+      "source_file": "backend/app/api/routes/login.py",
+      "source_line": 105,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:technology stack and features",
+      "type": "concept",
+      "name": "technology stack and features",
+      "description": "\u26a1 [**FastAPI**](https://fastapi.tiangolo.com) for the Python backend API.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 7,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:dashboard login",
+      "type": "concept",
+      "name": "dashboard login",
+      "description": "[![API docs](img/login.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 29,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:dashboard - admin",
+      "type": "concept",
+      "name": "dashboard - admin",
+      "description": "[![API docs](img/dashboard.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 33,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:dashboard - items",
+      "type": "concept",
+      "name": "dashboard - items",
+      "description": "[![API docs](img/dashboard-items.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 37,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:dashboard - dark mode",
+      "type": "concept",
+      "name": "dashboard - dark mode",
+      "description": "[![API docs](img/dashboard-dark.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 41,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:interactive api documentation",
+      "type": "concept",
+      "name": "interactive api documentation",
+      "description": "[![API docs](img/docs.png)](https://github.com/fastapi/full-stack-fastapi-template)",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 45,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:how to use it",
+      "type": "concept",
+      "name": "how to use it",
+      "description": "You can **just fork or clone** this repository and use it as is.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 49,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:how to use a private repository",
+      "type": "concept",
+      "name": "how to use a private repository",
+      "description": "If you want to have a private repository, GitHub won't allow you to simply fork it as it doesn't allow changing the visibility of forks.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 55,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:update from the original template",
+      "type": "concept",
+      "name": "update from the original template",
+      "description": "After cloning the repository, and after doing changes, you might want to get the latest changes from this original template.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 92,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:configure",
+      "type": "concept",
+      "name": "configure",
+      "description": "You can then update configs in the `.env` files to customize your configurations.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 123,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:generate secret keys",
+      "type": "concept",
+      "name": "generate secret keys",
+      "description": "Some environment variables in the `.env` file have a default value of `changethis`.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 137,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:how to use it - alternative with copier",
+      "type": "concept",
+      "name": "how to use it - alternative with copier",
+      "description": "This repository also supports generating a new project using [Copier](https://copier.readthedocs.io).",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 149,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:install copier",
+      "type": "concept",
+      "name": "install copier",
+      "description": "You can install Copier with:",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 155,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:generate a project with copier",
+      "type": "concept",
+      "name": "generate a project with copier",
+      "description": "Decide a name for your new project's directory, you will use it below. For example, `my-awesome-project`.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 171,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:input variables",
+      "type": "concept",
+      "name": "input variables",
+      "description": "Copier will ask you for some data, you might want to have at hand before generating the project.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 189,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:backend development",
+      "type": "concept",
+      "name": "backend development",
+      "description": "Backend docs: [backend/README.md](./backend/README.md).",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 209,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:frontend development",
+      "type": "concept",
+      "name": "frontend development",
+      "description": "Frontend docs: [frontend/README.md](./frontend/README.md).",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 213,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:release notes",
+      "type": "concept",
+      "name": "release notes",
+      "description": "Check the file [release-notes.md](./release-notes.md).",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 227,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:note",
+      "type": "concept",
+      "name": "note",
+      "description": "If you have `pipx`, installing copier is optional, you could run it directly.",
+      "node_class": "user-facing",
+      "source_file": "README.md",
+      "source_line": 169,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:preparation",
+      "type": "concept",
+      "name": "preparation",
+      "description": "Have a remote server ready and available.",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 11,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:public traefik",
+      "type": "concept",
+      "name": "public traefik",
+      "description": "We need a Traefik proxy to handle incoming connections and HTTPS certificates.",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 18,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:traefik docker compose",
+      "type": "concept",
+      "name": "traefik docker compose",
+      "description": "Create a remote directory to store your Traefik Docker Compose file:",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 24,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:traefik public network",
+      "type": "concept",
+      "name": "traefik public network",
+      "description": "This Traefik will expect a Docker \"public network\" named `traefik-public` to communicate with your stack(s).",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 38,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:traefik environment variables",
+      "type": "concept",
+      "name": "traefik environment variables",
+      "description": "The Traefik Docker Compose file expects some environment variables to be set in your terminal before starting it. You can do it by running the following commands in your remote server.",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 50,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:start the traefik docker compose",
+      "type": "concept",
+      "name": "start the traefik docker compose",
+      "description": "Go to the directory where you copied the Traefik Docker Compose file in your remote server:",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 92,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:deploy the fastapi project",
+      "type": "concept",
+      "name": "deploy the fastapi project",
+      "description": "Now that you have Traefik in place you can deploy your FastAPI project with Docker Compose.",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 106,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:required environment variables",
+      "type": "concept",
+      "name": "required environment variables",
+      "description": "Set the `ENVIRONMENT`, by default `local` (for development), but when deploying to a server you would put something like `staging` or `production`:",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 136,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:github actions environment variables",
+      "type": "concept",
+      "name": "github actions environment variables",
+      "description": "There are some environment variables only used by GitHub Actions that you can configure:",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 192,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:deploy with docker compose",
+      "type": "concept",
+      "name": "deploy with docker compose",
+      "description": "With the environment variables in place, you can deploy with Docker Compose:",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 199,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:continuous deployment (cd)",
+      "type": "concept",
+      "name": "continuous deployment (cd)",
+      "description": "You can use GitHub Actions to deploy your project automatically. \ud83d\ude0e",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 211,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:install github actions runner",
+      "type": "concept",
+      "name": "install github actions runner",
+      "description": "On your remote server, create a user for your GitHub Actions:",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 219,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:set secrets",
+      "type": "concept",
+      "name": "set secrets",
+      "description": "On your repository, configure secrets for the environment variables you need, the same ones described above, including `SECRET_KEY`, etc. Follow the [official GitHub guide for setting repository secre",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 291,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:github action deployment workflows",
+      "type": "concept",
+      "name": "github action deployment workflows",
+      "description": "There are GitHub Action workflows in the `.github/workflows` directory already configured for deploying to the environments (GitHub Actions runners with the labels):",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 309,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:urls",
+      "type": "concept",
+      "name": "urls",
+      "description": "Replace `fastapi-project.example.com` with your domain.",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 318,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:main traefik dashboard",
+      "type": "concept",
+      "name": "main traefik dashboard",
+      "description": "Traefik UI: `https://traefik.fastapi-project.example.com`",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 322,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:production",
+      "type": "concept",
+      "name": "production",
+      "description": "Frontend: `https://dashboard.fastapi-project.example.com`",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 326,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:staging",
+      "type": "concept",
+      "name": "staging",
+      "description": "Frontend: `https://dashboard.staging.fastapi-project.example.com`",
+      "node_class": "user-facing",
+      "source_file": "deployment.md",
+      "source_line": 336,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:docker compose",
+      "type": "concept",
+      "name": "docker compose",
+      "description": "Start the local stack with Docker Compose:",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 3,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:mailcatcher",
+      "type": "concept",
+      "name": "mailcatcher",
+      "description": "Mailcatcher is a simple SMTP server that catches all emails sent by the backend during local development. Instead of sending real emails, they are captured and displayed in a web interface.",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 37,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:local development",
+      "type": "concept",
+      "name": "local development",
+      "description": "The Docker Compose files are configured so that each of the services is available in a different port in `localhost`.",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 49,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:docker compose in `localhost.tiangolo.com`",
+      "type": "concept",
+      "name": "docker compose in `localhost.tiangolo.com`",
+      "description": "When you start the Docker Compose stack, it uses `localhost` by default, with different ports for each service (backend, frontend, adminer, etc).",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 82,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:docker compose files and env vars",
+      "type": "concept",
+      "name": "docker compose files and env vars",
+      "description": "There is a main `compose.yml` file with all the configurations that apply to the whole stack, it is used automatically by `docker compose`.",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 110,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:the .env file",
+      "type": "concept",
+      "name": "the .env file",
+      "description": "The `.env` file is the one that contains all your configurations, generated keys and passwords, etc.",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 126,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:pre-commits and code linting",
+      "type": "concept",
+      "name": "pre-commits and code linting",
+      "description": "we are using a tool called [prek](https://prek.j178.dev/) (modern alternative to [Pre-commit](https://pre-commit.com/)) for code linting and formatting.",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 134,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:development urls",
+      "type": "concept",
+      "name": "development urls",
+      "description": "Development URLs, for local development.",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 187,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:development urls with `localhost.tiangolo.com` configured",
+      "type": "concept",
+      "name": "development urls with `localhost.tiangolo.com` configured",
+      "description": "Development URLs, for local development.",
+      "node_class": "user-facing",
+      "source_file": "development.md",
+      "source_line": 205,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:removing the frontend",
+      "type": "concept",
+      "name": "removing the frontend",
+      "description": "If you are developing an API-only app and want to remove the frontend, you can do it easily:",
+      "node_class": "user-facing",
+      "source_file": "frontend/README.md",
+      "source_line": 22,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:generate client",
+      "type": "concept",
+      "name": "generate client",
+      "description": "### Automatically",
+      "node_class": "user-facing",
+      "source_file": "frontend/README.md",
+      "source_line": 43,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:manually",
+      "type": "concept",
+      "name": "manually",
+      "description": "Start the Docker Compose stack.",
+      "node_class": "user-facing",
+      "source_file": "frontend/README.md",
+      "source_line": 56,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:using a remote api",
+      "type": "concept",
+      "name": "using a remote api",
+      "description": "If you want to use a remote API, you can set the environment variable `VITE_API_URL` to the URL of the remote API. For example, you can set it in the `frontend/.env` file:",
+      "node_class": "user-facing",
+      "source_file": "frontend/README.md",
+      "source_line": 72,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:code structure",
+      "type": "concept",
+      "name": "code structure",
+      "description": "The frontend code is structured as follows:",
+      "node_class": "user-facing",
+      "source_file": "frontend/README.md",
+      "source_line": 82,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:end-to-end testing with playwright",
+      "type": "concept",
+      "name": "end-to-end testing with playwright",
+      "description": "The frontend includes initial end-to-end tests using Playwright. To run the tests, you need to have the Docker Compose stack running. Start the stack with the following command:",
+      "node_class": "user-facing",
+      "source_file": "frontend/README.md",
+      "source_line": 93,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:general workflow",
+      "type": "concept",
+      "name": "general workflow",
+      "description": "By default, the dependencies are managed with [uv](https://docs.astral.sh/uv/), go there and install it.",
+      "node_class": "user-facing",
+      "source_file": "backend/README.md",
+      "source_line": 12,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:vs code",
+      "type": "concept",
+      "name": "vs code",
+      "description": "There are already configurations in place to run the backend through the VS Code debugger, so that you can use breakpoints, pause and explore variables, etc.",
+      "node_class": "user-facing",
+      "source_file": "backend/README.md",
+      "source_line": 32,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:docker compose override",
+      "type": "concept",
+      "name": "docker compose override",
+      "description": "During development, you can change Docker Compose settings that will only affect the local development environment in the file `compose.override.yml`.",
+      "node_class": "user-facing",
+      "source_file": "backend/README.md",
+      "source_line": 38,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:backend tests",
+      "type": "concept",
+      "name": "backend tests",
+      "description": "To test the backend run:",
+      "node_class": "user-facing",
+      "source_file": "backend/README.md",
+      "source_line": 92,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:test running stack",
+      "type": "concept",
+      "name": "test running stack",
+      "description": "If your stack is already up and you just want to run the tests, you can use:",
+      "node_class": "user-facing",
+      "source_file": "backend/README.md",
+      "source_line": 104,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:test coverage",
+      "type": "concept",
+      "name": "test coverage",
+      "description": "When the tests are run, a file `htmlcov/index.html` is generated, you can open it in your browser to see the coverage of the tests.",
+      "node_class": "user-facing",
+      "source_file": "backend/README.md",
+      "source_line": 120,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:migrations",
+      "type": "concept",
+      "name": "migrations",
+      "description": "As during local development your app directory is mounted as a volume inside the container, you can also run the migrations with `alembic` commands inside the container and the migration code will be ",
+      "node_class": "user-facing",
+      "source_file": "backend/README.md",
+      "source_line": 124,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "concept:email templates",
+      "type": "concept",
+      "name": "email templates",
+      "description": "The email templates are in `./backend/app/email-templates/`. Here, there are two directories: `build` and `src`. The `src` directory contains the source files that are used to build the final email te",
+      "node_class": "user-facing",
+      "source_file": "backend/README.md",
+      "source_line": 166,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "verb:GET:/users/",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/users/",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PATCH:/users/me",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PATCH:/users/me/password",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/me",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:DELETE:/users/me",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/users/signup",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/{user_id}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PATCH:/users/{user_id}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:DELETE:/users/{user_id}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/utils/test-email/",
+      "target_id": "noun:util",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/utils/health-check/",
+      "target_id": "noun:util",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/login/access-token",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/login/test-token",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/password-recovery/{email}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/reset-password/",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/password-recovery-html-content/{email}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/items/",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/items/{id}",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/items/",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PUT:/items/{id}",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:DELETE:/items/{id}",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/private/users/",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/",
+      "target_id": "constraint:auth_required:verb:GET:/users/",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:POST:/users/",
+      "target_id": "constraint:auth_required:verb:POST:/users/",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:PATCH:/users/{user_id}",
+      "target_id": "constraint:auth_required:verb:PATCH:/users/{user_id}",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:DELETE:/users/{user_id}",
+      "target_id": "constraint:auth_required:verb:DELETE:/users/{user_id}",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:POST:/utils/test-email/",
+      "target_id": "constraint:auth_required:verb:POST:/utils/test-email/",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:POST:/password-recovery-html-content/{email}",
+      "target_id": "constraint:auth_required:verb:POST:/password-recovery-html-content/{email}",
+      "edge_type": "constrained_by",
+      "confidence": "high"
+    },
+    {
+      "source_id": "verb:PATCH:/users/{user_id}",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/users/",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/utils/test-email/",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/password-recovery-html-content/{email}",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:DELETE:/users/{user_id}",
+      "target_id": "verb:POST:/users/signup",
+      "edge_type": "prerequisite",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "concept:dashboard - items",
+      "target_id": "noun:item",
+      "edge_type": "related_to",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "concept:install github actions runner",
+      "target_id": "noun:user",
+      "edge_type": "related_to",
+      "confidence": "medium"
+    }
+  ]
+}

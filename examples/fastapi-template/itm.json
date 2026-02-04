@@ -1,0 +1,1849 @@
+{
+  "manifest_type": "intended",
+  "graph_id": "full-stack-fastapi-template:2026-02-04T12:03:45.221165",
+  "product_name": "full-stack-fastapi-template",
+  "created_at": "2026-02-04 12:03:45.221516",
+  "updated_at": "2026-02-04 12:03:45.221517",
+  "topics": [
+    {
+      "id": "topic_4",
+      "name": "List users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/users/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_5",
+      "name": "Create users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/users/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_6",
+      "name": "Update me",
+      "topic_type": "reference",
+      "covers": [
+        "verb:PATCH:/users/me"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_7",
+      "name": "Update password",
+      "topic_type": "reference",
+      "covers": [
+        "verb:PATCH:/users/me/password"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_8",
+      "name": "List me",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/users/me"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_9",
+      "name": "Delete me",
+      "topic_type": "reference",
+      "covers": [
+        "verb:DELETE:/users/me"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_10",
+      "name": "Create signup",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/users/signup"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_11",
+      "name": "Get users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/users/{user_id}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_12",
+      "name": "Update users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:PATCH:/users/{user_id}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_13",
+      "name": "Delete users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:DELETE:/users/{user_id}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_14",
+      "name": "Create access-token",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/login/access-token"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_15",
+      "name": "Create test-token",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/login/test-token"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_16",
+      "name": "Create password-recovery",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/password-recovery/{email}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_17",
+      "name": "Create reset-password",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/reset-password/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_18",
+      "name": "Create password-recovery-html-content",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/password-recovery-html-content/{email}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_19",
+      "name": "Create users",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/private/users/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_3",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_3",
+      "name": "User",
+      "topic_type": "reference",
+      "covers": [],
+      "match_evidence": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_4",
+        "topic_5",
+        "topic_6",
+        "topic_7",
+        "topic_8",
+        "topic_9",
+        "topic_10",
+        "topic_11",
+        "topic_12",
+        "topic_13",
+        "topic_14",
+        "topic_15",
+        "topic_16",
+        "topic_17",
+        "topic_18",
+        "topic_19"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_21",
+      "name": "Create test-email",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/utils/test-email/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_20",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_22",
+      "name": "List health-check",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/utils/health-check/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_20",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_20",
+      "name": "Util",
+      "topic_type": "reference",
+      "covers": [],
+      "match_evidence": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_21",
+        "topic_22"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_24",
+      "name": "List items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/items/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_25",
+      "name": "Get items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:GET:/items/{id}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_26",
+      "name": "Create items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:POST:/items/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_27",
+      "name": "Update items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:PUT:/items/{id}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_28",
+      "name": "Delete items",
+      "topic_type": "reference",
+      "covers": [
+        "verb:DELETE:/items/{id}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_23",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_23",
+      "name": "Item",
+      "topic_type": "reference",
+      "covers": [],
+      "match_evidence": [],
+      "parent_id": "topic_2",
+      "children": [
+        "topic_24",
+        "topic_25",
+        "topic_26",
+        "topic_27",
+        "topic_28"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_2",
+      "name": "API",
+      "topic_type": "reference",
+      "covers": [],
+      "match_evidence": [],
+      "parent_id": "topic_1",
+      "children": [
+        "topic_3",
+        "topic_20",
+        "topic_23"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_1",
+      "name": "Reference",
+      "topic_type": "reference",
+      "covers": [],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [
+        "topic_2"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_31",
+      "name": "User",
+      "topic_type": "concept",
+      "covers": [
+        "noun:user"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_30",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_32",
+      "name": "Util",
+      "topic_type": "concept",
+      "covers": [
+        "noun:util"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_30",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_33",
+      "name": "Item",
+      "topic_type": "concept",
+      "covers": [
+        "noun:item"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_30",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_30",
+      "name": "Entity",
+      "topic_type": "concept",
+      "covers": [],
+      "match_evidence": [],
+      "parent_id": "topic_29",
+      "children": [
+        "topic_31",
+        "topic_32",
+        "topic_33"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_29",
+      "name": "Concept",
+      "topic_type": "concept",
+      "covers": [],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [
+        "topic_30"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_34",
+      "name": "Technology Stack And Features",
+      "topic_type": "concept",
+      "covers": [
+        "concept:technology stack and features"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_35",
+      "name": "Dashboard Login",
+      "topic_type": "concept",
+      "covers": [
+        "concept:dashboard login"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_36",
+      "name": "Dashboard - Admin",
+      "topic_type": "concept",
+      "covers": [
+        "concept:dashboard - admin"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_37",
+      "name": "Dashboard - Items",
+      "topic_type": "concept",
+      "covers": [
+        "concept:dashboard - items"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_38",
+      "name": "Dashboard - Dark Mode",
+      "topic_type": "concept",
+      "covers": [
+        "concept:dashboard - dark mode"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_39",
+      "name": "Interactive Api Documentation",
+      "topic_type": "concept",
+      "covers": [
+        "concept:interactive api documentation"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_40",
+      "name": "How To Use It",
+      "topic_type": "concept",
+      "covers": [
+        "concept:how to use it"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_41",
+      "name": "How To Use A Private Repository",
+      "topic_type": "concept",
+      "covers": [
+        "concept:how to use a private repository"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_42",
+      "name": "Update From The Original Template",
+      "topic_type": "concept",
+      "covers": [
+        "concept:update from the original template"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_43",
+      "name": "Configure",
+      "topic_type": "concept",
+      "covers": [
+        "concept:configure"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_44",
+      "name": "Generate Secret Keys",
+      "topic_type": "concept",
+      "covers": [
+        "concept:generate secret keys"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_45",
+      "name": "How To Use It - Alternative With Copier",
+      "topic_type": "concept",
+      "covers": [
+        "concept:how to use it - alternative with copier"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_46",
+      "name": "Install Copier",
+      "topic_type": "concept",
+      "covers": [
+        "concept:install copier"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_47",
+      "name": "Generate A Project With Copier",
+      "topic_type": "concept",
+      "covers": [
+        "concept:generate a project with copier"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_48",
+      "name": "Input Variables",
+      "topic_type": "concept",
+      "covers": [
+        "concept:input variables"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_49",
+      "name": "Backend Development",
+      "topic_type": "concept",
+      "covers": [
+        "concept:backend development"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_50",
+      "name": "Frontend Development",
+      "topic_type": "concept",
+      "covers": [
+        "concept:frontend development"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_51",
+      "name": "Release Notes",
+      "topic_type": "concept",
+      "covers": [
+        "concept:release notes"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_52",
+      "name": "Note",
+      "topic_type": "concept",
+      "covers": [
+        "concept:note"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_53",
+      "name": "Preparation",
+      "topic_type": "concept",
+      "covers": [
+        "concept:preparation"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_54",
+      "name": "Public Traefik",
+      "topic_type": "concept",
+      "covers": [
+        "concept:public traefik"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_55",
+      "name": "Traefik Docker Compose",
+      "topic_type": "concept",
+      "covers": [
+        "concept:traefik docker compose"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_56",
+      "name": "Traefik Public Network",
+      "topic_type": "concept",
+      "covers": [
+        "concept:traefik public network"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_57",
+      "name": "Traefik Environment Variables",
+      "topic_type": "concept",
+      "covers": [
+        "concept:traefik environment variables"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_58",
+      "name": "Start The Traefik Docker Compose",
+      "topic_type": "concept",
+      "covers": [
+        "concept:start the traefik docker compose"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_59",
+      "name": "Deploy The Fastapi Project",
+      "topic_type": "concept",
+      "covers": [
+        "concept:deploy the fastapi project"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_60",
+      "name": "Required Environment Variables",
+      "topic_type": "concept",
+      "covers": [
+        "concept:required environment variables"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_61",
+      "name": "Github Actions Environment Variables",
+      "topic_type": "concept",
+      "covers": [
+        "concept:github actions environment variables"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_62",
+      "name": "Deploy With Docker Compose",
+      "topic_type": "concept",
+      "covers": [
+        "concept:deploy with docker compose"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_63",
+      "name": "Continuous Deployment (Cd)",
+      "topic_type": "concept",
+      "covers": [
+        "concept:continuous deployment (cd)"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_64",
+      "name": "Install Github Actions Runner",
+      "topic_type": "concept",
+      "covers": [
+        "concept:install github actions runner"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_65",
+      "name": "Set Secrets",
+      "topic_type": "concept",
+      "covers": [
+        "concept:set secrets"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_66",
+      "name": "Github Action Deployment Workflows",
+      "topic_type": "concept",
+      "covers": [
+        "concept:github action deployment workflows"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_67",
+      "name": "Urls",
+      "topic_type": "concept",
+      "covers": [
+        "concept:urls"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_68",
+      "name": "Main Traefik Dashboard",
+      "topic_type": "concept",
+      "covers": [
+        "concept:main traefik dashboard"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_69",
+      "name": "Production",
+      "topic_type": "concept",
+      "covers": [
+        "concept:production"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_70",
+      "name": "Staging",
+      "topic_type": "concept",
+      "covers": [
+        "concept:staging"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_71",
+      "name": "Docker Compose",
+      "topic_type": "concept",
+      "covers": [
+        "concept:docker compose"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_72",
+      "name": "Mailcatcher",
+      "topic_type": "concept",
+      "covers": [
+        "concept:mailcatcher"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_73",
+      "name": "Local Development",
+      "topic_type": "concept",
+      "covers": [
+        "concept:local development"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_74",
+      "name": "Docker Compose In `Localhost.Tiangolo.Com`",
+      "topic_type": "concept",
+      "covers": [
+        "concept:docker compose in `localhost.tiangolo.com`"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_75",
+      "name": "Docker Compose Files And Env Vars",
+      "topic_type": "concept",
+      "covers": [
+        "concept:docker compose files and env vars"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_76",
+      "name": "The .Env File",
+      "topic_type": "concept",
+      "covers": [
+        "concept:the .env file"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_77",
+      "name": "Pre-Commits And Code Linting",
+      "topic_type": "concept",
+      "covers": [
+        "concept:pre-commits and code linting"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_78",
+      "name": "Development Urls",
+      "topic_type": "concept",
+      "covers": [
+        "concept:development urls"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_79",
+      "name": "Development Urls With `Localhost.Tiangolo.Com` Configured",
+      "topic_type": "concept",
+      "covers": [
+        "concept:development urls with `localhost.tiangolo.com` configured"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_80",
+      "name": "Removing The Frontend",
+      "topic_type": "concept",
+      "covers": [
+        "concept:removing the frontend"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_81",
+      "name": "Generate Client",
+      "topic_type": "concept",
+      "covers": [
+        "concept:generate client"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_82",
+      "name": "Manually",
+      "topic_type": "concept",
+      "covers": [
+        "concept:manually"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_83",
+      "name": "Using A Remote Api",
+      "topic_type": "concept",
+      "covers": [
+        "concept:using a remote api"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_84",
+      "name": "Code Structure",
+      "topic_type": "concept",
+      "covers": [
+        "concept:code structure"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_85",
+      "name": "End-To-End Testing With Playwright",
+      "topic_type": "concept",
+      "covers": [
+        "concept:end-to-end testing with playwright"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_86",
+      "name": "General Workflow",
+      "topic_type": "concept",
+      "covers": [
+        "concept:general workflow"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_87",
+      "name": "Vs Code",
+      "topic_type": "concept",
+      "covers": [
+        "concept:vs code"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_88",
+      "name": "Docker Compose Override",
+      "topic_type": "concept",
+      "covers": [
+        "concept:docker compose override"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_89",
+      "name": "Backend Tests",
+      "topic_type": "concept",
+      "covers": [
+        "concept:backend tests"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_90",
+      "name": "Test Running Stack",
+      "topic_type": "concept",
+      "covers": [
+        "concept:test running stack"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_91",
+      "name": "Test Coverage",
+      "topic_type": "concept",
+      "covers": [
+        "concept:test coverage"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_92",
+      "name": "Migrations",
+      "topic_type": "concept",
+      "covers": [
+        "concept:migrations"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_93",
+      "name": "Email Templates",
+      "topic_type": "concept",
+      "covers": [
+        "concept:email templates"
+      ],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_95",
+      "name": "How to authenticate",
+      "topic_type": "task",
+      "covers": [
+        "noun:user",
+        "verb:POST:/users/signup",
+        "verb:POST:/login/access-token",
+        "verb:POST:/login/test-token"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_94",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_96",
+      "name": "How to manage your account",
+      "topic_type": "task",
+      "covers": [
+        "verb:PATCH:/users/me",
+        "verb:PATCH:/users/me/password",
+        "verb:GET:/users/me",
+        "verb:DELETE:/users/me"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_94",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_97",
+      "name": "How to recover your password",
+      "topic_type": "task",
+      "covers": [
+        "verb:POST:/password-recovery/{email}",
+        "verb:POST:/reset-password/",
+        "verb:POST:/password-recovery-html-content/{email}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_94",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_98",
+      "name": "How to work with Users",
+      "topic_type": "task",
+      "covers": [
+        "noun:user",
+        "verb:GET:/users/",
+        "verb:POST:/users/",
+        "verb:PATCH:/users/me",
+        "verb:PATCH:/users/me/password",
+        "verb:GET:/users/me",
+        "verb:DELETE:/users/me",
+        "verb:POST:/users/signup",
+        "verb:GET:/users/{user_id}",
+        "verb:PATCH:/users/{user_id}",
+        "verb:DELETE:/users/{user_id}",
+        "verb:POST:/login/access-token",
+        "verb:POST:/login/test-token",
+        "verb:POST:/password-recovery/{email}",
+        "verb:POST:/reset-password/",
+        "verb:POST:/password-recovery-html-content/{email}",
+        "verb:POST:/private/users/"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_94",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_99",
+      "name": "How to work with Items",
+      "topic_type": "task",
+      "covers": [
+        "noun:item",
+        "verb:GET:/items/",
+        "verb:GET:/items/{id}",
+        "verb:POST:/items/",
+        "verb:PUT:/items/{id}",
+        "verb:DELETE:/items/{id}"
+      ],
+      "match_evidence": [],
+      "parent_id": "topic_94",
+      "children": [],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    },
+    {
+      "id": "topic_94",
+      "name": "Task",
+      "topic_type": "task",
+      "covers": [],
+      "match_evidence": [],
+      "parent_id": null,
+      "children": [
+        "topic_95",
+        "topic_96",
+        "topic_97",
+        "topic_98",
+        "topic_99"
+      ],
+      "task_scope": null,
+      "source_file": null,
+      "source_line": null,
+      "auto_generated": true,
+      "curated_by": null,
+      "curated_at": null,
+      "priority": null
+    }
+  ],
+  "quality": {}
+}
