@@ -35,6 +35,7 @@ from doczot_analyzer.models_v2 import (
     TopicType,
     ManifestType,
     DriftReport,
+    MatchEvidence,
     generate_default_itm,
     compute_drift_report,
     # Backward compatibility aliases
@@ -349,6 +350,23 @@ def generate_visualization_html(
             if verb_node:
                 noun_to_verbs[edge.target_id].append(verb_node.name)
 
+    # Build evidence lookup: node_id -> list of evidence records
+    evidence_by_node: dict[str, list[dict]] = {}
+    for topic in atm.topics:
+        for ev in topic.match_evidence:
+            if ev.node_id not in evidence_by_node:
+                evidence_by_node[ev.node_id] = []
+            evidence_by_node[ev.node_id].append({
+                "topic_name": topic.name,
+                "topic_id": topic.id,
+                "strategy": ev.strategy,
+                "confidence": ev.confidence,
+                "doc_file": ev.doc_file,
+                "doc_section": ev.doc_section,
+                "doc_snippet": ev.doc_snippet,
+                "match_detail": ev.match_detail,
+            })
+
     # Build graph data
     nodes_data = []
     for node in surface.nodes:
@@ -376,6 +394,7 @@ def generate_visualization_html(
             "itm_topics": [t.name for t in itm_topics],
             "atm_topics": [t.name for t in atm_topics],
             "is_covered": node.id in atm.covered_surface_ids(),
+            "match_evidence": evidence_by_node.get(node.id, []),
         })
 
     edges_data = [
@@ -408,17 +427,51 @@ def generate_visualization_html(
             "covers": t.covers,
             "source_file": t.source_file,
             "quality": atm.quality.get(t.id, {}).model_dump() if t.id in atm.quality else None,
+            "match_evidence": [
+                {
+                    "node_id": ev.node_id,
+                    "strategy": ev.strategy,
+                    "confidence": ev.confidence,
+                    "doc_file": ev.doc_file,
+                    "doc_section": ev.doc_section,
+                    "doc_snippet": ev.doc_snippet,
+                    "match_detail": ev.match_detail,
+                }
+                for ev in t.match_evidence
+            ],
         }
         for t in atm.topics
     ]
 
+    # Build evidence lookup for drift items: find evidence for covered nodes
+    # by matching inventory topics to drift items via inventory_topic_id
+    drift_evidence: dict[str, list[dict]] = {}
+    for item in gap_report.drift_items:
+        if item.inventory_topic_id:
+            inv_topic = atm.get_topic(item.inventory_topic_id)
+            if inv_topic:
+                drift_evidence[item.matrix_topic_id] = [
+                    {
+                        "node_id": ev.node_id,
+                        "strategy": ev.strategy,
+                        "confidence": ev.confidence,
+                        "doc_file": ev.doc_file,
+                        "doc_section": ev.doc_section,
+                        "doc_snippet": ev.doc_snippet,
+                        "match_detail": ev.match_detail,
+                    }
+                    for ev in inv_topic.match_evidence
+                ]
+
     gaps_data = [
         {
             "topic": g.matrix_topic_name,
+            "topic_id": g.matrix_topic_id,
             "status": g.status,
             "action": g.action,
             "missing": g.missing_node_ids,
             "quality_gaps": g.quality_issues,
+            "evidence": drift_evidence.get(g.matrix_topic_id, []),
         }
         for g in gap_report.drift_items
     ]
@@ -516,6 +569,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .surface-item .coverage-dot {{ display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }}
         .surface-item .coverage-dot.covered {{ background: #22c55e; }}
         .surface-item .coverage-dot.uncovered {{ background: #ef4444; }}
+        .evidence-card {{ background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 12px; margin: 8px 0; }}
+        .evidence-card.direct {{ border-left: 3px solid #22c55e; }}
+        .evidence-card.semantic {{ border-left: 3px solid #f59e0b; }}
+        .evidence-card .ev-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }}
+        .evidence-card .ev-strategy {{ font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }}
+        .evidence-card .ev-strategy.direct {{ color: #22c55e; }}
+        .evidence-card .ev-strategy.semantic {{ color: #f59e0b; }}
+        .evidence-card .ev-confidence {{ font-size: 0.75rem; color: #94a3b8; }}
+        .evidence-card .ev-doc {{ font-size: 0.8rem; color: #60a5fa; margin-bottom: 4px; }}
+        .evidence-card .ev-snippet {{ font-size: 0.75rem; color: #cbd5e1; background: #0f172a; padding: 8px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-break: break-word; max-height: 80px; overflow-y: auto; }}
+        .evidence-card .ev-detail {{ font-size: 0.7rem; color: #64748b; margin-top: 4px; }}
+        .evidence-card .ev-actions {{ display: flex; gap: 8px; margin-top: 8px; }}
+        .evidence-card .ev-actions button {{ font-size: 0.7rem; padding: 2px 10px; border-radius: 4px; border: 1px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; }}
+        .evidence-card .ev-actions button:hover {{ background: #334155; }}
+        .evidence-card .ev-actions .btn-accept:hover {{ border-color: #22c55e; color: #22c55e; }}
+        .evidence-card .ev-actions .btn-reject:hover {{ border-color: #ef4444; color: #ef4444; }}
+        .no-evidence {{ color: #64748b; font-size: 0.85rem; font-style: italic; padding: 10px 0; }}
+        .drift-evidence {{ margin-top: 6px; }}
+        .drift-evidence-toggle {{ font-size: 0.75rem; color: #60a5fa; cursor: pointer; background: none; border: none; padding: 0; }}
+        .drift-evidence-toggle:hover {{ text-decoration: underline; }}
+        .drift-evidence-body {{ display: none; margin-top: 6px; }}
+        .drift-evidence-body.open {{ display: block; }}
     </style>
 </head>
 <body>
@@ -573,6 +648,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <div class="detail-row"><span class="detail-label" id="source-label">Source:</span> <span id="detail-source">-</span></div>
                     <div class="detail-row"><span class="detail-label">ITM Topics:</span> <span id="detail-itm">-</span></div>
                     <div class="detail-row"><span class="detail-label">ATM Topics:</span> <span id="detail-atm">-</span></div>
+                    <h3 style="margin-top:12px">Match Evidence</h3>
+                    <div id="detail-evidence"></div>
                 </div>
                 <h3 style="margin-top:20px">Nouns ({total_nouns})</h3>
                 <div id="noun-list"></div>
@@ -908,6 +985,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             document.getElementById('detail-source').textContent = node.source || '-';
             document.getElementById('detail-itm').textContent = node.itm_topics.join(', ') || 'None';
             document.getElementById('detail-atm').textContent = node.atm_topics.join(', ') || 'None';
+
+            // Render match evidence
+            const evContainer = document.getElementById('detail-evidence');
+            const evidence = node.match_evidence || [];
+            if (evidence.length === 0) {{
+                evContainer.innerHTML = node.is_covered
+                    ? '<div class="no-evidence">Covered (no detailed evidence recorded)</div>'
+                    : '<div class="no-evidence">No match found in documentation</div>';
+            }} else {{
+                evContainer.innerHTML = evidence.map(ev => {{
+                    const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
+                    const stratLabel = ev.strategy === 'direct_reference' ? 'Direct Ref' : 'Semantic';
+                    const confPct = Math.round(ev.confidence * 100);
+                    const section = ev.doc_section ? ` > ${{ev.doc_section}}` : '';
+                    return `
+                        <div class="evidence-card ${{stratClass}}">
+                            <div class="ev-header">
+                                <span class="ev-strategy ${{stratClass}}">${{stratLabel}} (${{confPct}}%)</span>
+                                <span class="ev-confidence">${{ev.match_detail}}</span>
+                            </div>
+                            <div class="ev-doc">${{ev.doc_file}}${{section}}</div>
+                            <div class="ev-snippet">${{ev.doc_snippet}}</div>
+                            <div class="ev-actions">
+                                <button class="btn-accept" title="Mark as correct match">&#10003; Accept</button>
+                                <button class="btn-reject" title="Mark as incorrect match">&#10007; Reject</button>
+                            </div>
+                        </div>
+                    `;
+                }}).join('');
+            }}
         }}
 
         function showTab(name) {{
@@ -989,13 +1096,63 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             `;
         }});
 
+        // Render evidence cards for drift items
+        function renderDriftEvidence(evidence) {{
+            if (!evidence || evidence.length === 0) return '';
+            return evidence.map(ev => {{
+                const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
+                const stratLabel = ev.strategy === 'direct_reference' ? 'Direct' : 'Semantic';
+                const confPct = Math.round(ev.confidence * 100);
+                return `<div class="evidence-card ${{stratClass}}" style="margin:4px 0;padding:8px;">
+                    <div class="ev-header">
+                        <span class="ev-strategy ${{stratClass}}">${{stratLabel}} (${{confPct}}%)</span>
+                        <span class="ev-confidence">${{ev.match_detail}}</span>
+                    </div>
+                    <div class="ev-doc" style="font-size:0.75rem">${{ev.doc_file}}</div>
+                    <div class="ev-snippet" style="font-size:0.7rem;max-height:50px">${{ev.doc_snippet.substring(0, 120)}}</div>
+                </div>`;
+            }}).join('');
+        }}
+
         // Populate gaps list
+        let driftCounter = 0;
         const gapsList = document.getElementById('gaps-list');
+
+        // Show complete items first (collapsed)
+        data.gaps.filter(g => g.status === 'complete').forEach(g => {{
+            const id = 'drift-ev-' + (driftCounter++);
+            const evHtml = g.evidence && g.evidence.length > 0
+                ? `<div class="drift-evidence">
+                       <button class="drift-evidence-toggle" onclick="const b=document.getElementById('${{id}}');b.classList.toggle('open');this.textContent=b.classList.contains('open')?'Hide evidence':'Show evidence (${{g.evidence.length}})'">Show evidence (${{g.evidence.length}})</button>
+                       <div id="${{id}}" class="drift-evidence-body">${{renderDriftEvidence(g.evidence)}}</div>
+                   </div>`
+                : '';
+            gapsList.innerHTML += `
+                <div class="gap-item gap-complete">
+                    <div class="topic-name">${{g.topic}} <span class="badge badge-complete">complete</span></div>
+                    ${{evHtml}}
+                </div>
+            `;
+        }});
+
+        // Then missing/partial items
         data.gaps.filter(g => g.status !== 'complete').forEach(g => {{
+            const id = 'drift-ev-' + (driftCounter++);
+            const missingInfo = g.missing && g.missing.length > 0
+                ? `<div class="topic-meta" style="margin-top:4px">Missing: ${{g.missing.map(m => m.split(':').pop()).join(', ')}}</div>`
+                : '';
+            const evHtml = g.evidence && g.evidence.length > 0
+                ? `<div class="drift-evidence">
+                       <button class="drift-evidence-toggle" onclick="const b=document.getElementById('${{id}}');b.classList.toggle('open');this.textContent=b.classList.contains('open')?'Hide evidence':'Show evidence (${{g.evidence.length}})'">Show evidence (${{g.evidence.length}})</button>
+                       <div id="${{id}}" class="drift-evidence-body">${{renderDriftEvidence(g.evidence)}}</div>
+                   </div>`
+                : '';
             gapsList.innerHTML += `
                 <div class="gap-item gap-${{g.status}}">
                     <div class="topic-name">${{g.topic}} <span class="badge badge-${{g.status}}">${{g.status}}</span></div>
                     <div class="topic-meta">${{g.action}}</div>
+                    ${{missingInfo}}
+                    ${{evHtml}}
                 </div>
             `;
         }});

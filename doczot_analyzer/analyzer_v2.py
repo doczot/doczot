@@ -48,6 +48,7 @@ from doczot_analyzer.models_v2 import (
     TopicQuality,
     ManifestType,
     ConfidenceLevel,
+    MatchEvidence,
     generate_default_itm,
 )
 
@@ -1072,6 +1073,7 @@ def discover_content_inventory(
         # 1. Direct references: regex-extracted endpoint mentions (high confidence)
         # 2. Semantic similarity: vector search (requires higher threshold)
         covered_ids = set()
+        evidence_list: list[MatchEvidence] = []
 
         # Collect all content for this topic group for depth checking
         group_content = " ".join(c.content for c in chunks)
@@ -1094,6 +1096,15 @@ def discover_content_inventory(
                         and node.http_method in ref.mentioned_methods
                         and node.http_path in ref.mentioned_paths):
                     covered_ids.add(node.id)
+                    evidence_list.append(MatchEvidence(
+                        node_id=node.id,
+                        strategy="direct_reference",
+                        confidence=1.0,
+                        doc_file=file_path,
+                        doc_section=ref.section_heading,
+                        doc_snippet=ref.content[:200],
+                        match_detail=f"{node.http_method} {node.http_path} found in text",
+                    ))
 
         # Strategy 2: Semantic similarity search (stricter threshold)
         # Only count a match if the doc has enough substance to be
@@ -1127,6 +1138,7 @@ def discover_content_inventory(
                 if results:
                     chunk, score = results[0]
                     if chunk.file_path == file_path and score >= SEMANTIC_THRESHOLD:
+                        matched = False
                         if section_name:
                             section_parts = (chunk.section_header or "").split(' > ')
                             if len(section_parts) >= 2:
@@ -1136,9 +1148,21 @@ def discover_content_inventory(
                             else:
                                 chunk_h2_section = ""
                             if chunk_h2_section == section_name:
-                                covered_ids.add(node.id)
+                                matched = True
                         else:
+                            matched = True
+
+                        if matched:
                             covered_ids.add(node.id)
+                            evidence_list.append(MatchEvidence(
+                                node_id=node.id,
+                                strategy="semantic",
+                                confidence=round(score, 3),
+                                doc_file=file_path,
+                                doc_section=chunk.section_header,
+                                doc_snippet=chunk.content[:200],
+                                match_detail=f"similarity: {score:.3f}",
+                            ))
 
         if covered_ids:  # Only create topic if it covers something
             topic = Topic(
@@ -1146,6 +1170,7 @@ def discover_content_inventory(
                 name=name,
                 topic_type=TopicType.REFERENCE,  # Default
                 covers=list(covered_ids),
+                match_evidence=evidence_list,
                 source_file=file_path,
                 auto_generated=True,
             )

@@ -255,6 +255,21 @@ class SystemGraph(BaseModel):
 # LAYER 2 & 3: CONTENT COVERAGE MATRIX / CONTENT INVENTORY
 # =============================================================================
 
+class MatchEvidence(BaseModel):
+    """Evidence for why a surface node was matched to a doc topic.
+
+    Captures the reasoning behind coverage matches so reviewers can
+    validate whether matches are correct or spurious.
+    """
+    node_id: str
+    strategy: Literal["direct_reference", "semantic"]
+    confidence: float  # 0.0-1.0
+    doc_file: str
+    doc_section: Optional[str] = None
+    doc_snippet: str = ""  # First ~200 chars of matching content
+    match_detail: str = ""  # e.g. "GET /users/ found in text" or "similarity: 0.42"
+
+
 class Topic(BaseModel):
     """A documentation topic that covers system graph elements.
 
@@ -267,6 +282,9 @@ class Topic(BaseModel):
 
     # What surface elements does this topic cover?
     covers: list[str] = Field(default_factory=list)  # Surface node IDs
+
+    # Match evidence: why each node was matched to this topic
+    match_evidence: list[MatchEvidence] = Field(default_factory=list)
 
     # Hierarchy (arbitrary depth, but keep flat when possible)
     parent_id: Optional[str] = None
