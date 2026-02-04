@@ -591,6 +591,78 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .drift-evidence-toggle:hover {{ text-decoration: underline; }}
         .drift-evidence-body {{ display: none; margin-top: 6px; }}
         .drift-evidence-body.open {{ display: block; }}
+
+        /* Review overlay */
+        #review-overlay {{ position: fixed; inset: 0; z-index: 2000; background: #0f172a; display: none; flex-direction: column; }}
+        #review-overlay.active {{ display: flex; }}
+        .review-header {{ display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: #1e293b; border-bottom: 1px solid #334155; flex-shrink: 0; }}
+        .review-header h2 {{ font-size: 1.1rem; color: #3b82f6; white-space: nowrap; }}
+        .review-progress {{ font-size: 0.85rem; color: #94a3b8; white-space: nowrap; }}
+        .review-nav {{ display: flex; gap: 6px; }}
+        .review-nav button {{ padding: 4px 12px; border-radius: 4px; border: 1px solid #475569; background: #334155; color: #e2e8f0; cursor: pointer; font-size: 0.8rem; }}
+        .review-nav button:hover {{ background: #475569; }}
+        .review-header-actions {{ margin-left: auto; display: flex; gap: 8px; }}
+        .review-header-actions button {{ padding: 4px 12px; border-radius: 4px; border: 1px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.8rem; }}
+        .review-header-actions button:hover {{ background: #334155; color: #e2e8f0; }}
+        .review-body {{ display: flex; flex: 1; overflow: hidden; }}
+        .review-left {{ width: 320px; padding: 20px; overflow-y: auto; background: #1e293b; border-right: 1px solid #334155; flex-shrink: 0; }}
+        .review-left h3 {{ font-size: 1.2rem; color: #e2e8f0; margin-bottom: 12px; word-break: break-word; }}
+        .review-left .rl-type {{ display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 10px; }}
+        .review-left .rl-type.verb {{ background: #3b82f6; color: #fff; }}
+        .review-left .rl-type.noun {{ background: #8b5cf6; color: #fff; }}
+        .review-left .rl-type.concept {{ background: #f59e0b; color: #000; }}
+        .review-left .rl-type.constraint {{ background: #ef4444; color: #fff; }}
+        .review-left .rl-meta {{ margin: 8px 0; font-size: 0.85rem; color: #94a3b8; }}
+        .review-left .rl-meta strong {{ color: #cbd5e1; }}
+        .review-left .rl-coverage {{ display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-top: 8px; }}
+        .review-left .rl-coverage.documented {{ background: rgba(34,197,94,0.2); color: #22c55e; border: 1px solid #22c55e; }}
+        .review-left .rl-coverage.undocumented {{ background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; }}
+        .review-left .rl-topics {{ margin-top: 12px; font-size: 0.8rem; }}
+        .review-left .rl-topics div {{ margin: 4px 0; color: #94a3b8; }}
+        .review-left .rl-topics span {{ color: #cbd5e1; }}
+        .review-main {{ flex: 1; padding: 20px; overflow-y: auto; }}
+        .review-main .rev-card {{ background: #1e293b; border: 1px solid #475569; border-radius: 10px; padding: 16px; margin-bottom: 14px; }}
+        .review-main .rev-card.direct {{ border-left: 4px solid #22c55e; }}
+        .review-main .rev-card.semantic {{ border-left: 4px solid #f59e0b; }}
+        .review-main .rev-card .rc-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }}
+        .review-main .rev-card .rc-strategy {{ font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }}
+        .review-main .rev-card .rc-strategy.direct {{ color: #22c55e; }}
+        .review-main .rev-card .rc-strategy.semantic {{ color: #f59e0b; }}
+        .review-main .rev-card .rc-confidence {{ font-size: 0.8rem; color: #94a3b8; }}
+        .review-main .rev-card .rc-doc {{ font-size: 0.9rem; color: #60a5fa; margin-bottom: 6px; }}
+        .review-main .rev-card .rc-snippet {{ font-size: 0.85rem; color: #cbd5e1; background: #0f172a; padding: 12px; border-radius: 6px; font-family: monospace; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; line-height: 1.5; }}
+        .review-main .rev-card .rc-detail {{ font-size: 0.8rem; color: #64748b; margin-top: 6px; }}
+        .review-main .rev-card .rc-actions {{ display: flex; gap: 10px; margin-top: 10px; }}
+        .review-main .rev-card .rc-actions button {{ padding: 5px 16px; border-radius: 5px; border: 2px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.15s; }}
+        .review-main .rev-card .rc-actions .btn-accept:hover, .review-main .rev-card .rc-actions .btn-accept.active {{ background: rgba(34,197,94,0.2); border-color: #22c55e; color: #22c55e; }}
+        .review-main .rev-card .rc-actions .btn-reject:hover, .review-main .rev-card .rc-actions .btn-reject.active {{ background: rgba(239,68,68,0.2); border-color: #ef4444; color: #ef4444; }}
+        .review-main .no-ev {{ color: #64748b; font-size: 0.9rem; font-style: italic; padding: 30px 0; text-align: center; }}
+        .review-footer {{ display: flex; align-items: center; padding: 10px 20px; background: #1e293b; border-top: 1px solid #334155; flex-shrink: 0; }}
+        .review-filter {{ font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; }}
+        .review-filter button {{ padding: 3px 10px; border-radius: 4px; border: 1px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.75rem; }}
+        .review-filter button:hover {{ background: #334155; }}
+        .review-filter button.active {{ background: #3b82f6; color: #fff; border-color: #3b82f6; }}
+
+        /* Review tab queue */
+        .review-queue-summary {{ font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px; }}
+        .review-queue-summary strong {{ color: #e2e8f0; }}
+        .review-queue-filters {{ display: flex; gap: 6px; margin-bottom: 12px; }}
+        .review-queue-filters button {{ padding: 4px 10px; border-radius: 4px; border: 1px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.75rem; }}
+        .review-queue-filters button:hover {{ background: #334155; }}
+        .review-queue-filters button.active {{ background: #3b82f6; color: #fff; border-color: #3b82f6; }}
+        .rq-item {{ display: flex; align-items: center; gap: 10px; background: #334155; padding: 10px 12px; border-radius: 6px; margin: 6px 0; cursor: pointer; }}
+        .rq-item:hover {{ background: #3b4a5e; }}
+        .rq-item .rq-dot {{ width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }}
+        .rq-item .rq-dot.covered {{ background: #22c55e; }}
+        .rq-item .rq-dot.uncovered {{ background: #ef4444; }}
+        .rq-item .rq-name {{ flex: 1; font-size: 0.85rem; font-weight: 500; }}
+        .rq-item .rq-type {{ font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }}
+        .rq-item .rq-ev-count {{ font-size: 0.7rem; color: #64748b; }}
+        .rq-item .rq-judgment {{ font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; }}
+        .rq-item .rq-judgment.reviewed {{ background: rgba(34,197,94,0.2); color: #22c55e; }}
+        .rq-item .rq-judgment.pending {{ background: rgba(148,163,184,0.15); color: #64748b; }}
+        .rq-start-btn {{ display: block; width: 100%; padding: 10px; margin-top: 12px; border-radius: 6px; border: 1px solid #3b82f6; background: rgba(59,130,246,0.15); color: #3b82f6; cursor: pointer; font-size: 0.85rem; font-weight: 600; text-align: center; }}
+        .rq-start-btn:hover {{ background: rgba(59,130,246,0.3); }}
     </style>
 </head>
 <body>
@@ -632,6 +704,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <div class="tab" onclick="showTab('itm')">Checklist</div>
                 <div class="tab" onclick="showTab('atm')">Inventory</div>
                 <div class="tab" onclick="showTab('gaps')">Drift</div>
+                <div class="tab" onclick="showTab('review')">Review</div>
             </div>
 
             <div id="tab-surface" class="tab-content active">
@@ -677,6 +750,50 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </div>
                 <div id="gaps-list"></div>
             </div>
+
+            <div id="tab-review" class="tab-content">
+                <div class="review-queue-summary" id="review-queue-summary"></div>
+                <div class="review-queue-filters">
+                    <button class="active" data-rq-filter="all" onclick="filterReviewQueue('all', this)">All</button>
+                    <button data-rq-filter="covered" onclick="filterReviewQueue('covered', this)">Covered</button>
+                    <button data-rq-filter="uncovered" onclick="filterReviewQueue('uncovered', this)">Uncovered</button>
+                    <button data-rq-filter="pending" onclick="filterReviewQueue('pending', this)">Unreviewed</button>
+                </div>
+                <button class="rq-start-btn" onclick="openReviewAll()">Start Review</button>
+                <div id="review-queue-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="review-overlay">
+        <div class="review-header">
+            <h2>Match Review</h2>
+            <span class="review-progress" id="review-progress">0 / 0</span>
+            <div class="review-nav">
+                <button onclick="reviewPrev()" title="Previous (Left arrow or P)">&#8592; Prev</button>
+                <button onclick="reviewNext()" title="Next (Right arrow or N)">Next &#8594;</button>
+            </div>
+            <div class="review-header-actions">
+                <button onclick="exportJudgments()">Export Judgments</button>
+                <button onclick="closeReview()">&#10005; Close</button>
+            </div>
+        </div>
+        <div class="review-body">
+            <div class="review-left">
+                <div id="review-node-info"></div>
+            </div>
+            <div class="review-main">
+                <div id="review-evidence"></div>
+            </div>
+        </div>
+        <div class="review-footer">
+            <span class="review-filter">
+                Show:
+                <button class="active" data-rov-filter="all" onclick="setReviewFilter('all', this)">All</button>
+                <button data-rov-filter="covered" onclick="setReviewFilter('covered', this)">Covered</button>
+                <button data-rov-filter="uncovered" onclick="setReviewFilter('uncovered', this)">Uncovered</button>
+                <button data-rov-filter="pending" onclick="setReviewFilter('pending', this)">Unreviewed</button>
+            </span>
         </div>
     </div>
 
@@ -989,16 +1106,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             // Render match evidence
             const evContainer = document.getElementById('detail-evidence');
             const evidence = node.match_evidence || [];
+            const judgments = loadJudgments();
             if (evidence.length === 0) {{
-                evContainer.innerHTML = node.is_covered
+                evContainer.innerHTML = (node.is_covered
                     ? '<div class="no-evidence">Covered (no detailed evidence recorded)</div>'
-                    : '<div class="no-evidence">No match found in documentation</div>';
+                    : '<div class="no-evidence">No match found in documentation</div>')
+                    + `<div style="margin-top:8px"><button class="drift-evidence-toggle" onclick="openReview('${{node.id.replace(/'/g, "\\\\'")}}')">Open in Review &#8599;</button></div>`;
             }} else {{
-                evContainer.innerHTML = evidence.map(ev => {{
+                evContainer.innerHTML = evidence.map((ev, idx) => {{
                     const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
                     const stratLabel = ev.strategy === 'direct_reference' ? 'Direct Ref' : 'Semantic';
                     const confPct = Math.round(ev.confidence * 100);
                     const section = ev.doc_section ? ` > ${{ev.doc_section}}` : '';
+                    const jKey = node.id + '::' + idx;
+                    const j = judgments[jKey];
+                    const accClass = j && j.verdict === 'accepted' ? ' active' : '';
+                    const rejClass = j && j.verdict === 'rejected' ? ' active' : '';
                     return `
                         <div class="evidence-card ${{stratClass}}">
                             <div class="ev-header">
@@ -1008,20 +1131,42 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                             <div class="ev-doc">${{ev.doc_file}}${{section}}</div>
                             <div class="ev-snippet">${{ev.doc_snippet}}</div>
                             <div class="ev-actions">
-                                <button class="btn-accept" title="Mark as correct match">&#10003; Accept</button>
-                                <button class="btn-reject" title="Mark as incorrect match">&#10007; Reject</button>
+                                <button class="btn-accept${{accClass}}" onclick="sidebarJudge('${{node.id.replace(/'/g, "\\\\'")}}', ${{idx}}, 'accepted', this)">&#10003; Accept</button>
+                                <button class="btn-reject${{rejClass}}" onclick="sidebarJudge('${{node.id.replace(/'/g, "\\\\'")}}', ${{idx}}, 'rejected', this)">&#10007; Reject</button>
                             </div>
                         </div>
                     `;
-                }}).join('');
+                }}).join('')
+                + `<div style="margin-top:8px"><button class="drift-evidence-toggle" onclick="openReview('${{node.id.replace(/'/g, "\\\\'")}}')">Open in Review &#8599;</button></div>`;
+            }}
+        }}
+
+        function sidebarJudge(nodeId, evidenceIdx, verdict, btn) {{
+            const jKey = nodeId + '::' + evidenceIdx;
+            const judgments = loadJudgments();
+            if (judgments[jKey] && judgments[jKey].verdict === verdict) {{
+                // Toggle off
+                saveJudgment(nodeId, evidenceIdx, null);
+                btn.classList.remove('active');
+            }} else {{
+                saveJudgment(nodeId, evidenceIdx, verdict);
+                // Update button states
+                const actions = btn.parentElement;
+                actions.querySelector('.btn-accept').classList.toggle('active', verdict === 'accepted');
+                actions.querySelector('.btn-reject').classList.toggle('active', verdict === 'rejected');
             }}
         }}
 
         function showTab(name) {{
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            // Find the tab button that corresponds to this name
+            const tabs = document.querySelectorAll('.tab');
+            const tabNames = ['surface', 'itm', 'atm', 'gaps', 'review'];
+            const idx = tabNames.indexOf(name);
+            if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
             document.getElementById('tab-' + name).classList.add('active');
+            if (name === 'review') renderReviewQueue();
         }}
 
         // Highlight surface nodes covered by a topic
@@ -1215,6 +1360,322 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 if (node) showDetails(node);
             }}
         }}
+
+        // =====================================================================
+        // REVIEW MODE - Judgment persistence & full-screen review overlay
+        // =====================================================================
+
+        const STORAGE_KEY = 'doczot-judgments-' + data.product_name;
+
+        function loadJudgments() {{
+            try {{
+                const stored = localStorage.getItem(STORAGE_KEY);
+                return stored ? JSON.parse(stored) : {{}};
+            }} catch (e) {{
+                return {{}};
+            }}
+        }}
+
+        function saveJudgment(nodeId, evidenceIdx, verdict) {{
+            const judgments = loadJudgments();
+            const key = nodeId + '::' + evidenceIdx;
+            if (verdict === null) {{
+                delete judgments[key];
+            }} else {{
+                judgments[key] = {{
+                    verdict: verdict,
+                    timestamp: new Date().toISOString(),
+                    nodeId: nodeId,
+                    evidenceIdx: evidenceIdx,
+                }};
+            }}
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(judgments));
+            updateReviewProgress();
+        }}
+
+        function exportJudgments() {{
+            const judgments = loadJudgments();
+            const enriched = Object.entries(judgments).map(function(entry) {{
+                const j = entry[1];
+                const node = data.surface.nodes.find(function(n) {{ return n.id === j.nodeId; }});
+                const ev = node && node.match_evidence ? node.match_evidence[j.evidenceIdx] : null;
+                return {{
+                    verdict: j.verdict,
+                    timestamp: j.timestamp,
+                    nodeId: j.nodeId,
+                    evidenceIdx: j.evidenceIdx,
+                    node_name: node ? node.name : null,
+                    node_type: node ? node.type : null,
+                    evidence: ev || null,
+                }};
+            }});
+            const blob = new Blob([JSON.stringify(enriched, null, 2)], {{type: 'application/json'}});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'doczot-judgments-' + data.product_name + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }}
+
+        // --- Review queue and overlay ---
+
+        let reviewQueue = [];
+        let reviewIndex = 0;
+        let reviewFilterMode = 'all';
+
+        function getNodeJudgmentStatus(node) {{
+            // Returns 'reviewed' if all evidence items have a judgment, 'pending' otherwise
+            const judgments = loadJudgments();
+            const evidence = node.match_evidence || [];
+            if (evidence.length === 0) return 'pending';
+            for (let i = 0; i < evidence.length; i++) {{
+                if (!judgments[node.id + '::' + i]) return 'pending';
+            }}
+            return 'reviewed';
+        }}
+
+        function buildReviewQueue(filter) {{
+            filter = filter || reviewFilterMode;
+            const nodes = data.surface.nodes;
+            reviewQueue = nodes.filter(function(n) {{
+                if (filter === 'covered') return n.is_covered;
+                if (filter === 'uncovered') return !n.is_covered;
+                if (filter === 'pending') return getNodeJudgmentStatus(n) === 'pending';
+                return true;
+            }});
+        }}
+
+        function openReview(nodeId) {{
+            buildReviewQueue();
+            reviewIndex = reviewQueue.findIndex(function(n) {{ return n.id === nodeId; }});
+            if (reviewIndex < 0) reviewIndex = 0;
+            if (reviewQueue.length === 0) return;
+            renderReviewItem();
+            document.getElementById('review-overlay').classList.add('active');
+        }}
+
+        function openReviewAll() {{
+            buildReviewQueue();
+            reviewIndex = 0;
+            if (reviewQueue.length === 0) return;
+            renderReviewItem();
+            document.getElementById('review-overlay').classList.add('active');
+        }}
+
+        function reviewNext() {{
+            if (reviewIndex < reviewQueue.length - 1) {{
+                reviewIndex++;
+                renderReviewItem();
+            }}
+        }}
+
+        function reviewPrev() {{
+            if (reviewIndex > 0) {{
+                reviewIndex--;
+                renderReviewItem();
+            }}
+        }}
+
+        function closeReview() {{
+            document.getElementById('review-overlay').classList.remove('active');
+            // Refresh the review queue tab if it's visible
+            renderReviewQueue();
+        }}
+
+        function setReviewFilter(filter, btn) {{
+            reviewFilterMode = filter;
+            // Update overlay footer filter buttons
+            document.querySelectorAll('.review-footer .review-filter button').forEach(function(b) {{
+                b.classList.toggle('active', b.getAttribute('data-rov-filter') === filter);
+            }});
+            const currentNodeId = reviewQueue[reviewIndex] ? reviewQueue[reviewIndex].id : null;
+            buildReviewQueue(filter);
+            if (reviewQueue.length === 0) {{
+                reviewIndex = 0;
+                document.getElementById('review-evidence').innerHTML = '<div class="no-ev">No nodes match this filter.</div>';
+                document.getElementById('review-node-info').innerHTML = '';
+                updateReviewProgress();
+                return;
+            }}
+            // Try to stay on the same node
+            if (currentNodeId) {{
+                const idx = reviewQueue.findIndex(function(n) {{ return n.id === currentNodeId; }});
+                reviewIndex = idx >= 0 ? idx : 0;
+            }} else {{
+                reviewIndex = 0;
+            }}
+            renderReviewItem();
+        }}
+
+        function updateReviewProgress() {{
+            const el = document.getElementById('review-progress');
+            if (el && reviewQueue.length > 0) {{
+                el.textContent = (reviewIndex + 1) + ' / ' + reviewQueue.length;
+            }} else if (el) {{
+                el.textContent = '0 / 0';
+            }}
+        }}
+
+        function escapeHtml(str) {{
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }}
+
+        function renderReviewItem() {{
+            if (reviewQueue.length === 0) return;
+            const node = reviewQueue[reviewIndex];
+            const judgments = loadJudgments();
+            updateReviewProgress();
+
+            // Left panel: node info
+            const covClass = node.is_covered ? 'documented' : 'undocumented';
+            const covLabel = node.is_covered ? 'Documented' : 'Undocumented';
+            let leftHtml = '<h3>' + escapeHtml(node.name) + '</h3>';
+            leftHtml += '<div class="rl-type ' + node.type + '">' + node.type + '</div>';
+            if (node.signature) {{
+                leftHtml += '<div class="rl-meta"><strong>Signature:</strong><br>' + escapeHtml(node.signature) + '</div>';
+            }}
+            if (node.source) {{
+                leftHtml += '<div class="rl-meta"><strong>Source:</strong><br>' + escapeHtml(node.source) + '</div>';
+            }}
+            leftHtml += '<div class="rl-coverage ' + covClass + '">' + covLabel + '</div>';
+            if (node.itm_topics && node.itm_topics.length > 0) {{
+                leftHtml += '<div class="rl-topics"><div><strong>Checklist topics:</strong></div>';
+                node.itm_topics.forEach(function(t) {{ leftHtml += '<div>&#8226; <span>' + escapeHtml(t) + '</span></div>'; }});
+                leftHtml += '</div>';
+            }}
+            if (node.atm_topics && node.atm_topics.length > 0) {{
+                leftHtml += '<div class="rl-topics"><div><strong>Inventory topics:</strong></div>';
+                node.atm_topics.forEach(function(t) {{ leftHtml += '<div>&#8226; <span>' + escapeHtml(t) + '</span></div>'; }});
+                leftHtml += '</div>';
+            }}
+            document.getElementById('review-node-info').innerHTML = leftHtml;
+
+            // Main panel: evidence cards
+            const evidence = node.match_evidence || [];
+            let mainHtml = '';
+            if (evidence.length === 0) {{
+                mainHtml = '<div class="no-ev">' + (node.is_covered
+                    ? 'This node is marked as covered, but no detailed match evidence was recorded.'
+                    : 'No documentation match found for this node.') + '</div>';
+            }} else {{
+                evidence.forEach(function(ev, idx) {{
+                    const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
+                    const stratLabel = ev.strategy === 'direct_reference' ? 'Direct Reference' : 'Semantic Match';
+                    const confPct = Math.round(ev.confidence * 100);
+                    const section = ev.doc_section ? ' &gt; ' + escapeHtml(ev.doc_section) : '';
+                    const jKey = node.id + '::' + idx;
+                    const j = judgments[jKey];
+                    const accActive = j && j.verdict === 'accepted' ? ' active' : '';
+                    const rejActive = j && j.verdict === 'rejected' ? ' active' : '';
+                    mainHtml += '<div class="rev-card ' + stratClass + '">'
+                        + '<div class="rc-header">'
+                        + '<span class="rc-strategy ' + stratClass + '">' + stratLabel + ' (' + confPct + '%)</span>'
+                        + '<span class="rc-confidence">' + escapeHtml(ev.match_detail) + '</span>'
+                        + '</div>'
+                        + '<div class="rc-doc">' + escapeHtml(ev.doc_file) + section + '</div>'
+                        + '<div class="rc-snippet">' + escapeHtml(ev.doc_snippet) + '</div>'
+                        + '<div class="rc-detail">' + escapeHtml(ev.match_detail) + '</div>'
+                        + '<div class="rc-actions">'
+                        + '<button class="btn-accept' + accActive + '" onclick="reviewJudge(\'' + node.id.replace(/'/g, "\\\\'") + '\', ' + idx + ', \'accepted\', this)">&#10003; Accept</button>'
+                        + '<button class="btn-reject' + rejActive + '" onclick="reviewJudge(\'' + node.id.replace(/'/g, "\\\\'") + '\', ' + idx + ', \'rejected\', this)">&#10007; Reject</button>'
+                        + '</div>'
+                        + '</div>';
+                }});
+            }}
+            document.getElementById('review-evidence').innerHTML = mainHtml;
+        }}
+
+        function reviewJudge(nodeId, evidenceIdx, verdict, btn) {{
+            const jKey = nodeId + '::' + evidenceIdx;
+            const judgments = loadJudgments();
+            if (judgments[jKey] && judgments[jKey].verdict === verdict) {{
+                saveJudgment(nodeId, evidenceIdx, null);
+                btn.classList.remove('active');
+            }} else {{
+                saveJudgment(nodeId, evidenceIdx, verdict);
+                const actions = btn.parentElement;
+                actions.querySelector('.btn-accept').classList.toggle('active', verdict === 'accepted');
+                actions.querySelector('.btn-reject').classList.toggle('active', verdict === 'rejected');
+            }}
+        }}
+
+        // Keyboard navigation for review overlay
+        document.addEventListener('keydown', function(e) {{
+            const overlay = document.getElementById('review-overlay');
+            if (!overlay.classList.contains('active')) return;
+            if (e.key === 'ArrowRight' || e.key === 'n') {{ e.preventDefault(); reviewNext(); }}
+            if (e.key === 'ArrowLeft' || e.key === 'p') {{ e.preventDefault(); reviewPrev(); }}
+            if (e.key === 'Escape') {{ e.preventDefault(); closeReview(); }}
+        }});
+
+        // --- Review queue tab rendering ---
+
+        let reviewQueueFilter = 'all';
+
+        function filterReviewQueue(filter, btn) {{
+            reviewQueueFilter = filter;
+            document.querySelectorAll('.review-queue-filters button').forEach(function(b) {{
+                b.classList.toggle('active', b.getAttribute('data-rq-filter') === filter);
+            }});
+            renderReviewQueue();
+        }}
+
+        function renderReviewQueue() {{
+            const judgments = loadJudgments();
+            const nodes = data.surface.nodes;
+            let filtered = nodes;
+            if (reviewQueueFilter === 'covered') filtered = nodes.filter(function(n) {{ return n.is_covered; }});
+            else if (reviewQueueFilter === 'uncovered') filtered = nodes.filter(function(n) {{ return !n.is_covered; }});
+            else if (reviewQueueFilter === 'pending') filtered = nodes.filter(function(n) {{ return getNodeJudgmentStatus(n) === 'pending'; }});
+
+            // Compute stats
+            let totalReviewed = 0;
+            let totalRejected = 0;
+            let totalCoveredNodes = nodes.filter(function(n) {{ return n.is_covered; }}).length;
+            nodes.forEach(function(n) {{
+                if (getNodeJudgmentStatus(n) === 'reviewed') totalReviewed++;
+                const ev = n.match_evidence || [];
+                for (let i = 0; i < ev.length; i++) {{
+                    const j = judgments[n.id + '::' + i];
+                    if (j && j.verdict === 'rejected') {{ totalRejected++; }}
+                }}
+            }});
+
+            const summary = document.getElementById('review-queue-summary');
+            summary.innerHTML = 'Reviewed <strong>' + totalReviewed + '</strong> / <strong>' + nodes.length + '</strong> nodes'
+                + (totalRejected > 0 ? ', <strong style="color:#ef4444">' + totalRejected + '</strong> rejected' : '');
+
+            const list = document.getElementById('review-queue-list');
+            if (filtered.length === 0) {{
+                list.innerHTML = '<div style="color:#64748b;font-style:italic;padding:12px 0">No nodes match this filter.</div>';
+                return;
+            }}
+
+            let html = '';
+            filtered.forEach(function(n) {{
+                const covClass = n.is_covered ? 'covered' : 'uncovered';
+                const evCount = (n.match_evidence || []).length;
+                const jStatus = getNodeJudgmentStatus(n);
+                const jLabel = jStatus === 'reviewed' ? 'Reviewed' : 'Pending';
+                const jClass = jStatus === 'reviewed' ? 'reviewed' : 'pending';
+                const safeId = n.id.replace(/'/g, "\\\\'");
+                html += '<div class="rq-item" onclick="openReview(\'' + safeId + '\')">'
+                    + '<span class="rq-dot ' + covClass + '"></span>'
+                    + '<span class="rq-name">' + escapeHtml(n.name) + '</span>'
+                    + '<span class="rq-type">' + n.type + '</span>'
+                    + (evCount > 0 ? '<span class="rq-ev-count">' + evCount + ' ev</span>' : '')
+                    + '<span class="rq-judgment ' + jClass + '">' + jLabel + '</span>'
+                    + '</div>';
+            }});
+            list.innerHTML = html;
+        }}
+
+        // Initial render of review queue
+        renderReviewQueue();
     </script>
 </body>
 </html>
