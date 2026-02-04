@@ -291,8 +291,8 @@ def cmd_gaps(args):
             status_icon = "!" if item['status'] == 'missing' else "~"
             print(f"  [{status_icon}] {item['topic']}")
             print(f"      Action: {item['action']}")
-            if item['quality_gaps']:
-                print(f"      Quality: {', '.join(item['quality_gaps'])}")
+            if item['quality_issues']:
+                print(f"      Quality: {', '.join(item['quality_issues'])}")
 
     if args.output:
         with open(args.output, 'w') as f:
@@ -414,13 +414,13 @@ def generate_visualization_html(
 
     gaps_data = [
         {
-            "topic": g.itm_topic_name,
+            "topic": g.matrix_topic_name,
             "status": g.status,
             "action": g.action,
-            "missing": g.missing_surface_ids,
-            "quality_gaps": g.quality_gaps,
+            "missing": g.missing_node_ids,
+            "quality_gaps": g.quality_issues,
         }
-        for g in gap_report.gaps
+        for g in gap_report.drift_items
     ]
 
     stats = gap_report.coverage_stats()
