@@ -48,6 +48,11 @@ dev = [
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.5.0",
+    "httpx>=0.24.0",
+]
+dashboard = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
 ]
 ontology = [
     "rdflib>=7.0.0",

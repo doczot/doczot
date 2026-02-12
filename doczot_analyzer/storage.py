@@ -128,6 +128,69 @@ class ManifestStore:
                 ON surface_edges(scan_id)
             """)
 
+            # Dashboard: analysis sessions
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    product_name TEXT NOT NULL,
+                    repo_path TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    graph_scan_id TEXT,
+                    itm_json TEXT,
+                    atm_json TEXT,
+                    drift_json TEXT,
+                    doc_graph_json TEXT,
+                    FOREIGN KEY (graph_scan_id) REFERENCES scans(id)
+                )
+            """)
+
+            # Dashboard: user judgments on match evidence
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS judgments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id TEXT NOT NULL,
+                    node_id TEXT NOT NULL,
+                    topic_id TEXT NOT NULL,
+                    evidence_index INTEGER,
+                    judgment TEXT NOT NULL,
+                    notes TEXT,
+                    judged_at TEXT NOT NULL,
+                    FOREIGN KEY (session_id) REFERENCES sessions(id),
+                    UNIQUE(session_id, node_id, topic_id)
+                )
+            """)
+
+            # Dashboard: user-added topics
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS custom_topics (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    topic_type TEXT NOT NULL,
+                    description TEXT,
+                    covers TEXT,
+                    parent_id TEXT,
+                    priority INTEGER DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (session_id) REFERENCES sessions(id)
+                )
+            """)
+
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_session_product
+                ON sessions(product_name)
+            """)
+
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_judgment_session
+                ON judgments(session_id)
+            """)
+
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_custom_topic_session
+                ON custom_topics(session_id)
+            """)
+
             conn.commit()
 
     def save(self, manifest: TopicManifest) -> int:
@@ -547,6 +610,271 @@ class ManifestStore:
             cursor = conn.execute("""
                 DELETE FROM scans WHERE id = ?
             """, (scan_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+
+    # =========================================================================
+    # Dashboard: Session management
+    # =========================================================================
+
+    def save_session(self, session_data: dict) -> str:
+        """Save an analysis session.
+
+        Args:
+            session_data: Dict with keys: id, product_name, repo_path,
+                          created_at, graph_scan_id, itm_json, atm_json,
+                          drift_json, doc_graph_json
+
+        Returns:
+            The session ID
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO sessions
+                (id, product_name, repo_path, created_at, graph_scan_id,
+                 itm_json, atm_json, drift_json, doc_graph_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                session_data["id"],
+                session_data["product_name"],
+                session_data["repo_path"],
+                session_data["created_at"],
+                session_data.get("graph_scan_id"),
+                session_data.get("itm_json"),
+                session_data.get("atm_json"),
+                session_data.get("drift_json"),
+                session_data.get("doc_graph_json"),
+            ))
+            conn.commit()
+        return session_data["id"]
+
+    def load_session(self, session_id: str) -> Optional[dict]:
+        """Load a session by ID.
+
+        Returns:
+            Session dict or None if not found
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(
+                "SELECT * FROM sessions WHERE id = ?", (session_id,)
+            )
+            row = cursor.fetchone()
+            if row:
+                return dict(row)
+            return None
+
+    def list_sessions(self, product_name: Optional[str] = None) -> list[dict]:
+        """List analysis sessions.
+
+        Args:
+            product_name: Optional filter by product name
+
+        Returns:
+            List of session summary dicts
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            if product_name:
+                cursor = conn.execute("""
+                    SELECT id, product_name, repo_path, created_at, graph_scan_id
+                    FROM sessions
+                    WHERE product_name = ?
+                    ORDER BY created_at DESC
+                """, (product_name,))
+            else:
+                cursor = conn.execute("""
+                    SELECT id, product_name, repo_path, created_at, graph_scan_id
+                    FROM sessions
+                    ORDER BY created_at DESC
+                """)
+
+            return [
+                {
+                    "id": row[0],
+                    "product_name": row[1],
+                    "repo_path": row[2],
+                    "created_at": row[3],
+                    "graph_scan_id": row[4],
+                }
+                for row in cursor.fetchall()
+            ]
+
+    # =========================================================================
+    # Dashboard: Judgments
+    # =========================================================================
+
+    def save_judgment(
+        self,
+        session_id: str,
+        node_id: str,
+        topic_id: str,
+        judgment: str,
+        notes: Optional[str] = None,
+        evidence_index: Optional[int] = None,
+    ) -> None:
+        """Save a user judgment on a match.
+
+        Args:
+            session_id: Session ID
+            node_id: System graph node being judged
+            topic_id: ATM topic ID
+            judgment: "accept", "reject", or "unsure"
+            notes: Optional reviewer notes
+            evidence_index: Which evidence item (optional)
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO judgments
+                (session_id, node_id, topic_id, evidence_index, judgment, notes, judged_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                session_id,
+                node_id,
+                topic_id,
+                evidence_index,
+                judgment,
+                notes,
+                datetime.now().isoformat(),
+            ))
+            conn.commit()
+
+    def load_judgments(self, session_id: str) -> list[dict]:
+        """Load all judgments for a session.
+
+        Returns:
+            List of judgment dicts
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute("""
+                SELECT id, session_id, node_id, topic_id, evidence_index,
+                       judgment, notes, judged_at
+                FROM judgments
+                WHERE session_id = ?
+                ORDER BY judged_at DESC
+            """, (session_id,))
+
+            return [
+                {
+                    "id": row[0],
+                    "session_id": row[1],
+                    "node_id": row[2],
+                    "topic_id": row[3],
+                    "evidence_index": row[4],
+                    "judgment": row[5],
+                    "notes": row[6],
+                    "judged_at": row[7],
+                }
+                for row in cursor.fetchall()
+            ]
+
+    # =========================================================================
+    # Dashboard: Custom topics
+    # =========================================================================
+
+    def save_custom_topic(self, session_id: str, topic_data: dict) -> str:
+        """Save a user-created custom topic.
+
+        Args:
+            session_id: Session ID
+            topic_data: Dict with keys: id, name, topic_type, description,
+                        covers, parent_id, priority
+
+        Returns:
+            The topic ID
+        """
+        topic_id = topic_data["id"]
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO custom_topics
+                (id, session_id, name, topic_type, description, covers,
+                 parent_id, priority, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                topic_id,
+                session_id,
+                topic_data["name"],
+                topic_data.get("topic_type", "task"),
+                topic_data.get("description"),
+                json.dumps(topic_data.get("covers", [])),
+                topic_data.get("parent_id"),
+                topic_data.get("priority", 0),
+                datetime.now().isoformat(),
+            ))
+            conn.commit()
+        return topic_id
+
+    def load_custom_topics(self, session_id: str) -> list[dict]:
+        """Load all custom topics for a session.
+
+        Returns:
+            List of custom topic dicts
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute("""
+                SELECT id, session_id, name, topic_type, description,
+                       covers, parent_id, priority, created_at
+                FROM custom_topics
+                WHERE session_id = ?
+                ORDER BY priority DESC, created_at ASC
+            """, (session_id,))
+
+            return [
+                {
+                    "id": row[0],
+                    "session_id": row[1],
+                    "name": row[2],
+                    "topic_type": row[3],
+                    "description": row[4],
+                    "covers": json.loads(row[5]) if row[5] else [],
+                    "parent_id": row[6],
+                    "priority": row[7],
+                    "created_at": row[8],
+                }
+                for row in cursor.fetchall()
+            ]
+
+    def update_custom_topic(self, topic_id: str, updates: dict) -> bool:
+        """Update a custom topic.
+
+        Args:
+            topic_id: The topic ID to update
+            updates: Dict of field -> value to update
+
+        Returns:
+            True if updated, False if not found
+        """
+        allowed = {"name", "topic_type", "description", "covers", "parent_id", "priority"}
+        set_clauses = []
+        params = []
+        for key, value in updates.items():
+            if key in allowed:
+                if key == "covers":
+                    value = json.dumps(value)
+                set_clauses.append(f"{key} = ?")
+                params.append(value)
+
+        if not set_clauses:
+            return False
+
+        params.append(topic_id)
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                f"UPDATE custom_topics SET {', '.join(set_clauses)} WHERE id = ?",
+                params,
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+
+    def delete_custom_topic(self, topic_id: str) -> bool:
+        """Delete a custom topic.
+
+        Returns:
+            True if deleted, False if not found
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "DELETE FROM custom_topics WHERE id = ?", (topic_id,)
+            )
             conn.commit()
             return cursor.rowcount > 0
 

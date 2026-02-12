@@ -331,6 +331,42 @@ def cmd_visualize(args):
     return 0
 
 
+# =============================================================================
+# SERVE COMMAND
+# =============================================================================
+
+def cmd_serve(args):
+    """Launch interactive dashboard for documentation analysis."""
+    try:
+        import uvicorn
+    except ImportError:
+        print("Dashboard requires extra dependencies. Install with:")
+        print("  pip install doczot-analyzer[dashboard]")
+        return 1
+
+    from doczot_analyzer.dashboard import create_app
+
+    repo_path = args.repo_path or "."
+    repo_path = str(Path(repo_path).resolve())
+    db_path = args.db_path or ".doczot/manifests.db"
+
+    app = create_app(db_path=db_path)
+
+    print(f"DocZot Dashboard")
+    print(f"  Repository: {repo_path}")
+    print(f"  Database:   {db_path}")
+    print(f"  URL:        http://{args.host}:{args.port}")
+    print()
+
+    if args.open:
+        import webbrowser
+        import threading
+        threading.Timer(1.5, lambda: webbrowser.open(f"http://{args.host}:{args.port}")).start()
+
+    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+    return 0
+
+
 def generate_visualization_html(
     surface: SurfaceGraph,
     itm: TopicManifest,
@@ -1986,6 +2022,16 @@ def main():
     p.add_argument("--output", "-o", default="doczot-viz.html")
     p.add_argument("--open", action="store_true", help="Open in browser")
     p.set_defaults(func=cmd_visualize)
+
+    # serve (dashboard)
+    p = subparsers.add_parser("serve", help="Launch interactive dashboard")
+    p.add_argument("repo_path", nargs="?", default=".")
+    p.add_argument("--port", type=int, default=8456, help="Port to serve on")
+    p.add_argument("--host", default="127.0.0.1", help="Host to bind to")
+    p.add_argument("--db-path", default=".doczot/manifests.db", help="Database path")
+    p.add_argument("--open", action="store_true", default=True, help="Open browser automatically")
+    p.add_argument("--no-open", dest="open", action="store_false", help="Don't open browser")
+    p.set_defaults(func=cmd_serve)
 
     # diff
     p = subparsers.add_parser("diff", help="Compare two System Graph scans")

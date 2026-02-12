@@ -1239,6 +1239,49 @@ def discover_content_inventory(
 
             quality[topic_id] = q
 
+    # Enhance with doc graph: extract doc-side entities and use them
+    # to identify additional coverage from entity mentions in docs
+    try:
+        from doczot_analyzer.doc_graph import extract_doc_graph, compare_graphs
+
+        doc_graph = extract_doc_graph(repo_path, graph)
+        comparison = compare_graphs(graph, doc_graph)
+
+        # Add noun coverage: if a code noun is mentioned in docs but not yet
+        # covered by any topic, create implicit coverage evidence
+        covered_ids = set()
+        for t in topics:
+            covered_ids.update(t.covers)
+
+        for entity_name in comparison.covered_entities:
+            # Find the matching code node
+            for node in graph.nouns:
+                if node.name.lower() == entity_name and node.id not in covered_ids:
+                    # Find which doc file mentions this entity
+                    doc_entity = next(
+                        (e for e in doc_graph.entities if e.name == entity_name),
+                        None,
+                    )
+                    if doc_entity and doc_entity.mentions:
+                        mention = doc_entity.mentions[0]
+                        # Add to an existing topic for the same file, or skip
+                        for t in topics:
+                            if t.source_file == mention.doc_file:
+                                t.covers.append(node.id)
+                                t.match_evidence.append(MatchEvidence(
+                                    node_id=node.id,
+                                    strategy="semantic",
+                                    confidence=0.6,
+                                    doc_file=mention.doc_file,
+                                    doc_section=mention.section,
+                                    doc_snippet=mention.snippet[:200],
+                                    match_detail=f"doc graph: entity '{entity_name}' mentioned in docs",
+                                ))
+                                covered_ids.add(node.id)
+                                break
+    except Exception:
+        pass  # Doc graph is optional enhancement
+
     return TopicManifest(
         manifest_type=ManifestType.ACTUAL,
         graph_id=f"{graph.product_name}:{graph.scanned_at.isoformat()}",
