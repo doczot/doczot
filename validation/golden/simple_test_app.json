@@ -1,0 +1,239 @@
+{
+  "product_name": "simple-test-app",
+  "version": null,
+  "source_paths": [
+    "simple_test_app"
+  ],
+  "nodes": [
+    {
+      "id": "noun:item",
+      "type": "noun",
+      "name": "item",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "noun:project",
+      "type": "noun",
+      "name": "project",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "noun:user",
+      "type": "noun",
+      "name": "user",
+      "description": null,
+      "node_class": "user-facing",
+      "source_file": null,
+      "source_line": null,
+      "code_signature": null,
+      "http_method": null,
+      "http_path": null
+    },
+    {
+      "id": "verb:GET:/",
+      "type": "verb",
+      "name": "get_resource",
+      "description": "Root endpoint with API information.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 56,
+      "code_signature": "GET /",
+      "http_method": "GET",
+      "http_path": "/"
+    },
+    {
+      "id": "verb:GET:/health",
+      "type": "verb",
+      "name": "get_health",
+      "description": "Check if service is healthy.\n\nReturns system status without authentication.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 47,
+      "code_signature": "GET /health",
+      "http_method": "GET",
+      "http_path": "/health"
+    },
+    {
+      "id": "verb:GET:/items",
+      "type": "verb",
+      "name": "get_items",
+      "description": "List all items with rate limiting.\n\nItems are products available in the catalog.\nRate limit: 100 requests per hour per IP.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 106,
+      "code_signature": "GET /items",
+      "http_method": "GET",
+      "http_path": "/items"
+    },
+    {
+      "id": "verb:GET:/items/{item_id}",
+      "type": "verb",
+      "name": "get_items",
+      "description": "Get a specific item by ID.\n\nItem details include name, description, and pricing.\nRate limit: 200 requests per hour per IP.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 120,
+      "code_signature": "GET /items/{item_id}",
+      "http_method": "GET",
+      "http_path": "/items/{item_id}"
+    },
+    {
+      "id": "verb:GET:/users/me",
+      "type": "verb",
+      "name": "get_me",
+      "description": "Retrieve the current user's profile.\n\nUser profile includes username, email, and preferences.\nAuthentication required via JWT token.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 70,
+      "code_signature": "GET /users/me",
+      "http_method": "GET",
+      "http_path": "/users/me"
+    },
+    {
+      "id": "verb:GET:/users/{user_id}/projects",
+      "type": "verb",
+      "name": "get_projects",
+      "description": "List all projects belonging to a user.\n\nProjects are containers for tasks and are owned by users.\nAuthentication required.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 136,
+      "code_signature": "GET /users/{user_id}/projects",
+      "http_method": "GET",
+      "http_path": "/users/{user_id}/projects"
+    },
+    {
+      "id": "verb:GET:/users/{user_id}/projects/{project_id}",
+      "type": "verb",
+      "name": "get_projects",
+      "description": "Get a specific project belonging to a user.\n\nProject details include name, description, and task count.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 152,
+      "code_signature": "GET /users/{user_id}/projects/{project_id}",
+      "http_method": "GET",
+      "http_path": "/users/{user_id}/projects/{project_id}"
+    },
+    {
+      "id": "verb:POST:/auth/login",
+      "type": "verb",
+      "name": "create_login",
+      "description": "Authenticate user and return access token.\n\nToken is used for accessing protected endpoints.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 193,
+      "code_signature": "POST /auth/login",
+      "http_method": "POST",
+      "http_path": "/auth/login"
+    },
+    {
+      "id": "verb:POST:/auth/signup",
+      "type": "verb",
+      "name": "create_signup",
+      "description": "Register a new user account.\n\nUser must provide username, email, and password.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 206,
+      "code_signature": "POST /auth/signup",
+      "http_method": "POST",
+      "http_path": "/auth/signup"
+    },
+    {
+      "id": "verb:POST:/users/{user_id}/projects",
+      "type": "verb",
+      "name": "create_projects",
+      "description": "Create a new project for a user.\n\nProjects must have a name and optional description.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 171,
+      "code_signature": "POST /users/{user_id}/projects",
+      "http_method": "POST",
+      "http_path": "/users/{user_id}/projects"
+    },
+    {
+      "id": "verb:PUT:/users/me",
+      "type": "verb",
+      "name": "update_me",
+      "description": "Update the current user's profile.\n\nAuthentication required via JWT token.",
+      "node_class": "user-facing",
+      "source_file": "main.py",
+      "source_line": 86,
+      "code_signature": "PUT /users/me",
+      "http_method": "PUT",
+      "http_path": "/users/me"
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "verb:GET:/items",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/items/{item_id}",
+      "target_id": "noun:item",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/me",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/{user_id}/projects",
+      "target_id": "noun:project",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/{user_id}/projects",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/{user_id}/projects/{project_id}",
+      "target_id": "noun:project",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:GET:/users/{user_id}/projects/{project_id}",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/users/{user_id}/projects",
+      "target_id": "noun:project",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:POST:/users/{user_id}/projects",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    },
+    {
+      "source_id": "verb:PUT:/users/me",
+      "target_id": "noun:user",
+      "edge_type": "operates_on",
+      "confidence": "medium"
+    }
+  ]
+}
