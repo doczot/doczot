@@ -191,6 +191,26 @@ class ManifestStore:
                 ON custom_topics(session_id)
             """)
 
+            # Validation framework: results
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS validation_results (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_name TEXT NOT NULL,
+                    scan_id TEXT,
+                    dimension TEXT NOT NULL,
+                    check_name TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    message TEXT,
+                    details TEXT,
+                    checked_at TEXT NOT NULL
+                )
+            """)
+
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_validation_product
+                ON validation_results(product_name)
+            """)
+
             conn.commit()
 
     def save(self, manifest: TopicManifest) -> int:

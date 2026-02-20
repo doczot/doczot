@@ -2077,11 +2077,22 @@ def main():
                    help="Show full output (don't truncate)")
     p.set_defaults(func=cmd_export_ontology)
 
+    # validate (validation framework)
+    from validation.cli import register_validate_commands
+    register_validate_commands(subparsers)
+
     args = parser.parse_args()
 
     if not args.command:
         parser.print_help()
         return 1
+
+    # Handle validate subcommands
+    if args.command == "validate":
+        if not hasattr(args, "func") or not getattr(args, "validate_command", None):
+            # Print validate help
+            parser.parse_args(["validate", "--help"])
+            return 1
 
     return args.func(args)
 
