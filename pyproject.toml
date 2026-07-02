@@ -8,12 +8,12 @@ version = "0.1.0"
 description = "Open source documentation coverage analysis for FastAPI projects - like Codecov for API docs"
 readme = "README.md"
 authors = [{name = "Sharon", email = "sharon@doczot.com"}]
-license = {text = "Apache-2.0"}
+license = {text = "AGPL-3.0-only"}
 keywords = ["documentation", "coverage", "fastapi", "api", "docs", "testing", "quality"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -61,7 +61,11 @@ ontology = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["doczot_analyzer*"]
+include = ["doczot_analyzer*", "validation*"]
+exclude = ["doczot_analyzer.tests*"]
+
+[tool.setuptools.package-data]
+"validation.golden" = ["*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["doczot_analyzer/tests"]
