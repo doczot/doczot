@@ -29,11 +29,24 @@ class LocalVectorStore(VectorStore):
     """In-memory vector store using sentence-transformers and numpy."""
     
     def __init__(self, model_name: str = "all-mpnet-base-v2"):
-        print(f"Loading model: {model_name}")
-        self.model = SentenceTransformer(model_name)
+        self.model_name = model_name
+        self._model = None
         self.chunks: List[DocChunk] = []
         self.embeddings: List[np.ndarray] = []
-        
+
+    @property
+    def model(self) -> SentenceTransformer:
+        """Load the embedding model on first use.
+
+        Lazy so repos with no documentation don't pay the multi-second
+        model load (or a download) for nothing.
+        """
+        if self._model is None:
+            print(f"Loading model: {self.model_name}")
+            self._model = SentenceTransformer(self.model_name)
+        return self._model
+
+
     def add_chunks(self, chunks: List[DocChunk]):
         """Add chunks and generate embeddings."""
         if not chunks:

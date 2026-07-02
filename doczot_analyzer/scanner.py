@@ -752,13 +752,16 @@ def _determine_parameter_location(
     return "query"
 
 
-def scan_directory(directory_path: str) -> List[Endpoint]:
+def scan_directory(directory_path: str, stats: Optional[dict] = None) -> List[Endpoint]:
     """Scan all Python files in a directory for FastAPI endpoints.
 
     Recursively scans the directory for .py files and extracts endpoints.
 
     Args:
         directory_path: Path to the directory to scan
+        stats: Optional dict populated with scan diagnostics:
+            files_seen, files_scanned, files_with_endpoints,
+            skipped_by_dir_filter, skipped_test_files, parse_errors
 
     Returns:
         List of all endpoints found across all files
@@ -774,20 +777,35 @@ def scan_directory(directory_path: str) -> List[Endpoint]:
     if not directory.is_dir():
         raise NotADirectoryError(f"Not a directory: {directory_path}")
 
+    if stats is None:
+        stats = {}
+    stats.update({
+        "files_seen": 0,
+        "files_scanned": 0,
+        "files_with_endpoints": 0,
+        "skipped_by_dir_filter": 0,
+        "skipped_test_files": 0,
+        "parse_errors": 0,
+    })
+
     all_endpoints = []
 
     # Recursively find all .py files
     for py_file in directory.rglob("*.py"):
+        stats["files_seen"] += 1
+
         # Skip common non-source directories and example/doc code.
         # Only consider path parts BELOW the scan root, so a project that
         # happens to live under e.g. .../tests/... is still scanned.
         parts = py_file.relative_to(directory).parts
         skip_dirs = {"__pycache__", ".venv", "venv", ".git", "node_modules", "tests", "test", "docs_src", "examples", "example"}
         if any(skip_dir in parts for skip_dir in skip_dirs):
+            stats["skipped_by_dir_filter"] += 1
             continue
 
         # Skip test files (test_*.py, *_test.py)
         if py_file.name.startswith("test_") or py_file.name.endswith("_test.py"):
+            stats["skipped_test_files"] += 1
             continue
 
         try:
@@ -795,9 +813,13 @@ def scan_directory(directory_path: str) -> List[Endpoint]:
             # Use relative path from the scan directory
             relative_path = py_file.relative_to(directory)
             endpoints = scan_python_file(source_code, str(relative_path))
+            stats["files_scanned"] += 1
+            if endpoints:
+                stats["files_with_endpoints"] += 1
             all_endpoints.extend(endpoints)
         except (SyntaxError, UnicodeDecodeError):
             # Skip files with syntax errors or encoding issues
+            stats["parse_errors"] += 1
             continue
 
     return all_endpoints

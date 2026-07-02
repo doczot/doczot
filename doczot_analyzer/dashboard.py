@@ -1149,6 +1149,22 @@ function renderInventory(el) {
             <div class="stat-card"><div class="stat-value">${topics.length}</div><div class="stat-label">Doc Topics</div></div>
         </div>`;
 
+    // Explain empty inventories instead of showing a bare zero
+    const diag = inventoryData.diagnostics || null;
+    if (topics.length === 0 && diag) {
+        html += '<div class="card"><div class="card-header"><span class="card-title">Why 0 doc topics?</span></div>';
+        if (!diag.doc_files_found) {
+            html += '<p style="color:var(--text-muted)">No markdown files were found (README.md, docs/, *.md in the repo root).</p>';
+        } else {
+            html += `<p style="color:var(--text-muted)">Found ${diag.doc_files_found} doc file(s) with ${diag.sections_parsed} section(s), but none matched any code element:</p>`;
+            for (const um of (diag.unmatched_sections || []).slice(0, 10)) {
+                const section = um.section || um.file;
+                html += `<div style="font-size:12px;color:var(--text-muted);margin:4px 0 0 12px">- <b>${esc(section)}</b>: ${esc(um.reason)}</div>`;
+            }
+        }
+        html += '</div>';
+    }
+
     for (const topic of topics) {
         const q = quality[topic.id] || {};
         const evidence = topic.match_evidence || [];
@@ -1330,7 +1346,10 @@ function renderReview(el, progress) {
             <div class="stat-card"><div class="stat-value">${unjudged.length}</div><div class="stat-label">Remaining</div></div>
         </div>`;
 
-    if (!unjudged.length) {
+    if (!queue.length) {
+        // Nothing was ever matched - saying "all reviewed" would be misleading
+        html += '<div class="card"><p style="text-align:center;color:var(--text-muted)">No matches to review: the docs didn\\'t match any code elements.<br>See the Inventory tab for why.</p></div>';
+    } else if (!unjudged.length) {
         html += '<div class="card"><p style="text-align:center;color:var(--accent-green)">All evidence reviewed!</p></div>';
     } else {
         html += '<h3>Review Queue</h3>';

@@ -60,3 +60,32 @@ class TestMatchTitleToNodes:
         nodes = [_noun("user")]
         assert _match_title_to_nodes("", nodes) == []
         assert _match_title_to_nodes("   ", nodes) == []
+
+
+class TestEmptyResultDiagnostics:
+    """Empty analyses must explain themselves via diagnostics fields."""
+
+    def test_graph_diagnostics_populated_for_empty_scan(self, tmp_path):
+        from doczot_analyzer.analyzer_v2 import build_system_graph
+
+        (tmp_path / "util.py").write_text("x = 1\n")
+        graph = build_system_graph(str(tmp_path), product_name="empty-app")
+
+        assert graph.verbs == []
+        scan = graph.diagnostics["scan"]
+        assert scan["files_seen"] == 1
+        assert scan["files_scanned"] == 1
+        assert scan["files_with_endpoints"] == 0
+
+    def test_inventory_diagnostics_when_no_docs(self, tmp_path):
+        from doczot_analyzer.analyzer_v2 import (
+            build_system_graph, discover_content_inventory,
+        )
+
+        (tmp_path / "util.py").write_text("x = 1\n")
+        graph = build_system_graph(str(tmp_path), product_name="empty-app")
+        inventory = discover_content_inventory(str(tmp_path), graph)
+
+        assert inventory.topics == []
+        assert inventory.diagnostics["doc_files_found"] == 0
+        assert inventory.diagnostics["sections_parsed"] == 0
