@@ -25,7 +25,7 @@ No system Python — use the uv-managed venv:
 
 ## Recommended next steps (in priority order)
 
-1. **Diagnostic empty states** — when coverage is 0% or endpoints are 0, explain why (files skipped by filters, doc sections found but unmatched, section lengths vs. thresholds). Surface in both CLI output and the dashboard Inventory/Review tabs ("All evidence reviewed!" currently shows for zero matches, which is misleading).
+1. ~~**Diagnostic empty states**~~ — DONE in PR #2 (`feature/diagnostic-empty-states`): scan stats on `SystemGraph.diagnostics`, per-section non-match reasons on `TopicManifest.diagnostics`, "Why 0 endpoints/doc topics?" blocks in the CLI, dashboard Inventory/Review empty states fixed, and `LocalVectorStore` now lazy-loads the embedding model.
 2. **Subcommand session reuse** — `doczot surface/itm/atm/gaps` each re-run the whole pipeline (including reloading the sentence-transformer). They should load the latest session for the repo/product from the store, with a `--fresh` flag to force re-analysis.
 3. **Deduplicate checklist topic names** — `GET /users/{user_id}/projects` and `GET /users/{user_id}/projects/{project_id}` both become "Get projects" (shown twice, under both User and Project). Titles need path-param awareness ("Get project by id") and each endpoint should probably appear under one owner entity.
 4. **Concept extraction noise** — docstring-derived concepts like "User Must", "Projects Are Containers For Tasks And", "Check If Service" pollute the graph and checklist. Sentence-fragment headers should be filtered (e.g. reject titles containing verbs/stopword patterns, or cap at N words).
