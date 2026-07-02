@@ -778,8 +778,10 @@ def scan_directory(directory_path: str) -> List[Endpoint]:
 
     # Recursively find all .py files
     for py_file in directory.rglob("*.py"):
-        # Skip common non-source directories and example/doc code
-        parts = py_file.parts
+        # Skip common non-source directories and example/doc code.
+        # Only consider path parts BELOW the scan root, so a project that
+        # happens to live under e.g. .../tests/... is still scanned.
+        parts = py_file.relative_to(directory).parts
         skip_dirs = {"__pycache__", ".venv", "venv", ".git", "node_modules", "tests", "test", "docs_src", "examples", "example"}
         if any(skip_dir in parts for skip_dir in skip_dirs):
             continue

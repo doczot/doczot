@@ -226,8 +226,13 @@ def find_markdown_files(directory: str) -> List[str]:
 
     # Find all .md files recursively
     for md_file in directory_path.rglob("*.md"):
-        # Skip hidden files
-        if any(part.startswith('.') for part in md_file.parts):
+        # Only consider path parts BELOW the search root, so a project that
+        # happens to live under a hidden or translation-named ancestor
+        # directory (e.g. /home/x/.work/repo or C:\dev\it\repo) still works.
+        parts = md_file.relative_to(directory_path).parts
+
+        # Skip hidden files and files in hidden directories
+        if any(part.startswith('.') for part in parts):
             continue
 
         # Skip files in skip list (case-insensitive)
@@ -236,7 +241,6 @@ def find_markdown_files(directory: str) -> List[str]:
 
         # Skip translation directories (e.g., docs/zh/, docs/ja/, etc.)
         # Check if any part of the path is a translation directory
-        parts = md_file.parts
         if any(part in TRANSLATION_DIRS for part in parts):
             continue
 
@@ -264,13 +268,8 @@ def find_markdown_files(directory: str) -> List[str]:
 
         # 5. Direct child of root directory (not in subdirectories, except docs/)
         # This catches other files like visible.md in the root
-        try:
-            relative = md_file.relative_to(directory_path)
-            # If file is directly in root (no parent dirs except root)
-            if len(relative.parts) == 1:
-                markdown_files.append(str(md_file))
-        except ValueError:
-            pass
+        if len(parts) == 1:
+            markdown_files.append(str(md_file))
 
     return markdown_files
 

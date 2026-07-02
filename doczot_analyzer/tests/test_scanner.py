@@ -598,3 +598,49 @@ app = FastAPI(
         except SyntaxError:
             # Acceptable to raise SyntaxError for invalid Python
             pass
+
+
+class TestScanDirectorySkipFilters:
+    """Regression tests: skip_dirs must only apply below the scan root.
+
+    A project that happens to live under a path containing 'tests',
+    'examples', etc. (e.g. fixtures, CI checkouts) must still be scanned.
+    """
+
+    FASTAPI_SOURCE = '''
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/widgets")
+async def list_widgets():
+    """List all widgets."""
+    return []
+'''
+
+    def test_scans_project_under_skipped_ancestor_dir(self, tmp_path):
+        """A scan root nested under a 'tests' directory is still scanned."""
+        from doczot_analyzer.scanner import scan_directory
+
+        project = tmp_path / "tests" / "fixtures" / "myapp"
+        project.mkdir(parents=True)
+        (project / "main.py").write_text(self.FASTAPI_SOURCE)
+
+        endpoints = scan_directory(str(project))
+
+        assert len(endpoints) == 1
+        assert endpoints[0].path == "/widgets"
+
+    def test_still_skips_dirs_below_scan_root(self, tmp_path):
+        """Skip dirs inside the scan root are still excluded."""
+        from doczot_analyzer.scanner import scan_directory
+
+        project = tmp_path / "myapp"
+        (project / "tests").mkdir(parents=True)
+        (project / "app.py").write_text(self.FASTAPI_SOURCE)
+        (project / "tests" / "conftest_app.py").write_text(self.FASTAPI_SOURCE)
+
+        endpoints = scan_directory(str(project))
+
+        assert len(endpoints) == 1
+        assert endpoints[0].file_path == "app.py"
