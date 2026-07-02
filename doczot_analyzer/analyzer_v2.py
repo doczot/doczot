@@ -1374,6 +1374,55 @@ def analyze_repository(
     return graph, matrix, inventory, drift_report
 
 
+def save_analysis_session(
+    store,
+    repo_path: str,
+    graph: SystemGraph,
+    matrix: TopicManifest,
+    inventory: TopicManifest,
+    drift: DriftReport,
+    session_id: Optional[str] = None,
+) -> str:
+    """Persist a full analysis as a session visible in the dashboard.
+
+    Saves the system graph as a scan, extracts the doc graph, and writes
+    a session row tying them together. Used by both the CLI and the
+    dashboard so results show up in one place regardless of entry point.
+
+    Returns:
+        The session ID
+    """
+    import uuid
+    from datetime import datetime
+
+    from doczot_analyzer.doc_graph import extract_doc_graph
+
+    if session_id is None:
+        session_id = f"session_{uuid.uuid4().hex[:12]}"
+
+    scan_id = store.save_system_graph(graph)
+
+    try:
+        doc_graph = extract_doc_graph(repo_path, graph)
+        doc_graph_json = doc_graph.model_dump_json()
+    except Exception:
+        doc_graph_json = None
+
+    store.save_session({
+        "id": session_id,
+        "product_name": graph.product_name,
+        "repo_path": str(Path(repo_path).resolve()),
+        "created_at": datetime.now().isoformat(),
+        "graph_scan_id": scan_id,
+        "itm_json": matrix.model_dump_json(),
+        "atm_json": inventory.model_dump_json(),
+        "drift_json": drift.model_dump_json(),
+        "doc_graph_json": doc_graph_json,
+    })
+
+    return session_id
+
+
 def diff_system_graphs(old: SystemGraph, new: SystemGraph) -> dict:
     """Compare two system graphs and report changes.
 

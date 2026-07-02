@@ -440,3 +440,70 @@ class TestDashboardAPI:
             "judgment": "invalid",
         })
         assert res.status_code == 400
+
+
+# =============================================================================
+# SHARED SESSION SAVING (CLI + dashboard)
+# =============================================================================
+
+class TestSaveAnalysisSession:
+    """save_analysis_session is the shared path for CLI and dashboard,
+    so CLI-run analyses show up in the dashboard's session list."""
+
+    def _make_analysis(self, tmp_path):
+        from doczot_analyzer.models_v2 import (
+            SystemGraph, SystemNode, NodeType, NodeClass, ManifestType,
+            TopicManifest, generate_default_itm, compute_drift_report,
+        )
+        graph = SystemGraph(
+            product_name="test-api",
+            source_paths=[str(tmp_path)],
+            nodes=[SystemNode(
+                id="verb:GET:/users", type=NodeType.VERB, name="get_users",
+                node_class=NodeClass.USER_FACING,
+                http_method="GET", http_path="/users",
+            )],
+        )
+        itm = generate_default_itm(graph)
+        atm = TopicManifest(
+            manifest_type=ManifestType.ACTUAL,
+            graph_id=itm.graph_id,
+            product_name="test-api",
+        )
+        drift = compute_drift_report(graph, itm, atm)
+        return graph, itm, atm, drift
+
+    def test_session_is_saved_and_listed(self, store, tmp_path):
+        from doczot_analyzer.analyzer_v2 import save_analysis_session
+
+        graph, itm, atm, drift = self._make_analysis(tmp_path)
+        session_id = save_analysis_session(
+            store, str(tmp_path), graph, itm, atm, drift
+        )
+
+        sessions = store.list_sessions()
+        assert [s["id"] for s in sessions] == [session_id]
+
+        session = store.load_session(session_id)
+        assert session["product_name"] == "test-api"
+        assert session["graph_scan_id"]
+        assert json.loads(session["itm_json"])["topics"]
+        assert json.loads(session["drift_json"])["drift_items"]
+
+        # Graph is retrievable via the scan id stored on the session
+        loaded = store.load_system_graph(
+            "test-api", scan_id=session["graph_scan_id"]
+        )
+        assert loaded is not None
+        assert len(loaded.nodes) == 1
+
+    def test_explicit_session_id_is_used(self, store, tmp_path):
+        from doczot_analyzer.analyzer_v2 import save_analysis_session
+
+        graph, itm, atm, drift = self._make_analysis(tmp_path)
+        returned = save_analysis_session(
+            store, str(tmp_path), graph, itm, atm, drift,
+            session_id="session_fixed",
+        )
+        assert returned == "session_fixed"
+        assert store.load_session("session_fixed") is not None

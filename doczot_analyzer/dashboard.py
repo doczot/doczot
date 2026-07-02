@@ -324,33 +324,12 @@ def _run_analysis_background(
 ) -> None:
     """Run full analysis in background thread and save results."""
     try:
-        from doczot_analyzer.analyzer_v2 import analyze_repository
-        from doczot_analyzer.doc_graph import extract_doc_graph
+        from doczot_analyzer.analyzer_v2 import analyze_repository, save_analysis_session
 
         graph, itm, atm, drift = analyze_repository(repo_path, product_name)
-
-        # Save system graph
-        scan_id = store.save_system_graph(graph)
-
-        # Extract doc graph
-        try:
-            doc_graph = extract_doc_graph(repo_path, graph)
-            doc_graph_json = doc_graph.model_dump_json()
-        except Exception:
-            doc_graph_json = None
-
-        # Save session
-        store.save_session({
-            "id": session_id,
-            "product_name": graph.product_name,
-            "repo_path": str(Path(repo_path).resolve()),
-            "created_at": datetime.now().isoformat(),
-            "graph_scan_id": scan_id,
-            "itm_json": itm.model_dump_json(),
-            "atm_json": atm.model_dump_json(),
-            "drift_json": drift.model_dump_json(),
-            "doc_graph_json": doc_graph_json,
-        })
+        save_analysis_session(
+            store, repo_path, graph, itm, atm, drift, session_id=session_id
+        )
 
         _running_analyses[session_id] = "complete"
     except Exception as e:

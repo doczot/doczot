@@ -21,6 +21,7 @@ from doczot_analyzer.analyzer_v2 import (
     build_system_graph,
     discover_content_inventory,
     analyze_repository,
+    save_analysis_session,
     print_analysis_summary,
     diff_system_graphs,
     # Backward compatibility aliases
@@ -62,11 +63,15 @@ def cmd_analyze(args):
 
     print_analysis_summary(surface, itm, atm, gap_report)
 
-    # v3: Persist System Graph to database (always, for diff capability)
+    # Persist the full analysis as a session so the dashboard
+    # (doczot serve) picks it up, and the graph scan enables diffing.
     db_path = args.db_path or ".doczot/manifests.db"
     store = ManifestStore(db_path)
-    scan_id = store.save_system_graph(surface)
-    print(f"\nSystem graph saved to database: {scan_id}")
+    session_id = save_analysis_session(
+        store, repo_path, surface, itm, atm, gap_report
+    )
+    print(f"\nSaved analysis session: {session_id}")
+    print("View it in the dashboard with: doczot serve")
 
     # Save artifacts if requested
     if args.output:
