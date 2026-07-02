@@ -625,24 +625,33 @@ def generate_default_itm(graph: SystemGraph) -> TopicManifest:
         return f"topic_{topic_id_counter}"
 
     def verb_to_title(verb: SystemNode) -> str:
-        """Generate a readable title for an endpoint."""
+        """Generate a readable title for an endpoint.
+
+        Collection vs item is decided by whether the path ENDS with a
+        parameter, not whether one appears anywhere - otherwise nested
+        routes like /users/{id}/projects and /users/{id}/projects/{pid}
+        both become "Get projects".
+        """
+        from doczot_analyzer.scanner import _singularize
+
         method = verb.http_method or "CALL"
-        # Extract resource from path
         if verb.http_path:
-            parts = [p for p in verb.http_path.split('/') if p and not p.startswith('{')]
+            segments = [p for p in verb.http_path.split('/') if p]
+            parts = [p for p in segments if not p.startswith('{')]
             resource = parts[-1] if parts else "resource"
-            # Check if path has ID parameter
-            has_id = '{' in verb.http_path
-            if method == "GET" and not has_id:
+            singular = _singularize(resource)
+            # Item endpoint when the path ends with a parameter
+            targets_item = bool(segments) and segments[-1].startswith('{')
+            if method == "GET" and not targets_item:
                 return f"List {resource}"
-            elif method == "GET" and has_id:
-                return f"Get {resource}"
+            elif method == "GET":
+                return f"Get {singular} by id"
             elif method == "POST":
-                return f"Create {resource}"
+                return f"Create {singular}"
             elif method == "PUT" or method == "PATCH":
-                return f"Update {resource}"
+                return f"Update {singular}"
             elif method == "DELETE":
-                return f"Delete {resource}"
+                return f"Delete {singular}"
         return verb.name.replace("_", " ").title()
 
     # ==========================================================================
@@ -652,9 +661,36 @@ def generate_default_itm(graph: SystemGraph) -> TopicManifest:
     api_id = next_id()
     api_entity_ids = []
 
+    # Assign each verb to exactly one owner entity, preferring the noun
+    # that matches the endpoint's resource segment. Otherwise endpoints
+    # touching several entities (e.g. /users/{id}/projects operates on
+    # both user and project) get duplicate checklist topics, which also
+    # double-counts them as missing in the drift report.
+    from doczot_analyzer.scanner import _singularize
+
+    def resource_of(verb: SystemNode) -> str:
+        if not verb.http_path:
+            return ""
+        parts = [p for p in verb.http_path.split('/') if p and not p.startswith('{')]
+        return _singularize(parts[-1]) if parts else ""
+
+    verb_owner: dict[str, str] = {}
+    for noun in graph.nouns:
+        noun_singular = _singularize(noun.name)
+        for verb in graph.verbs_for_noun(noun.id):
+            if verb.id not in verb_owner:
+                verb_owner[verb.id] = noun.id
+            elif noun_singular == resource_of(verb):
+                verb_owner[verb.id] = noun.id
+
     # Create entity groups under API
     for noun in graph.nouns:
-        related_verbs = graph.verbs_for_noun(noun.id)
+        related_verbs = [
+            v for v in graph.verbs_for_noun(noun.id)
+            if verb_owner.get(v.id) == noun.id
+        ]
+        if not related_verbs:
+            continue  # All of this entity's endpoints belong to other groups
         entity_topic_id = next_id()
         api_entity_ids.append(entity_topic_id)
         endpoint_ids = []
