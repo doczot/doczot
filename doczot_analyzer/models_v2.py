@@ -175,6 +175,10 @@ class SystemGraph(BaseModel):
     nodes: list[SystemNode] = Field(default_factory=list)
     edges: list[SystemEdge] = Field(default_factory=list)
 
+    # Scan diagnostics (file counts, skip reasons) so empty results
+    # can explain themselves instead of failing silently
+    diagnostics: Optional[dict] = None
+
     # ==========================================================================
     # GRAPH ACCESSORS
     # ==========================================================================
@@ -352,6 +356,10 @@ class TopicManifest(BaseModel):
 
     # For ATM: quality scores per topic
     quality: dict[str, TopicQuality] = Field(default_factory=dict)
+
+    # For ATM: discovery diagnostics (doc files found, sections parsed,
+    # why sections didn't match) so 0-topic results explain themselves
+    diagnostics: Optional[dict] = None
 
     # ==========================================================================
     # TOPIC ACCESSORS

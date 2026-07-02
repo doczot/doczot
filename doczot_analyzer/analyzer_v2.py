@@ -234,8 +234,10 @@ def build_system_graph_python(
     if not product_name:
         product_name = Path(repo_path).name
 
-    # Scan code for endpoints
-    endpoints = scan_directory(repo_path)
+    # Scan code for endpoints (collecting diagnostics so empty results
+    # can explain what was skipped)
+    scan_stats: dict = {}
+    endpoints = scan_directory(repo_path, stats=scan_stats)
 
     nodes: list[SystemNode] = []
     edges: list[SystemEdge] = []
@@ -475,6 +477,7 @@ def build_system_graph_python(
         source_paths=[repo_path],
         nodes=unique_nodes,
         edges=unique_edges,
+        diagnostics={"scan": scan_stats},
     )
 
 
@@ -1053,6 +1056,7 @@ def discover_content_inventory(
     quality: dict[str, TopicQuality] = {}
     topic_id_counter = 0
     node_by_id = {n.id: n for n in graph.nodes}
+    unmatched_sections: list[dict] = []
 
     # Group doc chunks - README files by section, other files by file
     # key = (file_path, section_name) for READMEs, (file_path, None) for others
@@ -1289,6 +1293,22 @@ def discover_content_inventory(
             )
 
             quality[topic_id] = q
+        else:
+            # Record why this group produced no topic so 0%-coverage
+            # results can explain themselves
+            if group_content_len < MIN_CONTENT_LENGTH:
+                reason = (
+                    f"no endpoint or title match; too short for semantic "
+                    f"matching ({group_content_len} chars < {MIN_CONTENT_LENGTH})"
+                )
+            else:
+                reason = "no endpoint reference, title, or semantic match"
+            unmatched_sections.append({
+                "file": file_path,
+                "section": section_name,
+                "chars": group_content_len,
+                "reason": reason,
+            })
 
     # Enhance with doc graph: extract doc-side entities and use them
     # to identify additional coverage from entity mentions in docs
@@ -1333,12 +1353,27 @@ def discover_content_inventory(
     except Exception:
         pass  # Doc graph is optional enhancement
 
+    def _rel(p: str) -> str:
+        try:
+            return Path(p).relative_to(repo_path).as_posix()
+        except ValueError:
+            return Path(p).as_posix()
+
+    diagnostics = {
+        "doc_files_found": len(md_files),
+        "doc_files": [_rel(f) for f in md_files[:50]],
+        "sections_parsed": len(topic_groups),
+        "topics_created": len(topics),
+        "unmatched_sections": unmatched_sections[:100],
+    }
+
     return TopicManifest(
         manifest_type=ManifestType.ACTUAL,
         graph_id=f"{graph.product_name}:{graph.scanned_at.isoformat()}",
         product_name=graph.product_name,
         topics=topics,
         quality=quality,
+        diagnostics=diagnostics,
     )
 
 
@@ -1506,6 +1541,25 @@ def print_analysis_summary(
     print(f"Constraints: {len(graph.constraints)}")
     print(f"Edges: {len(graph.edges)}")
 
+    # Explain empty scans instead of failing silently
+    scan = (graph.diagnostics or {}).get("scan")
+    if not graph.verbs and scan is not None:
+        print("\n  Why 0 endpoints?")
+        print(f"    Python files found: {scan.get('files_seen', 0)}")
+        if scan.get("files_seen", 0) == 0:
+            print("    -> No .py files under this path. Is this the right directory?")
+        else:
+            print(f"    Scanned: {scan.get('files_scanned', 0)}"
+                  f" (no FastAPI routes detected in them)")
+            skipped = scan.get("skipped_by_dir_filter", 0)
+            if skipped:
+                print(f"    Skipped by directory filters"
+                      f" (tests/venv/examples/...): {skipped}")
+            if scan.get("skipped_test_files", 0):
+                print(f"    Skipped test files: {scan['skipped_test_files']}")
+            if scan.get("parse_errors", 0):
+                print(f"    Unparseable (syntax/encoding): {scan['parse_errors']}")
+
     # Coverage Checklist stats
     print(f"\n--- Coverage Checklist (Plan) ---")
     print(f"Total topics: {len(matrix.topics)}")
@@ -1521,6 +1575,22 @@ def print_analysis_summary(
     covered = inventory.covered_surface_ids()
     total_nodes = len(graph.user_facing_nodes())
     print(f"Graph coverage: {len(covered)}/{total_nodes}")
+
+    # Explain empty inventories instead of failing silently
+    diag = inventory.diagnostics or {}
+    if not inventory.topics and diag:
+        print("\n  Why 0 doc topics?")
+        n_files = diag.get("doc_files_found", 0)
+        if n_files == 0:
+            print("    No markdown files found (README.md, docs/, *.md in root).")
+        else:
+            print(f"    Doc files found: {n_files}"
+                  f" ({', '.join(diag.get('doc_files', [])[:5])})")
+            print(f"    Sections parsed: {diag.get('sections_parsed', 0)}"
+                  f" - none matched any code element")
+            for um in diag.get("unmatched_sections", [])[:5]:
+                section = um.get("section") or Path(um["file"]).name
+                print(f"      '{section}': {um['reason']}")
 
     # Drift Report
     print(f"\n--- Drift Report ---")

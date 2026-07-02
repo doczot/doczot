@@ -644,3 +644,26 @@ async def list_widgets():
 
         assert len(endpoints) == 1
         assert endpoints[0].file_path == "app.py"
+
+    def test_stats_report_skip_reasons(self, tmp_path):
+        """scan_directory populates diagnostics explaining what was skipped."""
+        from doczot_analyzer.scanner import scan_directory
+
+        project = tmp_path / "myapp"
+        (project / "tests").mkdir(parents=True)
+        (project / "app.py").write_text(self.FASTAPI_SOURCE)
+        (project / "helpers.py").write_text("x = 1\n")
+        (project / "broken.py").write_text("def broken(:\n")
+        (project / "test_app.py").write_text(self.FASTAPI_SOURCE)
+        (project / "tests" / "fixtures.py").write_text("y = 2\n")
+
+        stats = {}
+        endpoints = scan_directory(str(project), stats=stats)
+
+        assert len(endpoints) == 1
+        assert stats["files_seen"] == 5
+        assert stats["files_scanned"] == 2  # app.py + helpers.py
+        assert stats["files_with_endpoints"] == 1
+        assert stats["skipped_by_dir_filter"] == 1  # tests/fixtures.py
+        assert stats["skipped_test_files"] == 1  # test_app.py
+        assert stats["parse_errors"] == 1  # broken.py
