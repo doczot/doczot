@@ -8,6 +8,7 @@ Provides persistent storage for TopicManifest data with:
 
 import sqlite3
 import json
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -35,9 +36,24 @@ class ManifestStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
+    @contextmanager
+    def _connect(self):
+        """Open a connection that commits on success and always closes.
+
+        sqlite3's own context manager only manages the transaction, not
+        the connection; unclosed connections keep the database file
+        locked on Windows.
+        """
+        conn = sqlite3.connect(self.db_path)
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
+
     def _init_db(self) -> None:
         """Initialize database schema."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS manifests (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -224,7 +240,7 @@ class ManifestStore:
         """
         stats = manifest.coverage_stats()
 
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 INSERT OR REPLACE INTO manifests
                 (product_name, version, generated_at, total_topics,
@@ -252,7 +268,7 @@ class ManifestStore:
         Returns:
             The manifest if found, None otherwise
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             if version:
                 cursor = conn.execute("""
                     SELECT manifest_json FROM manifests
@@ -283,7 +299,7 @@ class ManifestStore:
         Returns:
             The manifest if found, None otherwise
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 SELECT manifest_json FROM manifests
                 WHERE id = ?
@@ -301,7 +317,7 @@ class ManifestStore:
         Returns:
             List of unique product names
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 SELECT DISTINCT product_name FROM manifests
                 ORDER BY product_name
@@ -322,7 +338,7 @@ class ManifestStore:
         Returns:
             List of manifest summaries
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             if product_name:
                 cursor = conn.execute("""
                     SELECT id, product_name, version, generated_at,
@@ -368,7 +384,7 @@ class ManifestStore:
         Returns:
             List of {date, coverage, documented, total} dicts
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 SELECT generated_at, coverage_percentage, documented, total_topics
                 FROM manifests
@@ -396,7 +412,7 @@ class ManifestStore:
         Returns:
             True if deleted, False if not found
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 DELETE FROM manifests WHERE id = ?
             """, (manifest_id,))
@@ -412,7 +428,7 @@ class ManifestStore:
         Returns:
             Number of manifests deleted
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 DELETE FROM manifests WHERE product_name = ?
             """, (product_name,))
@@ -432,7 +448,7 @@ class ManifestStore:
         """
         scan_id = f"{graph.product_name}:{graph.scanned_at.isoformat()}"
 
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             # Save scan metadata
             conn.execute("""
                 INSERT OR REPLACE INTO scans
@@ -505,7 +521,7 @@ class ManifestStore:
         Returns:
             The SystemGraph if found, None otherwise
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             # Get scan metadata
             if scan_id:
                 cursor = conn.execute("""
@@ -591,7 +607,7 @@ class ManifestStore:
         Returns:
             List of scan summaries
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             if product_name:
                 cursor = conn.execute("""
                     SELECT id, product_name, scanned_at, node_count, edge_count
@@ -626,7 +642,7 @@ class ManifestStore:
         Returns:
             True if deleted, False if not found
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 DELETE FROM scans WHERE id = ?
             """, (scan_id,))
@@ -648,7 +664,7 @@ class ManifestStore:
         Returns:
             The session ID
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             conn.execute("""
                 INSERT OR REPLACE INTO sessions
                 (id, product_name, repo_path, created_at, graph_scan_id,
@@ -674,7 +690,7 @@ class ManifestStore:
         Returns:
             Session dict or None if not found
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(
                 "SELECT * FROM sessions WHERE id = ?", (session_id,)
@@ -693,7 +709,7 @@ class ManifestStore:
         Returns:
             List of session summary dicts
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             if product_name:
                 cursor = conn.execute("""
                     SELECT id, product_name, repo_path, created_at, graph_scan_id
@@ -742,7 +758,7 @@ class ManifestStore:
             notes: Optional reviewer notes
             evidence_index: Which evidence item (optional)
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             conn.execute("""
                 INSERT OR REPLACE INTO judgments
                 (session_id, node_id, topic_id, evidence_index, judgment, notes, judged_at)
@@ -764,7 +780,7 @@ class ManifestStore:
         Returns:
             List of judgment dicts
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 SELECT id, session_id, node_id, topic_id, evidence_index,
                        judgment, notes, judged_at
@@ -803,7 +819,7 @@ class ManifestStore:
             The topic ID
         """
         topic_id = topic_data["id"]
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             conn.execute("""
                 INSERT OR REPLACE INTO custom_topics
                 (id, session_id, name, topic_type, description, covers,
@@ -829,7 +845,7 @@ class ManifestStore:
         Returns:
             List of custom topic dicts
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute("""
                 SELECT id, session_id, name, topic_type, description,
                        covers, parent_id, priority, created_at
@@ -877,7 +893,7 @@ class ManifestStore:
             return False
 
         params.append(topic_id)
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute(
                 f"UPDATE custom_topics SET {', '.join(set_clauses)} WHERE id = ?",
                 params,
@@ -891,7 +907,7 @@ class ManifestStore:
         Returns:
             True if deleted, False if not found
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._connect() as conn:
             cursor = conn.execute(
                 "DELETE FROM custom_topics WHERE id = ?", (topic_id,)
             )

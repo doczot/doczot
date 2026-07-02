@@ -706,9 +706,10 @@ def extract_concepts_from_docs(repo_path: str) -> list[dict]:
             continue
 
         try:
-            rel_path = str(Path(file_path).relative_to(repo_path))
+            # as_posix() keeps source_file paths stable across platforms
+            rel_path = Path(file_path).relative_to(repo_path).as_posix()
         except ValueError:
-            rel_path = file_path
+            rel_path = Path(file_path).as_posix()
 
         # Pattern 1: ## or ### Header followed by definition text
         header_pattern = r'^(#{2,3})\s+(.+?)\n+(.+?)(?=\n#{1,3}\s|\Z)'
