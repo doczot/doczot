@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "doczot-dashboard",
+      "runtimeExecutable": ".venv\\Scripts\\python.exe",
+      "runtimeArgs": ["-m", "doczot_analyzer.cli_v2", "serve", ".", "--no-open", "--port", "8456"],
+      "port": 8456
+    }
+  ]
+}

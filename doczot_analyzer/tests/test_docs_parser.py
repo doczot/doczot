@@ -602,3 +602,41 @@ class TestMatchingEndpoints:
         )
 
         assert doc_ref.matches_endpoint(endpoint) is False
+
+
+class TestFindMarkdownFilesAncestorDirs:
+    """Regression tests: filters must only apply below the search root."""
+
+    def test_finds_docs_under_hidden_ancestor_dir(self, tmp_path):
+        """A search root nested under a dot-directory still yields docs."""
+        project = tmp_path / ".workspaces" / "myrepo"
+        project.mkdir(parents=True)
+        (project / "README.md").write_text("# Project\n\nDocs here.")
+
+        files = find_markdown_files(str(project))
+
+        assert len(files) == 1
+        assert "README.md" in files[0]
+
+    def test_finds_docs_under_translation_named_ancestor(self, tmp_path):
+        """An ancestor dir named like a language code ('it') is ignored."""
+        project = tmp_path / "it" / "myrepo"
+        (project / "docs").mkdir(parents=True)
+        (project / "docs" / "api.md").write_text("# API")
+
+        files = find_markdown_files(str(project))
+
+        assert len(files) == 1
+
+    def test_still_skips_hidden_and_translation_dirs_below_root(self, tmp_path):
+        """Hidden and translation dirs inside the root are still skipped."""
+        (tmp_path / ".github").mkdir()
+        (tmp_path / ".github" / "PULL_REQUEST_TEMPLATE.md").write_text("x")
+        (tmp_path / "docs" / "zh").mkdir(parents=True)
+        (tmp_path / "docs" / "zh" / "api.md").write_text("# API")
+        (tmp_path / "docs" / "api.md").write_text("# API")
+
+        files = find_markdown_files(str(tmp_path))
+
+        assert len(files) == 1
+        assert "zh" not in files[0]

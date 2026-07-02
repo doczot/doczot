@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Optional
 import re
 
-from doczot_analyzer.scanner import scan_directory
+from doczot_analyzer.scanner import scan_directory, _singularize
 from doczot_analyzer.docs_parser import (
     scan_documentation,
     parse_markdown_chunks,
@@ -706,9 +706,10 @@ def extract_concepts_from_docs(repo_path: str) -> list[dict]:
             continue
 
         try:
-            rel_path = str(Path(file_path).relative_to(repo_path))
+            # as_posix() keeps source_file paths stable across platforms
+            rel_path = Path(file_path).relative_to(repo_path).as_posix()
         except ValueError:
-            rel_path = file_path
+            rel_path = Path(file_path).as_posix()
 
         # Pattern 1: ## or ### Header followed by definition text
         header_pattern = r'^(#{2,3})\s+(.+?)\n+(.+?)(?=\n#{1,3}\s|\Z)'
@@ -962,6 +963,29 @@ def _find_git_root(start_path: str) -> Optional[str]:
     return None
 
 
+def _match_title_to_nodes(title: str, nodes: list[SystemNode]) -> list[SystemNode]:
+    """Match a doc section/file title to noun and concept nodes by name.
+
+    A section titled after an entity or concept ("Users", "Rate Limiting")
+    documents that node even when the prose is short, so this match does
+    not depend on content length. Comparison is case-insensitive and
+    singular/plural-insensitive.
+    """
+    title_norm = title.strip().lower()
+    if not title_norm:
+        return []
+    title_singular = _singularize(title_norm)
+
+    matched = []
+    for node in nodes:
+        if node.type not in (NodeType.NOUN, NodeType.CONCEPT):
+            continue
+        node_name = node.name.strip().lower()
+        if title_norm == node_name or title_singular == _singularize(node_name):
+            matched.append(node)
+    return matched
+
+
 def discover_content_inventory(
     repo_path: str,
     graph: SystemGraph,
@@ -1028,6 +1052,7 @@ def discover_content_inventory(
     topics: list[Topic] = []
     quality: dict[str, TopicQuality] = {}
     topic_id_counter = 0
+    node_by_id = {n.id: n for n in graph.nodes}
 
     # Group doc chunks - README files by section, other files by file
     # key = (file_path, section_name) for READMEs, (file_path, None) for others
@@ -1106,7 +1131,26 @@ def discover_content_inventory(
                         match_detail=f"{node.http_method} {node.http_path} found in text",
                     ))
 
-        # Strategy 2: Semantic similarity search (stricter threshold)
+        # Strategy 2: Section-title match to nouns/concepts (deterministic).
+        # Applies regardless of content length: a short section titled
+        # "Users" or "Rate Limiting" still documents that node, whereas
+        # the semantic strategy below requires substantial prose.
+        topic_title = section_name or Path(file_path).stem.replace("-", " ").replace("_", " ")
+        for node in _match_title_to_nodes(topic_title, graph.user_facing_nodes()):
+            if node.id in covered_ids:
+                continue
+            covered_ids.add(node.id)
+            evidence_list.append(MatchEvidence(
+                node_id=node.id,
+                strategy="title_match",
+                confidence=0.9,
+                doc_file=file_path,
+                doc_section=section_name,
+                doc_snippet=group_content[:200],
+                match_detail=f"section title '{topic_title.strip()}' matches {node.type.value} '{node.name}'",
+            ))
+
+        # Strategy 3: Semantic similarity search (stricter threshold)
         # Only count a match if the doc has enough substance to be
         # genuine documentation, not just a passing mention.
         SEMANTIC_THRESHOLD = 0.35
@@ -1134,41 +1178,48 @@ def discover_content_inventory(
 
                 sig = ' '.join(sig_parts)
 
-                results = vector_store.search(sig, limit=1)
-                if results:
-                    chunk, score = results[0]
-                    if chunk.file_path == file_path and score >= SEMANTIC_THRESHOLD:
-                        matched = False
-                        if section_name:
-                            section_parts = (chunk.section_header or "").split(' > ')
-                            if len(section_parts) >= 2:
-                                chunk_h2_section = section_parts[1].strip()
-                            elif len(section_parts) == 1:
-                                chunk_h2_section = section_parts[0].strip()
-                            else:
-                                chunk_h2_section = ""
-                            if chunk_h2_section == section_name:
-                                matched = True
+                # Consider the top few hits, not just the single best one,
+                # so a chunk from another file can't shadow a genuine match
+                # in this topic's file/section.
+                for chunk, score in vector_store.search(sig, limit=5):
+                    if score < SEMANTIC_THRESHOLD:
+                        break  # results are sorted by score
+                    if chunk.file_path != file_path:
+                        continue
+                    if section_name:
+                        section_parts = (chunk.section_header or "").split(' > ')
+                        if len(section_parts) >= 2:
+                            chunk_h2_section = section_parts[1].strip()
+                        elif len(section_parts) == 1:
+                            chunk_h2_section = section_parts[0].strip()
                         else:
-                            matched = True
+                            chunk_h2_section = ""
+                        if chunk_h2_section != section_name:
+                            continue
 
-                        if matched:
-                            covered_ids.add(node.id)
-                            evidence_list.append(MatchEvidence(
-                                node_id=node.id,
-                                strategy="semantic",
-                                confidence=round(score, 3),
-                                doc_file=file_path,
-                                doc_section=chunk.section_header,
-                                doc_snippet=chunk.content[:200],
-                                match_detail=f"similarity: {score:.3f}",
-                            ))
+                    covered_ids.add(node.id)
+                    evidence_list.append(MatchEvidence(
+                        node_id=node.id,
+                        strategy="semantic",
+                        confidence=round(score, 3),
+                        doc_file=file_path,
+                        doc_section=chunk.section_header,
+                        doc_snippet=chunk.content[:200],
+                        match_detail=f"similarity: {score:.3f}",
+                    ))
+                    break
 
         if covered_ids:  # Only create topic if it covers something
+            # Reference if the topic documents any endpoint; concept if it
+            # only covers nouns/concepts (e.g. a "Rate Limiting" section).
+            node_types = {node_by_id[nid].type for nid in covered_ids if nid in node_by_id}
+            inferred_type = (
+                TopicType.REFERENCE if NodeType.VERB in node_types else TopicType.CONCEPT
+            )
             topic = Topic(
                 id=topic_id,
                 name=name,
-                topic_type=TopicType.REFERENCE,  # Default
+                topic_type=inferred_type,
                 covers=list(covered_ids),
                 match_evidence=evidence_list,
                 source_file=file_path,
@@ -1321,6 +1372,55 @@ def analyze_repository(
     drift_report = compute_drift_report(graph, matrix, inventory)
 
     return graph, matrix, inventory, drift_report
+
+
+def save_analysis_session(
+    store,
+    repo_path: str,
+    graph: SystemGraph,
+    matrix: TopicManifest,
+    inventory: TopicManifest,
+    drift: DriftReport,
+    session_id: Optional[str] = None,
+) -> str:
+    """Persist a full analysis as a session visible in the dashboard.
+
+    Saves the system graph as a scan, extracts the doc graph, and writes
+    a session row tying them together. Used by both the CLI and the
+    dashboard so results show up in one place regardless of entry point.
+
+    Returns:
+        The session ID
+    """
+    import uuid
+    from datetime import datetime
+
+    from doczot_analyzer.doc_graph import extract_doc_graph
+
+    if session_id is None:
+        session_id = f"session_{uuid.uuid4().hex[:12]}"
+
+    scan_id = store.save_system_graph(graph)
+
+    try:
+        doc_graph = extract_doc_graph(repo_path, graph)
+        doc_graph_json = doc_graph.model_dump_json()
+    except Exception:
+        doc_graph_json = None
+
+    store.save_session({
+        "id": session_id,
+        "product_name": graph.product_name,
+        "repo_path": str(Path(repo_path).resolve()),
+        "created_at": datetime.now().isoformat(),
+        "graph_scan_id": scan_id,
+        "itm_json": matrix.model_dump_json(),
+        "atm_json": inventory.model_dump_json(),
+        "drift_json": drift.model_dump_json(),
+        "doc_graph_json": doc_graph_json,
+    })
+
+    return session_id
 
 
 def diff_system_graphs(old: SystemGraph, new: SystemGraph) -> dict:

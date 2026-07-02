@@ -262,7 +262,7 @@ class MatchEvidence(BaseModel):
     validate whether matches are correct or spurious.
     """
     node_id: str
-    strategy: Literal["direct_reference", "semantic"]
+    strategy: Literal["direct_reference", "title_match", "semantic"]
     confidence: float  # 0.0-1.0
     doc_file: str
     doc_section: Optional[str] = None
