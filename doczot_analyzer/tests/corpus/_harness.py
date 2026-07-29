@@ -369,6 +369,7 @@ def score_case(case_dir: Path, tmp_root: Path) -> CaseResult:
                 detail=f"reported {pct}%, expected {lo}–{hi}%",
             )
         )
+        result.checks.append(_band_matches_labels(key, lo, hi))
 
     # --- inventory containment --------------------------------------------
     # Every documentation source credited as coverage must live inside the
@@ -414,6 +415,48 @@ def score_case(case_dir: Path, tmp_root: Path) -> CaseResult:
         )
 
     return result
+
+
+def _band_matches_labels(key: dict, lo: float, hi: float) -> Check:
+    """Verify the expected coverage band is what the labels imply.
+
+    Operation coverage is a plain ratio of documented operations to total
+    operations, so the expected value is not a matter of taste — it follows
+    arithmetically from the documented/undocumented lists. Checking that here
+    makes a band physically unable to drift from its own labels, which is the
+    one edit that would quietly destroy this corpus's value: widening a
+    tolerance, or nudging a number, to make a failing case pass.
+
+    A case that genuinely needs a range (because operation counting excludes
+    some endpoints, say) must say so by disagreeing here deliberately.
+    """
+    documented = (
+        len(key.get("documented_endpoints", []))
+        + len(key.get("documented_cli_commands", []))
+    )
+    total = documented + (
+        len(key.get("undocumented_endpoints", []))
+        + len(key.get("undocumented_cli_commands", []))
+    )
+
+    if not total:
+        return Check(
+            name="coverage_band_matches_labels",
+            passed=True,
+            detail="no operation labels to derive from",
+        )
+
+    derived = round(documented / total * 100, 1)
+    passed = lo <= derived <= hi
+
+    return Check(
+        name="coverage_band_matches_labels",
+        passed=passed,
+        detail=(
+            f"labels imply {derived}% ({documented}/{total}), "
+            f"band is {lo}–{hi}%"
+        ),
+    )
 
 
 def _classify_check(
