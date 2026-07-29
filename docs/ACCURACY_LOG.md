@@ -6,6 +6,96 @@ first. The `doczot-tester` agent appends here.
 
 ---
 
+## 2026-07-29 (later) — Real repositories contradicted the synthetic fixture
+
+Ran against four cloned FastAPI projects to answer questions the corpus
+structurally cannot, since the same author wrote both the code and the labels.
+The headline result is a **negative** one: the cross-file `include_router` fix
+from earlier today did not work on either real repository it was designed for.
+
+```
+repo                                    endpoints  operation coverage
+full-stack-fastapi-template (backend/)     23        0.0%  (0/23)
+seapagan/fastapi-template                  27       92.6%  (25/27)
+benavlabs/FastAPI-boilerplate (backend/)   30        0.0%  (0/30)
+mehmetext/fastapi-blog-api                  6      100.0%  (6/6)
+```
+
+### The synthetic fixture was too kind
+
+`fastapi_router_prefix` used a literal `prefix="/api/v1"` and no import
+aliasing. Both real repos do neither, and both reported paths their services do
+not serve:
+
+**Settings-constant prefixes.** FastAPI's own template writes
+`app.include_router(api_router, prefix=settings.API_V1_STR)` against
+`API_V1_STR: str = "/api/v1"` on a Pydantic settings class. The extractor
+accepted only `ast.Constant`, so every path lost `/api/v1`. FIXED —
+`_collect_string_constants()` gathers string constants project-wide and
+`_resolve_prefix_value()` resolves a literal, a bare name, an attribute such as
+`settings.API_V1_STR`, `+` concatenation, and f-strings. Unresolvable values
+still yield `""`, leaving the path bare: a visibly incomplete path is better
+than a fabricated one that looks authoritative. `scanner.py:398`.
+
+**Alias-imported routers.** `from src.modules.user.routes import router as
+users_router` was recorded under the local alias while the declaration is
+`router`, so every lookup missed. FastAPI-boilerplate aliases every router it
+imports, so it lost every prefix. FIXED — `ImportScope` now carries
+(module, original name). `scanner.py:347`.
+
+full-stack-fastapi-template now reports `/api/v1/users/`, `/api/v1/items/{id}`
+and so on. Tests: `TestCrossFileRouterPrefixes`, four cases drawn from the
+patterns these repos actually use.
+
+**Application-factory wiring — NOT FIXED.** benavlabs passes the router into
+`create_application(router: APIRouter)`, which calls
+`application.include_router(router)` on a *parameter*. The app and its router are
+connected only at the call site, so linking them needs interprocedural analysis:
+find calls to the factory and read the argument bound to `router`. Recorded as
+corpus case `fastapi_app_factory`, marked `known_failing` with the mechanism.
+Implementing it should make that case XPASS.
+
+### Q2 — is the verb rule too strict? Evidence says no
+
+seapagan/fastapi-template, the repo with real mkdocs documentation across 24
+files, scores **92.6% (25/27)** under the strict method+path rule. A rule that
+credits 25 of 27 operations on genuinely-written documentation is not starving
+real docs of credit. blog-api scores 100% (6/6) from a README alone.
+
+Caveat before treating this as settled: seapagan counts `GET /` and
+`GET /favicon.ico` as operations, which inflates the denominator with things
+nobody would document. Whether such routes belong in `operations_total` is a
+separate question worth its own decision.
+
+### Q3 — does the manifest boundary under-reach? Yes, measurably
+
+Analyzing `benavlabs/backend` yields **zero** doc sources: `backend/` has its own
+`pyproject.toml`, so the boundary stops there and the project's real
+documentation — 21 files under a root `docs/`, including one named
+`user-guide/api/endpoints.md` — is excluded. full-stack loses 4 root files the
+same way (`README.md`, `development.md`, `deployment.md`).
+
+Coverage did not move when the boundary was widened to the git root in either
+case, but that is **not** evidence the boundary is harmless: the endpoint paths
+were wrong at the time, so no document could have matched them. The measurement
+needs repeating now that paths are correct. A `--doc-root` override, or
+preferring the outermost manifest, is the likely resolution.
+
+### Determinism and cost
+
+Two consecutive analyses of the same repo agree exactly on endpoints, nouns,
+concepts, operation counts, uncovered operations and doc sources — the recursive
+include-graph walk is stable.
+
+Timing is uneven and worth attention: 1.2s (benavlabs, no docs found), 3.5s
+(blog-api), 7.7s (full-stack), **341.5s** (seapagan, 24 doc sources). The
+semantic strategy performs one model encode per (topic group x node) with no
+query-embedding cache, so cost grows multiplicatively with documentation size.
+Restricting verbs to referential matching already cut the node count for that
+loop; caching the encoded signature per node would cut it much further.
+
+---
+
 ## 2026-07-29 — Corpus introduced; nine defects fixed
 
 The unit suite was fully green (250 passed, 1 skipped) while the tool reported

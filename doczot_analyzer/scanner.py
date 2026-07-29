@@ -10,7 +10,7 @@ import ast
 import os
 import re
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import List, NamedTuple, Optional, Set
 
 from doczot_analyzer.models import Endpoint, Parameter
 
@@ -344,19 +344,39 @@ def _module_name_for(relative_path: Path) -> str:
     return ".".join(parts)
 
 
-def _collect_import_aliases(tree: ast.Module, module_name: str) -> dict[str, str]:
-    """Map local names to the modules they came from.
+class ImportScope(NamedTuple):
+    """What the names visible in one module refer to.
 
-    Handles the two shapes that matter for router resolution:
+    ``names`` maps a local name to the (module, original name) it was imported
+    under. Keeping the *original* name matters: ``from src.modules.user.routes
+    import router as users_router`` makes ``users_router`` locally, but the
+    router is declared as ``router`` in that module, so looking it up under the
+    alias finds nothing.
 
-    - ``from app.api.main import api_router`` -> ``api_router`` lives in
-      ``app.api.main``
-    - ``from app.api.routes import invoices`` -> ``invoices`` *is* the module
-      ``app.api.routes.invoices``
+    ``modules`` maps a local name that refers to a module rather than a value,
+    which is what ``invoices.router`` needs.
+    """
+
+    names: dict[str, tuple[str, str]]
+    modules: dict[str, str]
+
+
+def _collect_import_aliases(tree: ast.Module, module_name: str) -> ImportScope:
+    """Map local names to the modules and original names they came from.
+
+    Handles the shapes that matter for router resolution:
+
+    - ``from app.api.main import api_router`` -> ``api_router`` is ``api_router``
+      in ``app.api.main``
+    - ``from x.routes import router as users_router`` -> ``users_router`` is
+      ``router`` in ``x.routes``
+    - ``from app.api.routes import invoices`` -> ``invoices`` may itself be the
+      module ``app.api.routes.invoices``
 
     Relative imports resolve against the importing module's own package.
     """
-    aliases: dict[str, str] = {}
+    names: dict[str, tuple[str, str]] = {}
+    modules: dict[str, str] = {}
     package = module_name.rsplit(".", 1)[0] if "." in module_name else ""
 
     for node in ast.walk(tree):
@@ -371,50 +391,131 @@ def _collect_import_aliases(tree: ast.Module, module_name: str) -> dict[str, str
                 base = ".".join(filter(None, [".".join(pkg_parts), base]))
             for alias in node.names:
                 local = alias.asname or alias.name
-                aliases[local] = base
-                # The imported name may itself be a submodule, so record the
-                # fully-qualified form too and let the caller try both.
-                aliases[f"{local}:module"] = (
-                    f"{base}.{alias.name}" if base else alias.name
-                )
+                names[local] = (base, alias.name)
+                # The imported name may itself be a submodule.
+                modules[local] = f"{base}.{alias.name}" if base else alias.name
         elif isinstance(node, ast.Import):
             for alias in node.names:
                 local = alias.asname or alias.name.split(".")[0]
-                aliases[f"{local}:module"] = alias.name
+                modules[local] = alias.name
 
-    return aliases
+    return ImportScope(names=names, modules=modules)
+
+
+def _collect_string_constants(tree: ast.Module) -> dict[str, str]:
+    """Collect string constants declared anywhere in a module.
+
+    Real projects rarely inline the API prefix. FastAPI's own
+    full-stack-fastapi-template writes
+    ``app.include_router(api_router, prefix=settings.API_V1_STR)`` against a
+    Pydantic settings class holding ``API_V1_STR: str = "/api/v1"``. Accepting
+    only literals meant the canonical layout silently lost its prefix and every
+    reported path named a URL the service does not serve.
+
+    Keyed by bare name, which is what both ``settings.API_V1_STR`` and a
+    module-level ``API_PREFIX`` need. Collisions across modules are possible but
+    harmless here: these are near-always uppercase configuration constants, and
+    an unresolved prefix degrades to the previous behaviour rather than to a
+    wrong one.
+    """
+    constants: dict[str, str] = {}
+
+    for node in ast.walk(tree):
+        target = None
+        value = None
+
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            target, value = node.target.id, node.value
+        elif isinstance(node, ast.Assign) and len(node.targets) == 1:
+            if isinstance(node.targets[0], ast.Name):
+                target, value = node.targets[0].id, node.value
+
+        if target is None or value is None:
+            continue
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            constants.setdefault(target, value.value)
+
+    return constants
+
+
+def _resolve_prefix_value(
+    node: Optional[ast.expr], constants: dict[str, str]
+) -> str:
+    """Resolve a prefix keyword argument to a string.
+
+    Accepts a literal, a bare constant name, an attribute access such as
+    ``settings.API_V1_STR``, and simple concatenation of those. Returns "" when
+    the value cannot be determined statically, which leaves the path unprefixed
+    exactly as before rather than guessing.
+    """
+    if node is None:
+        return ""
+
+    if isinstance(node, ast.Constant):
+        return node.value if isinstance(node.value, str) else ""
+
+    if isinstance(node, ast.Name):
+        return constants.get(node.id, "")
+
+    if isinstance(node, ast.Attribute):
+        # settings.API_V1_STR / config.settings.API_V1_STR
+        return constants.get(node.attr, "")
+
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        return (
+            _resolve_prefix_value(node.left, constants)
+            + _resolve_prefix_value(node.right, constants)
+        )
+
+    if isinstance(node, ast.JoinedStr):
+        # f"{settings.API_V1_STR}/extra"
+        parts = []
+        for value in node.values:
+            if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                parts.append(value.value)
+            elif isinstance(value, ast.FormattedValue):
+                parts.append(_resolve_prefix_value(value.value, constants))
+            else:
+                return ""
+        return "".join(parts)
+
+    return ""
 
 
 def _resolve_router_ref(
-    arg: ast.expr, module_name: str, aliases: dict[str, str]
+    arg: ast.expr, module_name: str, scope: ImportScope
 ) -> Optional[tuple[str, str]]:
     """Resolve the first argument of an include_router call to (module, var).
 
     ``include_router(api_router)`` resolves through the import that brought
-    ``api_router`` into scope; ``include_router(invoices.router)`` resolves the
-    ``invoices`` prefix to a module and takes ``router`` as the variable.
-    Returns None for shapes we cannot resolve statically.
+    ``api_router`` into scope, under the name it was *declared* with rather than
+    the local alias; ``include_router(invoices.router)`` resolves ``invoices``
+    to a module and takes ``router`` as the variable. Returns None for shapes we
+    cannot resolve statically.
     """
     if isinstance(arg, ast.Name):
-        owner = aliases.get(arg.id)
+        imported = scope.names.get(arg.id)
+        if imported is not None:
+            owner_module, original_name = imported
+            return (owner_module or module_name, original_name)
         # A router defined in this same file has no import entry.
-        return (owner if owner is not None else module_name, arg.id)
+        return (module_name, arg.id)
 
     if isinstance(arg, ast.Attribute) and isinstance(arg.value, ast.Name):
         holder = arg.value.id
-        holder_module = aliases.get(f"{holder}:module")
+        holder_module = scope.modules.get(holder)
         if holder_module:
             return (holder_module, arg.attr)
-        owner = aliases.get(holder)
-        if owner:
-            return (f"{owner}.{holder}", arg.attr)
         return (f"{module_name}.{holder}", arg.attr)
 
     return None
 
 
 def _extract_include_router_calls(
-    tree: ast.Module, module_name: str, aliases: dict[str, str]
+    tree: ast.Module,
+    module_name: str,
+    scope: ImportScope,
+    constants: dict[str, str],
 ) -> list[tuple[str, tuple[str, str]]]:
     """Find include_router calls and the prefix each one contributes.
 
@@ -433,15 +534,14 @@ def _extract_include_router_calls(
         if not node.args:
             continue
 
-        child = _resolve_router_ref(node.args[0], module_name, aliases)
+        child = _resolve_router_ref(node.args[0], module_name, scope)
         if child is None:
             continue
 
         prefix = ""
         for keyword in node.keywords:
-            if keyword.arg == "prefix" and isinstance(keyword.value, ast.Constant):
-                if isinstance(keyword.value.value, str):
-                    prefix = keyword.value.value
+            if keyword.arg == "prefix":
+                prefix = _resolve_prefix_value(keyword.value, constants)
                 break
 
         includes.append((prefix, child))
@@ -483,6 +583,13 @@ def build_router_prefix_map(directory_path: str) -> dict[tuple[str, str], str]:
     app_includes: list[tuple[str, tuple[str, str]]] = []
     app_vars: set[tuple[str, str]] = set()
 
+    # Pass 1: parse every file once, recording router declarations, app objects
+    # and string constants. Constants must be known project-wide before includes
+    # are read, because a prefix is routinely a settings attribute defined in a
+    # different file than the include_router call that uses it.
+    parsed: list[tuple[str, ast.Module]] = []
+    constants: dict[str, str] = {}
+
     for py_file in directory.rglob("*.py"):
         try:
             relative = py_file.relative_to(directory)
@@ -497,12 +604,17 @@ def build_router_prefix_map(directory_path: str) -> dict[tuple[str, str], str]:
             continue
 
         module_name = _module_name_for(relative)
-        aliases = _collect_import_aliases(tree, module_name)
+        parsed.append((module_name, tree))
 
         for var, prefix in _extract_router_prefixes(tree).items():
             own_prefix[(module_name, var)] = prefix
 
-        # Identify FastAPI() app objects so their includes seed the walk.
+        for name, value in _collect_string_constants(tree).items():
+            constants.setdefault(name, value)
+
+        # Identify FastAPI() app objects so their includes seed the walk. The
+        # assignment may sit inside an application-factory function, so this
+        # walks the whole tree rather than module level only.
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign) and isinstance(node.value, ast.Call):
                 func = node.value.func
@@ -515,10 +627,14 @@ def build_router_prefix_map(directory_path: str) -> dict[tuple[str, str], str]:
                         if isinstance(target, ast.Name):
                             app_vars.add((module_name, target.id))
 
+    # Pass 2: read the include graph, now able to resolve non-literal prefixes.
+    for module_name, tree in parsed:
+        scope = _collect_import_aliases(tree, module_name)
+
         for prefix, child in _extract_include_router_calls(
-            tree, module_name, aliases
+            tree, module_name, scope, constants
         ):
-            parent = _include_parent(tree, module_name, aliases, child)
+            parent = _include_parent(tree, module_name, scope, child)
             if parent is not None and parent in app_vars:
                 app_includes.append((prefix, child))
             elif parent is not None:
@@ -548,7 +664,7 @@ def build_router_prefix_map(directory_path: str) -> dict[tuple[str, str], str]:
 def _include_parent(
     tree: ast.Module,
     module_name: str,
-    aliases: dict[str, str],
+    scope: ImportScope,
     child: tuple[str, str],
 ) -> Optional[tuple[str, str]]:
     """Find which object called include_router for a given child router."""
@@ -560,7 +676,7 @@ def _include_parent(
             continue
         if not node.args:
             continue
-        if _resolve_router_ref(node.args[0], module_name, aliases) != child:
+        if _resolve_router_ref(node.args[0], module_name, scope) != child:
             continue
         if isinstance(func.value, ast.Name):
             return (module_name, func.value.id)

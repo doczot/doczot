@@ -749,3 +749,155 @@ class TestSingularize:
     def test_singularize_ambiguous_s_stems(self, plural, expected):
         from doczot_analyzer.scanner import _singularize
         assert _singularize(plural) == expected
+
+
+class TestCrossFileRouterPrefixes:
+    """Test include_router prefix resolution across files.
+
+    Every pattern here was found by running against real cloned repositories.
+    The synthetic fixture that originally covered this feature used a literal
+    prefix and no import aliasing, so it passed while both
+    full-stack-fastapi-template and FastAPI-boilerplate reported paths their
+    services do not serve.
+    """
+
+    def test_prefix_from_settings_constant(self, tmp_path):
+        """prefix=settings.API_V1_STR must resolve to its literal value.
+
+        This is FastAPI's own full-stack-fastapi-template. Accepting only
+        ast.Constant meant the canonical layout silently lost /api/v1 from
+        every path.
+        """
+        (tmp_path / "app" / "core").mkdir(parents=True)
+        (tmp_path / "app" / "api").mkdir(parents=True)
+
+        (tmp_path / "app" / "core" / "config.py").write_text('''
+class Settings:
+    API_V1_STR: str = "/api/v1"
+
+settings = Settings()
+''')
+        (tmp_path / "app" / "api" / "routes.py").write_text('''
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+@router.get("/")
+def list_users():
+    """List users."""
+    return []
+''')
+        (tmp_path / "app" / "api" / "main.py").write_text('''
+from fastapi import APIRouter
+from app.api import routes
+
+api_router = APIRouter()
+api_router.include_router(routes.router)
+''')
+        (tmp_path / "app" / "main.py").write_text('''
+from fastapi import FastAPI
+from app.api.main import api_router
+from app.core.config import settings
+
+app = FastAPI()
+app.include_router(api_router, prefix=settings.API_V1_STR)
+''')
+
+        from doczot_analyzer.scanner import scan_directory
+        paths = {f"{e.method} {e.path}" for e in scan_directory(str(tmp_path))}
+
+        assert paths == {"GET /api/v1/users/"}
+
+    def test_prefix_from_module_level_constant(self, tmp_path):
+        """prefix=API_PREFIX must resolve to its literal value."""
+        (tmp_path / "routes.py").write_text('''
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/items")
+
+@router.get("/{item_id}")
+def get_item(item_id: int):
+    """Get an item."""
+    return {}
+''')
+        (tmp_path / "main.py").write_text('''
+from fastapi import FastAPI
+import routes
+
+API_PREFIX = "/v2"
+
+app = FastAPI()
+app.include_router(routes.router, prefix=API_PREFIX)
+''')
+
+        from doczot_analyzer.scanner import scan_directory
+        paths = {f"{e.method} {e.path}" for e in scan_directory(str(tmp_path))}
+
+        assert paths == {"GET /v2/items/{item_id}"}
+
+    def test_router_imported_under_an_alias(self, tmp_path):
+        """`import router as users_router` must resolve to the declared name.
+
+        The alias map recorded the local name and discarded the original, so
+        the lookup key was (module, "users_router") while the declaration was
+        (module, "router"). Every prefix in FastAPI-boilerplate was lost this
+        way, since it aliases every router it imports.
+        """
+        (tmp_path / "modules").mkdir()
+        (tmp_path / "api").mkdir()
+
+        (tmp_path / "modules" / "user_routes.py").write_text('''
+from fastapi import APIRouter
+
+router = APIRouter(tags=["Users"])
+
+@router.delete("/{username}")
+def delete_user(username: str):
+    """Delete a user."""
+    return {}
+''')
+        (tmp_path / "api" / "v1.py").write_text('''
+from fastapi import APIRouter
+from modules.user_routes import router as users_router
+
+router = APIRouter(prefix="/v1")
+router.include_router(users_router, prefix="/users")
+''')
+        (tmp_path / "main.py").write_text('''
+from fastapi import FastAPI
+from api.v1 import router as v1_router
+
+app = FastAPI()
+app.include_router(v1_router, prefix="/api")
+''')
+
+        from doczot_analyzer.scanner import scan_directory
+        paths = {f"{e.method} {e.path}" for e in scan_directory(str(tmp_path))}
+
+        assert paths == {"DELETE /api/v1/users/{username}"}
+
+    def test_unresolvable_prefix_degrades_rather_than_guessing(self, tmp_path):
+        """A prefix that cannot be resolved statically leaves the path bare.
+
+        Reporting a wrong prefix is worse than reporting none: a bare path is
+        visibly incomplete, whereas a fabricated one looks authoritative.
+        """
+        (tmp_path / "main.py").write_text('''
+from fastapi import APIRouter, FastAPI
+import os
+
+router = APIRouter(prefix="/things")
+
+@router.get("/")
+def list_things():
+    """List things."""
+    return []
+
+app = FastAPI()
+app.include_router(router, prefix=os.environ["DYNAMIC_PREFIX"])
+''')
+
+        from doczot_analyzer.scanner import scan_directory
+        paths = {f"{e.method} {e.path}" for e in scan_directory(str(tmp_path))}
+
+        assert paths == {"GET /things/"}
