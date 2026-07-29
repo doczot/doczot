@@ -667,3 +667,85 @@ async def list_widgets():
         assert stats["skipped_by_dir_filter"] == 1  # tests/fixtures.py
         assert stats["skipped_test_files"] == 1  # test_app.py
         assert stats["parse_errors"] == 1  # broken.py
+
+
+class TestSingularize:
+    """Test plural-to-singular conversion.
+
+    Noun spelling is load-bearing: path segments, type names and doc section
+    titles are all reduced with _singularize() and then compared to each other.
+    A wrong stem silently splits one entity into two and breaks title matching.
+    """
+
+    @pytest.mark.parametrize("plural,expected", [
+        # Stem ends in "e" — only the "s" is the plural marker. Blanket "es"
+        # stripping produced "invoic"/"warehous"/"venu"/"workspac" here.
+        ("invoices", "invoice"),
+        ("warehouses", "warehouse"),
+        ("venues", "venue"),
+        ("workspaces", "workspace"),
+        ("packages", "package"),
+        ("templates", "template"),
+        # Sibilant and affricate stems — "es" really is the suffix.
+        ("boxes", "box"),
+        ("buses", "bus"),
+        ("batches", "batch"),
+        ("dishes", "dish"),
+        ("heroes", "hero"),
+        # Consonant + y plurals.
+        ("categories", "category"),
+        ("properties", "property"),
+        ("cities", "city"),
+        # Short -ies words where "ie" belongs to the stem.
+        ("ties", "tie"),
+        ("pies", "pie"),
+        # Ordinary -s plurals.
+        ("users", "user"),
+        ("items", "item"),
+        ("books", "book"),
+        # Already singular — must be left alone.
+        ("user", "user"),
+        ("status", "status"),
+        ("analysis", "analysis"),
+        ("address", "address"),
+        ("series", "series"),
+        ("species", "species"),
+    ])
+    def test_singularize(self, plural, expected):
+        from doczot_analyzer.scanner import _singularize
+        assert _singularize(plural) == expected
+
+    def test_path_nouns_match_singularized_types(self):
+        """Path-derived and helper-derived nouns must agree on spelling.
+
+        extract_nouns_from_path() carried its own copy of the plural rules and
+        drifted from _singularize(), so /warehouses yielded "warehous" while
+        the Warehouse model yielded "warehouse" — one entity, two nodes.
+        """
+        from doczot_analyzer.analyzer_v2 import extract_nouns_from_path
+        from doczot_analyzer.scanner import _singularize
+
+        for segment in ("warehouses", "invoices", "venues", "workspaces"):
+            path_nouns = extract_nouns_from_path(f"/{segment}")
+            assert path_nouns == [_singularize(segment)], (
+                f"/{segment} produced {path_nouns}, "
+                f"expected [{_singularize(segment)!r}]"
+            )
+
+    @pytest.mark.parametrize("plural,expected", [
+        # "-uses" is ambiguous: the stem ends in "s" either way. Only a known
+        # -us singular takes the two-letter suffix.
+        ("buses", "bus"),
+        ("statuses", "status"),
+        ("aliases", "alias"),
+        ("gases", "gas"),
+        ("houses", "house"),
+        ("clauses", "clause"),
+        # Double-s stems.
+        ("addresses", "address"),
+        ("classes", "class"),
+        ("processes", "process"),
+    ])
+    def test_singularize_ambiguous_s_stems(self, plural, expected):
+        from doczot_analyzer.scanner import _singularize
+        assert _singularize(plural) == expected

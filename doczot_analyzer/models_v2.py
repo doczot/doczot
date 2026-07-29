@@ -266,7 +266,13 @@ class MatchEvidence(BaseModel):
     validate whether matches are correct or spurious.
     """
     node_id: str
-    strategy: Literal["direct_reference", "title_match", "semantic"]
+    # Referential strategies (direct_reference, cli_direct_reference) prove the
+    # documentation names the specific thing being covered. title_match and
+    # semantic establish topical aboutness only, which is sufficient evidence
+    # for a noun or concept but never for an operation.
+    strategy: Literal[
+        "direct_reference", "cli_direct_reference", "title_match", "semantic"
+    ]
     confidence: float  # 0.0-1.0
     doc_file: str
     doc_section: Optional[str] = None
@@ -400,6 +406,66 @@ class TopicManifest(BaseModel):
         """Get all topics that cover a specific surface node."""
         return [t for t in self.topics if surface_id in t.covers]
 
+    # ==========================================================================
+    # PROVENANCE
+    # ==========================================================================
+
+    def coverage_provenance(self) -> dict:
+        """Report which documentation files produced this manifest's coverage.
+
+        A coverage figure that cannot name its sources is not auditable. This
+        aggregates the per-node match evidence into a per-file summary so a
+        surprising number can be traced back to the documents behind it — the
+        fastest way to notice that credit is coming from somewhere unexpected.
+
+        Returns a dict keyed by documentation file path, each value holding the
+        topic names sourced from that file, how many nodes it covers, and the
+        match strategies that produced those matches.
+        """
+        by_file: dict[str, dict] = {}
+
+        for topic in self.topics:
+            source = topic.source_file or "<unknown>"
+            entry = by_file.setdefault(source, {
+                "topics": [],
+                "nodes_covered": set(),
+                "strategies": {},
+            })
+            entry["topics"].append(topic.name)
+            entry["nodes_covered"].update(topic.covers)
+            for evidence in topic.match_evidence:
+                entry["strategies"][evidence.strategy] = (
+                    entry["strategies"].get(evidence.strategy, 0) + 1
+                )
+
+        # Freeze into plain JSON-serializable values, strongest source first.
+        return {
+            source: {
+                "topics": sorted(entry["topics"]),
+                "node_count": len(entry["nodes_covered"]),
+                "nodes_covered": sorted(entry["nodes_covered"]),
+                "strategies": dict(sorted(entry["strategies"].items())),
+            }
+            for source, entry in sorted(
+                by_file.items(),
+                key=lambda kv: (-len(kv[1]["nodes_covered"]), kv[0]),
+            )
+        }
+
+    def evidence_for(self, surface_id: str) -> list[MatchEvidence]:
+        """Every piece of match evidence credited to one system node.
+
+        Answers "why does DocZot think this endpoint is documented?" — the
+        question you need when a gap report disagrees with your own reading of
+        the docs.
+        """
+        found = []
+        for topic in self.topics:
+            for evidence in topic.match_evidence:
+                if evidence.node_id == surface_id:
+                    found.append(evidence)
+        return found
+
 
 # =============================================================================
 # LAYER 4: DRIFT REPORT (formerly Gap Report)
@@ -446,15 +512,48 @@ class DriftReport(BaseModel):
     # Extra topics in inventory not in matrix (potential undocumented features)
     extra_topics: list[str] = Field(default_factory=list)
 
+    # Operation-level coverage, counted over the graph's actual operations
+    # rather than over checklist topics. Endpoints and CLI commands are what
+    # users check a coverage tool for, and blending them with concept topics
+    # into a single figure is how a mostly-undocumented API reports a
+    # reassuring number.
+    operations_total: int = 0
+    operations_covered: int = 0
+    uncovered_operations: list[str] = Field(default_factory=list)
+
     # ==========================================================================
     # STATISTICS
     # ==========================================================================
 
+    def operation_coverage_percentage(self) -> float:
+        """Share of the system's operations that documentation actually covers.
+
+        This is the headline number: of the endpoints and CLI commands the code
+        exposes, how many does the documentation name? It counts operations, not
+        topics, so a repo full of well-titled concept sections cannot lift the
+        figure while its API stays undocumented.
+        """
+        if not self.operations_total:
+            return 0.0
+        return round(self.operations_covered / self.operations_total * 100, 1)
+
     def coverage_stats(self) -> dict:
-        """Get documentation coverage statistics."""
+        """Get documentation coverage statistics.
+
+        ``operation_coverage_percentage`` is the figure to trust and to show
+        first. ``coverage_percentage`` is the older topic-weighted blend, kept
+        because the dashboard and exports read it; it counts concept and task
+        topics alongside endpoint topics and therefore reads higher.
+        """
         total = len(self.drift_items)
         if total == 0:
-            return {"coverage_percentage": 0.0, "total": 0}
+            return {
+                "coverage_percentage": 0.0,
+                "total": 0,
+                "operations_total": self.operations_total,
+                "operations_covered": self.operations_covered,
+                "operation_coverage_percentage": self.operation_coverage_percentage(),
+            }
 
         complete = sum(1 for d in self.drift_items if d.status == "complete")
         partial = sum(1 for d in self.drift_items if d.status == "partial")
@@ -467,6 +566,9 @@ class DriftReport(BaseModel):
             "missing": missing,
             "extra": len(self.extra_topics),
             "coverage_percentage": round((complete + partial * 0.5) / total * 100, 1),
+            "operations_total": self.operations_total,
+            "operations_covered": self.operations_covered,
+            "operation_coverage_percentage": self.operation_coverage_percentage(),
         }
 
     def sprint_plan(self) -> list[dict]:
@@ -892,6 +994,14 @@ def compute_drift_report(
     # Find extra inventory topics not in matrix (potential undocumented features)
     extra = [t.id for t in inventory.topics if t.id not in matched_inventory_ids]
 
+    # Operation-level coverage, measured against the graph rather than against
+    # the checklist. Counting operations directly means the headline figure
+    # cannot be moved by how topics happen to be grouped.
+    documented_ids = inventory.covered_surface_ids()
+    user_facing_ids = {n.id for n in graph.user_facing_nodes()}
+    operations = [n for n in graph.verbs if n.id in user_facing_ids]
+    uncovered = [n.id for n in operations if n.id not in documented_ids]
+
     return DriftReport(
         graph_id=graph.product_name,
         matrix_id=matrix.graph_id,
@@ -899,6 +1009,9 @@ def compute_drift_report(
         product_name=graph.product_name,
         drift_items=drift_items,
         extra_topics=extra,
+        operations_total=len(operations),
+        operations_covered=len(operations) - len(uncovered),
+        uncovered_operations=sorted(uncovered),
     )
 
 

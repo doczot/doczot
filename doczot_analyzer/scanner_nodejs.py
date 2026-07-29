@@ -193,6 +193,142 @@ def scan_yargs_commands(repo_path: str) -> list[CliCommand]:
     return []
 
 
+def scan_commander_commands(repo_path: str) -> list[CliCommand]:
+    """Scan a commander-based CLI for commands, options and arguments.
+
+    Commander declares commands as a fluent chain:
+
+        program
+          .command('migrate')
+          .description('Apply all pending migrations')
+          .option('--dry-run', 'Print the plan without applying it')
+          .argument('<target>', 'Migration target')
+
+    The chain may be broken across lines and interleaved with other calls, so
+    each ``.command(...)`` starts a new command and the ``.description``,
+    ``.option`` and ``.argument`` calls that follow — up to the next
+    ``.command(...)`` or the end of the statement — belong to it.
+
+    Commander is the most widely used Node CLI library; this branch previously
+    returned an empty list, so such projects produced no graph and no coverage
+    signal at all.
+    """
+    commands: list[CliCommand] = []
+    repo = Path(repo_path)
+
+    skip_dirs = {"node_modules", ".git", "dist", "build", "coverage", ".next"}
+
+    for js_file in sorted(repo.rglob("*")):
+        if js_file.suffix not in ['.js', '.ts', '.mjs', '.cjs']:
+            continue
+        if not js_file.is_file():
+            continue
+        try:
+            if any(part in skip_dirs for part in js_file.relative_to(repo).parts):
+                continue
+        except ValueError:
+            continue
+
+        try:
+            content = js_file.read_text(encoding='utf-8')
+        except (OSError, UnicodeDecodeError):
+            continue
+
+        if 'commander' not in content and '.command(' not in content:
+            continue
+
+        commands.extend(_parse_commander_chains(content, str(js_file)))
+
+    # Deduplicate by name, keeping the first (and richest) declaration.
+    seen: dict[str, CliCommand] = {}
+    for command in commands:
+        if command.name not in seen:
+            seen[command.name] = command
+    return list(seen.values())
+
+
+# .command('name <arg>') — the name is the first token, the rest are arguments.
+_COMMAND_CALL = re.compile(r'\.command\(\s*["\'`]([^"\'`]+)["\'`]')
+_DESCRIPTION_CALL = re.compile(r'\.description\(\s*["\'`]([^"\'`]*)["\'`]')
+_OPTION_CALL = re.compile(
+    r'\.option\(\s*["\'`]([^"\'`]+)["\'`]\s*(?:,\s*["\'`]([^"\'`]*)["\'`])?'
+)
+_ARGUMENT_CALL = re.compile(
+    r'\.argument\(\s*["\'`]([^"\'`]+)["\'`]\s*(?:,\s*["\'`]([^"\'`]*)["\'`])?'
+)
+
+
+def _parse_commander_chains(content: str, file_path: str) -> list[CliCommand]:
+    """Split source on .command() calls and parse each resulting chain."""
+    commands = []
+    matches = list(_COMMAND_CALL.finditer(content))
+
+    for index, match in enumerate(matches):
+        # The chain runs to the next .command() call, or to end of file.
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(content)
+        chain = content[start:end]
+
+        # `.command('migrate <target>')` declares the name plus inline args.
+        raw = match.group(1).strip()
+        parts = raw.split()
+        name = parts[0]
+        inline_args = [
+            {"name": token.strip('<>[]'), "description": "", "required": token.startswith('<')}
+            for token in parts[1:]
+        ]
+
+        # A commander program also names itself via .name('tool'); that is the
+        # binary, not a subcommand, so only .command() results are collected.
+        desc_match = _DESCRIPTION_CALL.search(chain)
+        description = desc_match.group(1) if desc_match else ""
+
+        flags = [
+            {
+                "name": _flag_name(flag.group(1)),
+                "description": flag.group(2) or "",
+                "spec": flag.group(1),
+            }
+            for flag in _OPTION_CALL.finditer(chain)
+        ]
+
+        args = inline_args + [
+            {
+                "name": arg.group(1).strip('<>[]'),
+                "description": arg.group(2) or "",
+                "required": arg.group(1).startswith('<'),
+            }
+            for arg in _ARGUMENT_CALL.finditer(chain)
+        ]
+
+        line_number = content[:match.start()].count('\n') + 1
+
+        commands.append(CliCommand(
+            name=name,
+            description=description or f"Command: {name}",
+            file_path=file_path,
+            line_number=line_number,
+            flags=flags,
+            args=args,
+        ))
+
+    return commands
+
+
+def _flag_name(spec: str) -> str:
+    """Extract the canonical long-form name from a commander option spec.
+
+    ``"-d, --dry-run"`` -> ``dry-run``; ``"--steps <n>"`` -> ``steps``.
+    """
+    for token in spec.split(','):
+        token = token.strip()
+        if token.startswith('--'):
+            return token[2:].split()[0]
+    # No long form; fall back to the short flag.
+    first = spec.strip().split()[0] if spec.strip() else spec
+    return first.lstrip('-')
+
+
 def scan_nodejs_directory(repo_path: str) -> list[CliCommand]:
     """Scan a Node.js repository for CLI commands.
 
@@ -209,7 +345,6 @@ def scan_nodejs_directory(repo_path: str) -> list[CliCommand]:
     elif framework == "yargs":
         return scan_yargs_commands(repo_path)
     elif framework == "commander":
-        # Placeholder for future implementation
-        return []
+        return scan_commander_commands(repo_path)
     else:
         return []

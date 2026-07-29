@@ -19,15 +19,65 @@ from doczot_analyzer.models import Endpoint, Parameter
 ENTITY_PATTERN = re.compile(r'^([A-Z][a-z]+)+$')  # PascalCase like User, UserCreate
 
 
+# Words that look plural but are already singular. Stripping their ending
+# produces nonsense nouns ("status" -> "statu") that then fail to match the
+# same entity named correctly elsewhere.
+_INVARIANT_PLURALS = frozenset({
+    'series', 'species', 'news', 'data', 'media', 'metadata',
+    'status', 'address', 'access', 'progress', 'analysis', 'basis',
+})
+
+# A trailing "es" is a two-letter plural suffix only after a stem that could
+# not take a bare "s": sibilants and affricates (boxes -> box, batches ->
+# batch), double-s (addresses -> address), and the -oes pattern (heroes ->
+# hero). Everywhere else the stem simply ends in "e" and only the "s" is the
+# plural marker (invoices -> invoice, not "invoic").
+_SIBILANT_ES_STEMS = ('x', 'z', 'ch', 'sh', 'ss', 'o')
+
+# Singular nouns ending in "-us". Needed to disambiguate "-uses" plurals:
+# "buses" -> "bus" but "warehouses" -> "warehouse", and both leave a stem
+# ending in "s" after dropping "es".
+_US_SINGULARS = frozenset({
+    'bus', 'status', 'virus', 'campus', 'focus', 'bonus', 'census',
+    'corpus', 'genus', 'nexus', 'radius', 'surplus', 'plus', 'minus',
+    'alias', 'bias', 'gas', 'atlas', 'canvas', 'lens',
+})
+
+
 def _singularize(name: str) -> str:
-    """Convert a name to singular lowercase form."""
+    """Convert a name to singular lowercase form.
+
+    Handles the English plural patterns that appear in API path segments and
+    type names. Deliberately conservative: when a word's plurality is
+    ambiguous it is left alone, because inventing a stem that matches nothing
+    is worse than leaving a plural in place.
+    """
     name = name.lower()
+
+    if name in _INVARIANT_PLURALS:
+        return name
+
+    # Latin/Greek singulars ending in -us or -is (status, campus, analysis).
+    if name.endswith(('us', 'is')):
+        return name
+
     if name.endswith('ies'):
-        return name[:-3] + 'y'
-    elif name.endswith('es') and len(name) > 3:
-        return name[:-2]
-    elif name.endswith('s') and not name.endswith('ss'):
+        # categories -> category, but ties -> tie and pies -> pie, where the
+        # "ie" belongs to the stem rather than marking a consonant + y plural.
+        if len(name) > 4:
+            return name[:-3] + 'y'
         return name[:-1]
+
+    if name.endswith('es') and len(name) > 3:
+        stem = name[:-2]
+        if stem.endswith(_SIBILANT_ES_STEMS) or stem in _US_SINGULARS:
+            return stem
+        # invoices -> invoice, warehouses -> warehouse, venues -> venue
+        return name[:-1]
+
+    if name.endswith('s') and not name.endswith('ss'):
+        return name[:-1]
+
     return name
 
 
@@ -273,12 +323,264 @@ def _extract_router_prefixes(tree: ast.Module) -> dict[str, str]:
     return prefixes
 
 
-def scan_python_file(source_code: str, file_path: str) -> List[Endpoint]:
+# Directories excluded from the router pre-pass. Kept in step with the skip
+# set in scan_directory so both passes agree on which files exist.
+_ROUTER_SCAN_SKIP_DIRS = {
+    "__pycache__", ".venv", "venv", ".git", "node_modules",
+    "tests", "test", "docs_src", "examples", "example",
+}
+
+
+def _module_name_for(relative_path: Path) -> str:
+    """Dotted module name for a source file, relative to the scan root.
+
+    ``app/api/routes/invoices.py`` -> ``app.api.routes.invoices``, and
+    ``app/api/__init__.py`` -> ``app.api`` so package-level imports resolve to
+    the same key as the file that defines them.
+    """
+    parts = list(relative_path.with_suffix("").parts)
+    if parts and parts[-1] == "__init__":
+        parts.pop()
+    return ".".join(parts)
+
+
+def _collect_import_aliases(tree: ast.Module, module_name: str) -> dict[str, str]:
+    """Map local names to the modules they came from.
+
+    Handles the two shapes that matter for router resolution:
+
+    - ``from app.api.main import api_router`` -> ``api_router`` lives in
+      ``app.api.main``
+    - ``from app.api.routes import invoices`` -> ``invoices`` *is* the module
+      ``app.api.routes.invoices``
+
+    Relative imports resolve against the importing module's own package.
+    """
+    aliases: dict[str, str] = {}
+    package = module_name.rsplit(".", 1)[0] if "." in module_name else ""
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            base = node.module or ""
+            if node.level:
+                # Relative import: climb the importing module's package chain.
+                pkg_parts = package.split(".") if package else []
+                climb = node.level - 1
+                if climb:
+                    pkg_parts = pkg_parts[:-climb] if climb <= len(pkg_parts) else []
+                base = ".".join(filter(None, [".".join(pkg_parts), base]))
+            for alias in node.names:
+                local = alias.asname or alias.name
+                aliases[local] = base
+                # The imported name may itself be a submodule, so record the
+                # fully-qualified form too and let the caller try both.
+                aliases[f"{local}:module"] = (
+                    f"{base}.{alias.name}" if base else alias.name
+                )
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                local = alias.asname or alias.name.split(".")[0]
+                aliases[f"{local}:module"] = alias.name
+
+    return aliases
+
+
+def _resolve_router_ref(
+    arg: ast.expr, module_name: str, aliases: dict[str, str]
+) -> Optional[tuple[str, str]]:
+    """Resolve the first argument of an include_router call to (module, var).
+
+    ``include_router(api_router)`` resolves through the import that brought
+    ``api_router`` into scope; ``include_router(invoices.router)`` resolves the
+    ``invoices`` prefix to a module and takes ``router`` as the variable.
+    Returns None for shapes we cannot resolve statically.
+    """
+    if isinstance(arg, ast.Name):
+        owner = aliases.get(arg.id)
+        # A router defined in this same file has no import entry.
+        return (owner if owner is not None else module_name, arg.id)
+
+    if isinstance(arg, ast.Attribute) and isinstance(arg.value, ast.Name):
+        holder = arg.value.id
+        holder_module = aliases.get(f"{holder}:module")
+        if holder_module:
+            return (holder_module, arg.attr)
+        owner = aliases.get(holder)
+        if owner:
+            return (f"{owner}.{holder}", arg.attr)
+        return (f"{module_name}.{holder}", arg.attr)
+
+    return None
+
+
+def _extract_include_router_calls(
+    tree: ast.Module, module_name: str, aliases: dict[str, str]
+) -> list[tuple[str, tuple[str, str]]]:
+    """Find include_router calls and the prefix each one contributes.
+
+    Returns a list of (prefix, (child_module, child_var)) pairs. The prefix is
+    the one supplied at include time, which is *additional* to any prefix the
+    child router declared for itself.
+    """
+    includes = []
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if not (isinstance(func, ast.Attribute) and func.attr == "include_router"):
+            continue
+        if not node.args:
+            continue
+
+        child = _resolve_router_ref(node.args[0], module_name, aliases)
+        if child is None:
+            continue
+
+        prefix = ""
+        for keyword in node.keywords:
+            if keyword.arg == "prefix" and isinstance(keyword.value, ast.Constant):
+                if isinstance(keyword.value.value, str):
+                    prefix = keyword.value.value
+                break
+
+        includes.append((prefix, child))
+
+    return includes
+
+
+def build_router_prefix_map(directory_path: str) -> dict[tuple[str, str], str]:
+    """Resolve the effective URL prefix of every router in a project.
+
+    A router's real prefix is the concatenation of the prefixes contributed by
+    every ``include_router`` call between it and the FastAPI app, plus whatever
+    it declared in its own ``APIRouter(prefix=...)``. Those pieces routinely
+    live in different files:
+
+        app/main.py           app.include_router(api_router, prefix="/api/v1")
+        app/api/main.py       api_router.include_router(invoices.router)
+        app/api/routes/...    router = APIRouter(prefix="/invoices")
+
+    Reading one file at a time can only ever see the last line, so paths came
+    out as ``/invoices/`` for a service that actually serves
+    ``/api/v1/invoices/``. Reporting URLs the application does not serve makes
+    the coverage report wrong twice: the endpoint is misnamed, and the docs
+    describing the real URL no longer match it.
+
+    Returns a mapping of (module_name, router_variable) to the prefix
+    contributed by include chains — excluding the router's own declared prefix,
+    which ``scan_python_file`` already applies.
+    """
+    directory = Path(directory_path)
+    if not directory.is_dir():
+        return {}
+
+    # (module, var) -> prefix declared on its own APIRouter(...) call
+    own_prefix: dict[tuple[str, str], str] = {}
+    # parent (module, var) -> [(include prefix, child (module, var))]
+    include_graph: dict[tuple[str, str], list[tuple[str, tuple[str, str]]]] = {}
+    # Routers included by a FastAPI app rather than another router.
+    app_includes: list[tuple[str, tuple[str, str]]] = []
+    app_vars: set[tuple[str, str]] = set()
+
+    for py_file in directory.rglob("*.py"):
+        try:
+            relative = py_file.relative_to(directory)
+        except ValueError:
+            continue
+        if any(part in _ROUTER_SCAN_SKIP_DIRS for part in relative.parts):
+            continue
+
+        try:
+            tree = ast.parse(py_file.read_text(encoding="utf-8"))
+        except (SyntaxError, UnicodeDecodeError, OSError):
+            continue
+
+        module_name = _module_name_for(relative)
+        aliases = _collect_import_aliases(tree, module_name)
+
+        for var, prefix in _extract_router_prefixes(tree).items():
+            own_prefix[(module_name, var)] = prefix
+
+        # Identify FastAPI() app objects so their includes seed the walk.
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign) and isinstance(node.value, ast.Call):
+                func = node.value.func
+                is_app = (
+                    (isinstance(func, ast.Name) and func.id == "FastAPI")
+                    or (isinstance(func, ast.Attribute) and func.attr == "FastAPI")
+                )
+                if is_app:
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            app_vars.add((module_name, target.id))
+
+        for prefix, child in _extract_include_router_calls(
+            tree, module_name, aliases
+        ):
+            parent = _include_parent(tree, module_name, aliases, child)
+            if parent is not None and parent in app_vars:
+                app_includes.append((prefix, child))
+            elif parent is not None:
+                include_graph.setdefault(parent, []).append((prefix, child))
+            else:
+                app_includes.append((prefix, child))
+
+    # Walk downward from each app include, accumulating prefixes. Visited set
+    # guards against a router graph with a cycle.
+    effective: dict[tuple[str, str], str] = {}
+
+    def walk(router: tuple[str, str], inherited: str, seen: frozenset) -> None:
+        if router in seen:
+            return
+        effective[router] = inherited
+        own = own_prefix.get(router, "")
+        base = inherited + own
+        for prefix, child in include_graph.get(router, []):
+            walk(child, base + prefix, seen | {router})
+
+    for prefix, child in app_includes:
+        walk(child, prefix, frozenset())
+
+    return effective
+
+
+def _include_parent(
+    tree: ast.Module,
+    module_name: str,
+    aliases: dict[str, str],
+    child: tuple[str, str],
+) -> Optional[tuple[str, str]]:
+    """Find which object called include_router for a given child router."""
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if not (isinstance(func, ast.Attribute) and func.attr == "include_router"):
+            continue
+        if not node.args:
+            continue
+        if _resolve_router_ref(node.args[0], module_name, aliases) != child:
+            continue
+        if isinstance(func.value, ast.Name):
+            return (module_name, func.value.id)
+    return None
+
+
+def scan_python_file(
+    source_code: str,
+    file_path: str,
+    inherited_prefixes: Optional[dict[str, str]] = None,
+) -> List[Endpoint]:
     """Scan Python source code for FastAPI endpoints using AST parsing.
 
     Args:
         source_code: Python source code as string
         file_path: Path to the file (for reference in results)
+        inherited_prefixes: Router variable name -> prefix contributed by
+            include_router calls elsewhere in the project. Supplied by
+            scan_directory via build_router_prefix_map(); when omitted, only
+            prefixes declared in this file are applied.
 
     Returns:
         List of detected Endpoint objects
@@ -295,8 +597,12 @@ def scan_python_file(source_code: str, file_path: str) -> List[Endpoint]:
         # Re-raise syntax errors - let caller handle them
         raise
 
-    # Extract router prefixes from this file
+    # Extract router prefixes from this file, then prepend whatever the include
+    # chain contributes so the reported path is the URL actually served.
     router_prefixes = _extract_router_prefixes(tree)
+    if inherited_prefixes:
+        for var, inherited in inherited_prefixes.items():
+            router_prefixes[var] = inherited + router_prefixes.get(var, "")
 
     endpoints = []
 
@@ -338,7 +644,13 @@ def _extract_endpoint_from_function(
             prefix = router_prefixes.get(router_name, "")
             if prefix:
                 # Ensure proper path joining (avoid double slashes)
-                if path.startswith("/"):
+                if not path:
+                    # @router.get("") on a prefixed router is served at the
+                    # prefix itself, with no trailing slash. Appending one here
+                    # reports a URL the app does not serve, and the wrong path
+                    # then fails to match its documentation.
+                    path = prefix
+                elif path.startswith("/"):
                     path = prefix + path
                 else:
                     path = prefix + "/" + path
@@ -790,6 +1102,10 @@ def scan_directory(directory_path: str, stats: Optional[dict] = None) -> List[En
 
     all_endpoints = []
 
+    # Resolve include_router chains across the whole project first, so each
+    # file can be given the prefix its routers actually inherit.
+    prefix_map = build_router_prefix_map(str(directory))
+
     # Recursively find all .py files
     for py_file in directory.rglob("*.py"):
         stats["files_seen"] += 1
@@ -798,7 +1114,7 @@ def scan_directory(directory_path: str, stats: Optional[dict] = None) -> List[En
         # Only consider path parts BELOW the scan root, so a project that
         # happens to live under e.g. .../tests/... is still scanned.
         parts = py_file.relative_to(directory).parts
-        skip_dirs = {"__pycache__", ".venv", "venv", ".git", "node_modules", "tests", "test", "docs_src", "examples", "example"}
+        skip_dirs = _ROUTER_SCAN_SKIP_DIRS
         if any(skip_dir in parts for skip_dir in skip_dirs):
             stats["skipped_by_dir_filter"] += 1
             continue
@@ -812,7 +1128,15 @@ def scan_directory(directory_path: str, stats: Optional[dict] = None) -> List[En
             source_code = py_file.read_text(encoding="utf-8")
             # Use relative path from the scan directory
             relative_path = py_file.relative_to(directory)
-            endpoints = scan_python_file(source_code, str(relative_path))
+            module_name = _module_name_for(relative_path)
+            inherited = {
+                var: prefix
+                for (mod, var), prefix in prefix_map.items()
+                if mod == module_name
+            }
+            endpoints = scan_python_file(
+                source_code, str(relative_path), inherited_prefixes=inherited
+            )
             stats["files_scanned"] += 1
             if endpoints:
                 stats["files_with_endpoints"] += 1

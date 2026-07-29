@@ -250,3 +250,124 @@ async def create_user():
                         if e.source_id == auth_concepts[0].id
                     ]
                     assert len(auth_edges) > 0, "Concept mentioning a noun should have RELATED_TO edge"
+
+
+class TestConceptNamePlausibility:
+    """Test rejection of sentence fragments masquerading as concepts.
+
+    Definition-pattern matching reliably captures clauses as well as terms. A
+    fragment that becomes a concept node pollutes the graph, the checklist and
+    every export, and because no documentation ever matches it, it appears as a
+    permanent phantom gap that can never be closed.
+    """
+
+    @pytest.mark.parametrize("fragment", [
+        "projects are containers for tasks and",
+        "check if service",
+        "user must",
+        "token is used for accessing protected endpoints",
+        "the workspace",
+        "items are products available in the catalog",
+        "returns system status",
+        "authentication is performed via jwt",
+        "data that has been",
+        "ensure the request",
+    ])
+    def test_rejects_sentence_fragments(self, fragment):
+        from doczot_analyzer.analyzer_v2 import is_concept_name_plausible
+        assert not is_concept_name_plausible(fragment), (
+            f"{fragment!r} should be rejected as a concept name"
+        )
+
+    @pytest.mark.parametrize("name", [
+        "authentication",
+        "rate limiting",
+        "token",
+        "access control",
+        "idempotency key",
+        "webhook delivery",
+        "eventual consistency",
+        "multi factor authentication",
+    ])
+    def test_accepts_real_concept_names(self, name):
+        from doczot_analyzer.analyzer_v2 import is_concept_name_plausible
+        assert is_concept_name_plausible(name), (
+            f"{name!r} should be accepted as a concept name"
+        )
+
+    def test_rejects_empty_and_whitespace(self):
+        from doczot_analyzer.analyzer_v2 import is_concept_name_plausible
+        assert not is_concept_name_plausible("")
+        assert not is_concept_name_plausible("   ")
+
+    def test_docstring_extraction_drops_fragments(self):
+        """The prose that produced the original noise must yield no concepts."""
+        from doczot_analyzer.analyzer_v2 import extract_concepts_from_docstrings
+
+        endpoints = [
+            SimpleNamespace(
+                docstring=(
+                    "List all projects belonging to a user.\n\n"
+                    "Projects are containers for tasks and are owned by users.\n"
+                    "Authentication required."
+                ),
+                file_path="main.py",
+                line_number=1,
+            ),
+            SimpleNamespace(
+                docstring="Check if service is healthy.\n\nReturns system status.",
+                file_path="main.py",
+                line_number=20,
+            ),
+        ]
+
+        names = {c["name"] for c in extract_concepts_from_docstrings(endpoints)}
+
+        assert "projects are containers for tasks and" not in names
+        assert "check if service" not in names
+        assert not any(len(n.split()) > 4 for n in names), (
+            f"multi-clause concept survived: {names}"
+        )
+
+
+class TestConceptNounShadowing:
+    """A concept must not duplicate a noun that already exists in the graph."""
+
+    def test_plural_section_does_not_shadow_noun(self):
+        """A "## Users" section documents the existing user noun.
+
+        Minting concept:users alongside noun:user splits one entity into two
+        nodes, so it is listed twice in the checklist and counted twice in
+        coverage.
+        """
+        source = '''
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/items")
+def list_items():
+    """List items."""
+    return []
+'''
+        readme = """# Shop
+
+## Items
+
+Items are products available in the catalog with a name and a price.
+"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "main.py").write_text(source)
+            (Path(tmpdir) / "README.md").write_text(readme)
+
+            graph = build_surface_graph_python(tmpdir, "shop")
+
+            noun_names = {n.name for n in graph.nodes if n.type == NodeType.NOUN}
+            concept_names = {
+                n.name for n in graph.nodes if n.type == NodeType.CONCEPT
+            }
+
+            assert "item" in noun_names
+            assert "items" not in concept_names, (
+                "plural concept shadows the singular noun"
+            )

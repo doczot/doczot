@@ -63,6 +63,8 @@ def cmd_analyze(args):
 
     print_analysis_summary(surface, itm, atm, gap_report)
 
+    print_coverage_provenance(atm, repo_path)
+
     # Persist the full analysis as a session so the dashboard
     # (doczot serve) picks it up, and the graph scan enables diffing.
     db_path = args.db_path or ".doczot/manifests.db"
@@ -261,6 +263,46 @@ def cmd_atm(args):
 # GAPS COMMAND
 # =============================================================================
 
+def print_coverage_provenance(atm, repo_path: str) -> None:
+    """Print which documentation files produced the coverage figure.
+
+    A coverage number nobody can trace is a number nobody should trust. Listing
+    the sources makes an implausible result self-diagnosing: credit arriving
+    from a file outside the analyzed tree, or one enormous document accounting
+    for everything, is visible at a glance instead of requiring a debugger.
+    """
+    provenance = atm.coverage_provenance()
+    if not provenance:
+        return
+
+    print("\n--- Coverage Sources ---")
+    repo_resolved = Path(repo_path).resolve()
+
+    for source, info in provenance.items():
+        strategies = ", ".join(
+            f"{name} x{count}" for name, count in info["strategies"].items()
+        )
+        label = source
+
+        # Flag credit coming from outside the analyzed tree. Documentation for
+        # a different project should never count toward this one's coverage.
+        outside = False
+        if source != "<unknown>":
+            try:
+                candidate = Path(source)
+                if not candidate.is_absolute():
+                    candidate = repo_resolved / candidate
+                candidate.resolve().relative_to(repo_resolved)
+            except (ValueError, OSError):
+                outside = True
+
+        if outside:
+            label = f"{source}  [OUTSIDE ANALYZED REPO]"
+
+        print(f"  {label}")
+        print(f"      covers {info['node_count']} node(s) via {strategies}")
+
+
 def cmd_gaps(args):
     """View the gap report between ITM and ATM."""
     repo_path = args.repo_path or "."
@@ -275,10 +317,26 @@ def cmd_gaps(args):
     print(f"{'=' * 60}")
 
     stats = gap_report.coverage_stats()
-    print(f"\nCoverage: {stats['coverage_percentage']:.1f}%")
+    print(
+        f"\nOperation coverage: {stats['operation_coverage_percentage']:.1f}%"
+        f"  ({stats['operations_covered']}/{stats['operations_total']}"
+        f" endpoints and commands documented)"
+    )
+    print(f"Topic coverage: {stats['coverage_percentage']:.1f}%")
     print(f"  Complete: {stats['complete']}")
     print(f"  Partial: {stats['partial']}")
     print(f"  Missing: {stats['missing']}")
+
+    if gap_report.uncovered_operations:
+        print("\n--- Undocumented Operations ---")
+        for node_id in gap_report.uncovered_operations:
+            node = surface.get_node(node_id)
+            if node and node.http_method:
+                print(f"  {node.http_method} {node.http_path}")
+            elif node:
+                print(f"  {node.name}")
+
+    print_coverage_provenance(atm, repo_path)
 
     if gap_report.extra_topics:
         print(f"\n--- Extra Topics (in docs but not in ITM) ---")
