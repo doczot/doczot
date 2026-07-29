@@ -1,0 +1,14 @@
+{
+  "name": "nodejs_oclif",
+  "description": "Node.js CLI coverage via oclif. Three commands exist; two are documented in the README and the nested config:set command is not. Verifies that the Node.js path produces a real coverage signal rather than an empty graph, and that nested command directories resolve to colon-separated names.",
+  "repo_type": "nodejs",
+
+  "cli_commands": ["crawl", "report", "config:set"],
+
+  "documented_cli_commands": ["crawl", "report"],
+  "undocumented_cli_commands": ["config:set"],
+
+  "coverage_percentage": {"min": 66.7, "max": 66.7},
+
+  "notes": "2 of 3 commands documented is 66.7%. The band was previously a loose 20-90 because the reported figure was topic-weighted; counting operations makes it exact. The binding assertion remains that all three commands are discovered and config:set is reported as undocumented. An empty command list is a failure, not a pass."
+}

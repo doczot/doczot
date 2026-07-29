@@ -1,0 +1,28 @@
+{
+  "name": "fastapi_undocumented",
+  "description": "Negative control. Five endpoints, zero API documentation — the README covers installation, running, contributing and license, and never names an endpoint or describes a resource. DocZot must report these as gaps. Crediting any of them as documented means the gap detector is inventing coverage.",
+  "repo_type": "python",
+
+  "endpoints": [
+    {"method": "GET", "path": "/warehouses"},
+    {"method": "GET", "path": "/warehouses/{warehouse_id}"},
+    {"method": "POST", "path": "/shipments"},
+    {"method": "GET", "path": "/shipments/{shipment_id}"},
+    {"method": "PATCH", "path": "/shipments/{shipment_id}"}
+  ],
+
+  "nouns": ["warehouse", "shipment"],
+
+  "documented_endpoints": [],
+  "undocumented_endpoints": [
+    {"method": "GET", "path": "/warehouses"},
+    {"method": "GET", "path": "/warehouses/{warehouse_id}"},
+    {"method": "POST", "path": "/shipments"},
+    {"method": "GET", "path": "/shipments/{shipment_id}"},
+    {"method": "PATCH", "path": "/shipments/{shipment_id}"}
+  ],
+
+  "coverage_percentage": {"min": 0.0, "max": 0.0},
+
+  "notes": "No operation is documented, so operation coverage is exactly 0%. Any non-zero value means credit was invented — either by harvesting markdown from outside the analyzed tree, or by treating a heading that resembles a noun as documentation of the operations on it. That is the failure mode this case exists to catch."
+}

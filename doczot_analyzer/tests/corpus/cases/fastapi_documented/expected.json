@@ -1,0 +1,32 @@
+{
+  "name": "fastapi_documented",
+  "description": "Positive control. Six endpoints, every one of them documented in docs/api.md with an explicit method+path, parameters, returns, errors and an example. DocZot should credit all six as covered; anything it reports as a gap here is a false positive.",
+  "repo_type": "python",
+
+  "endpoints": [
+    {"method": "GET", "path": "/books"},
+    {"method": "GET", "path": "/books/{book_id}"},
+    {"method": "POST", "path": "/books"},
+    {"method": "DELETE", "path": "/books/{book_id}"},
+    {"method": "GET", "path": "/authors"},
+    {"method": "GET", "path": "/authors/{author_id}"}
+  ],
+
+  "nouns": ["book", "author"],
+
+  "documented_endpoints": [
+    {"method": "GET", "path": "/books"},
+    {"method": "GET", "path": "/books/{book_id}"},
+    {"method": "POST", "path": "/books"},
+    {"method": "DELETE", "path": "/books/{book_id}"},
+    {"method": "GET", "path": "/authors"},
+    {"method": "GET", "path": "/authors/{author_id}"}
+  ],
+  "undocumented_endpoints": [],
+
+  "coverage_percentage": {"min": 100.0, "max": 100.0},
+
+  "max_duplicate_topic_names": 0,
+
+  "notes": "All 6 operations are documented, so operation coverage is exactly 100%. The band previously started at 85 to leave room for concept topics the docs do not spell out; that allowance is no longer needed because the figure now counts operations only."
+}

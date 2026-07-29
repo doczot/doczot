@@ -1,0 +1,33 @@
+{
+  "name": "fastapi_partial",
+  "description": "The discriminating case. Six endpoints, exactly three documented. Documented and undocumented endpoints are interleaved across resources — /tickets has one documented endpoint (POST) and one undocumented one (DELETE) — so a tool cannot score well by reasoning at whole-resource granularity. This case separates a working gap detector from one that merely produces a plausible headline number.",
+  "repo_type": "python",
+
+  "endpoints": [
+    {"method": "GET", "path": "/events"},
+    {"method": "GET", "path": "/events/{event_id}"},
+    {"method": "POST", "path": "/tickets"},
+    {"method": "DELETE", "path": "/tickets/{ticket_id}"},
+    {"method": "GET", "path": "/venues"},
+    {"method": "POST", "path": "/venues"}
+  ],
+
+  "nouns": ["event", "ticket", "venue"],
+
+  "documented_endpoints": [
+    {"method": "GET", "path": "/events"},
+    {"method": "GET", "path": "/events/{event_id}"},
+    {"method": "POST", "path": "/tickets"}
+  ],
+  "undocumented_endpoints": [
+    {"method": "DELETE", "path": "/tickets/{ticket_id}"},
+    {"method": "GET", "path": "/venues"},
+    {"method": "POST", "path": "/venues"}
+  ],
+
+  "coverage_percentage": {"min": 50.0, "max": 50.0},
+
+  "max_duplicate_topic_names": 0,
+
+  "notes": "Coverage is asserted exactly: 3 of 6 operations documented is 50%. The band was previously a wide 30-70 because the reported figure blended concept and task topics in with endpoints, so no exact value was derivable. It is now the ratio of documented operations to total operations, which follows directly from the labels above. The endpoint-level classification remains the primary assertion: DELETE /tickets/{ticket_id} must be reported as a gap even though POST /tickets is documented and both concern tickets."
+}

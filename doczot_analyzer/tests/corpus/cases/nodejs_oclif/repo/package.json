@@ -1,0 +1,9 @@
+{
+  "name": "sitecheck",
+  "version": "1.0.0",
+  "description": "Static site link checker",
+  "bin": { "sitecheck": "./bin/run" },
+  "dependencies": {
+    "@oclif/core": "^3.0.0"
+  }
+}
