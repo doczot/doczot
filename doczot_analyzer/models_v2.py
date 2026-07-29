@@ -259,6 +259,12 @@ class SystemGraph(BaseModel):
 # LAYER 2 & 3: CONTENT COVERAGE MATRIX / CONTENT INVENTORY
 # =============================================================================
 
+# Strategies that prove the documentation names the covered thing. Similarity
+# and title strategies establish only that a document is *about* something,
+# which is sufficient evidence for a noun or concept but never for an operation.
+REFERENTIAL_STRATEGIES = frozenset({"direct_reference", "cli_direct_reference"})
+
+
 class MatchEvidence(BaseModel):
     """Evidence for why a surface node was matched to a doc topic.
 
@@ -278,6 +284,18 @@ class MatchEvidence(BaseModel):
     doc_section: Optional[str] = None
     doc_snippet: str = ""  # First ~200 chars of matching content
     match_detail: str = ""  # e.g. "GET /users/ found in text" or "similarity: 0.42"
+
+    @property
+    def is_referential(self) -> bool:
+        """Whether the documentation names the covered thing, rather than
+        merely reading as related to it.
+
+        Only referential evidence can establish that an operation is
+        documented. Callers presenting or filtering evidence should branch on
+        this rather than comparing against strategy literals, which is how
+        `cli_direct_reference` came to be displayed as a similarity guess.
+        """
+        return self.strategy in REFERENTIAL_STRATEGIES
 
 
 class Topic(BaseModel):

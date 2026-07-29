@@ -899,6 +899,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <script>
         const data = {graph_data_json};
 
+        // Match strategies differ in kind, not degree. A referential match means
+        // the documentation names this exact endpoint or command; a similarity
+        // match means the prose only reads as related. Labelling everything that
+        // is not 'direct_reference' as "Semantic" hid that distinction — a CLI
+        // command proven by a direct reference showed up as a guess — and the
+        // distinction is what the coverage verdict rests on.
+        const REFERENTIAL_STRATEGIES = ['direct_reference', 'cli_direct_reference'];
+
+        function isReferential(strategy) {{
+            return REFERENTIAL_STRATEGIES.indexOf(strategy) !== -1;
+        }}
+
+        function strategyClass(strategy) {{
+            return isReferential(strategy) ? 'direct' : 'semantic';
+        }}
+
+        function strategyLabel(strategy) {{
+            switch (strategy) {{
+                case 'direct_reference': return 'Direct Reference';
+                case 'cli_direct_reference': return 'Command Named';
+                case 'title_match': return 'Title Match';
+                case 'semantic': return 'Semantic Match';
+                default: return strategy;
+            }}
+        }}
+
         // Simple force-directed layout (no external dependencies)
         function initGraph() {{
             const container = document.getElementById('graph');
@@ -1213,8 +1239,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     + `<div style="margin-top:8px"><button class="drift-evidence-toggle" onclick="openReview('${{node.id.replace(/'/g, "\\\\'")}}')">Open in Review &#8599;</button></div>`;
             }} else {{
                 evContainer.innerHTML = evidence.map((ev, idx) => {{
-                    const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
-                    const stratLabel = ev.strategy === 'direct_reference' ? 'Direct Ref' : 'Semantic';
+                    const stratClass = strategyClass(ev.strategy);
+                    const stratLabel = strategyLabel(ev.strategy);
                     const confPct = Math.round(ev.confidence * 100);
                     const section = ev.doc_section ? ` > ${{ev.doc_section}}` : '';
                     const jKey = node.id + '::' + idx;
@@ -1344,8 +1370,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         function renderDriftEvidence(evidence) {{
             if (!evidence || evidence.length === 0) return '';
             return evidence.map(ev => {{
-                const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
-                const stratLabel = ev.strategy === 'direct_reference' ? 'Direct' : 'Semantic';
+                const stratClass = strategyClass(ev.strategy);
+                const stratLabel = strategyLabel(ev.strategy);
                 const confPct = Math.round(ev.confidence * 100);
                 return `<div class="evidence-card ${{stratClass}}" style="margin:4px 0;padding:8px;">
                     <div class="ev-header">
@@ -1662,8 +1688,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     : 'No documentation match found for this node.') + '</div>';
             }} else {{
                 evidence.forEach(function(ev, idx) {{
-                    const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
-                    const stratLabel = ev.strategy === 'direct_reference' ? 'Direct Reference' : 'Semantic Match';
+                    const stratClass = strategyClass(ev.strategy);
+                    const stratLabel = strategyLabel(ev.strategy);
                     const confPct = Math.round(ev.confidence * 100);
                     const section = ev.doc_section ? ' &gt; ' + escapeHtml(ev.doc_section) : '';
                     const jKey = node.id + '::' + idx;

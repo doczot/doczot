@@ -507,3 +507,60 @@ class TestSaveAnalysisSession:
         )
         assert returned == "session_fixed"
         assert store.load_session("session_fixed") is not None
+
+
+class TestEvidenceStrategyPresentation:
+    """Referential and similarity evidence must stay distinguishable in the UI.
+
+    The rendered views were binary: anything other than 'direct_reference' was
+    labelled "Semantic". That mislabelled a CLI command proven by a direct
+    reference as a guess, in the one view built for auditing coverage claims.
+    """
+
+    def test_no_binary_strategy_comparison_remains(self):
+        """No template may branch on a bare strategy literal.
+
+        Guards against a new strategy silently falling into the weaker bucket,
+        which is exactly how cli_direct_reference regressed the display.
+        """
+        from pathlib import Path
+
+        import doczot_analyzer.cli_v2 as cli_v2
+        import doczot_analyzer.dashboard as dashboard
+
+        for module in (cli_v2, dashboard):
+            source = Path(module.__file__).read_text(encoding="utf-8")
+            assert "strategy === 'direct_reference'" not in source, (
+                f"{module.__name__} still compares strategy to a bare literal; "
+                "use the strategyClass/strategyLabel helpers so new strategies "
+                "are classified deliberately"
+            )
+
+    def test_every_strategy_has_a_label(self):
+        """Each declared strategy must render as something other than itself."""
+        from pathlib import Path
+
+        import doczot_analyzer.cli_v2 as cli_v2
+        from doczot_analyzer.models_v2 import MatchEvidence
+
+        strategies = MatchEvidence.model_fields["strategy"].annotation.__args__
+        source = Path(cli_v2.__file__).read_text(encoding="utf-8")
+
+        for strategy in strategies:
+            assert f"case '{strategy}':" in source, (
+                f"strategy {strategy!r} has no explicit label in the visualizer"
+            )
+
+    def test_referential_flag_matches_strategies(self):
+        from doczot_analyzer.models_v2 import MatchEvidence
+
+        def ev(strategy):
+            return MatchEvidence(
+                node_id="verb:GET:/x", strategy=strategy,
+                confidence=1.0, doc_file="README.md",
+            )
+
+        assert ev("direct_reference").is_referential
+        assert ev("cli_direct_reference").is_referential
+        assert not ev("title_match").is_referential
+        assert not ev("semantic").is_referential
