@@ -1,0 +1,14 @@
+{
+  "name": "nodejs_commander",
+  "description": "Commander-based Node.js CLI. Three commands are defined via program.command(...).description(...); two are documented in the README and rollback is not. Commander is the most widely used Node CLI library, so this path has to work for the Node.js half of the tool to mean anything.",
+  "repo_type": "nodejs",
+
+  "cli_commands": ["migrate", "rollback", "status"],
+
+  "documented_cli_commands": ["migrate", "status"],
+  "undocumented_cli_commands": ["rollback"],
+
+  "coverage_percentage": {"min": 66.7, "max": 66.7},
+
+  "notes": "This case was introduced as known_failing: detect_cli_framework() identified commander correctly but scan_nodejs_directory() returned [] for that framework, so the project produced an empty graph and no coverage signal. scan_commander_commands() now parses program.command() chains and the flag has been cleared."
+}

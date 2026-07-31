@@ -1,0 +1,29 @@
+{
+  "name": "fastapi_router_prefix",
+  "description": "Cross-file path resolution. The version prefix is applied by app.include_router(api_router, prefix=\"/api/v1\") in app/main.py, the resource prefixes come from APIRouter(prefix=...) in app/api/routes/*.py, and an intermediate aggregate router sits between them. Resolving the real URL requires following include_router calls across three files. This is the full-stack-fastapi-template layout, so getting it wrong means getting the canonical integration target wrong.",
+  "repo_type": "python",
+
+  "endpoints": [
+    {"method": "GET", "path": "/api/v1/invoices/"},
+    {"method": "GET", "path": "/api/v1/invoices/{invoice_id}"},
+    {"method": "POST", "path": "/api/v1/invoices/"},
+    {"method": "GET", "path": "/api/v1/subscriptions/"},
+    {"method": "DELETE", "path": "/api/v1/subscriptions/{subscription_id}"}
+  ],
+
+  "nouns": ["invoice", "subscription"],
+
+  "documented_endpoints": [
+    {"method": "GET", "path": "/api/v1/invoices/"},
+    {"method": "GET", "path": "/api/v1/invoices/{invoice_id}"},
+    {"method": "GET", "path": "/api/v1/subscriptions/"}
+  ],
+  "undocumented_endpoints": [
+    {"method": "POST", "path": "/api/v1/invoices/"},
+    {"method": "DELETE", "path": "/api/v1/subscriptions/{subscription_id}"}
+  ],
+
+  "coverage_percentage": {"min": 60.0, "max": 60.0},
+
+  "notes": "If DocZot reports paths without the /api/v1 prefix it will fail the endpoint assertion here even though it found the right number of routes. That is intended: a coverage report that names URLs the service does not actually serve is not usable, and cross-referencing docs against those wrong paths is how documented endpoints get misreported as gaps. The trailing slash on /invoices/ follows from @router.get(\"/\") on a prefixed router."
+}

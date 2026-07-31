@@ -444,6 +444,14 @@ def build_system_graph_python(
     for concept_data in all_concepts:
         if concept_data['name'] in seen_concept_names:
             continue
+
+        # A "Users" section documents the user entity that already exists as a
+        # noun; minting a separate concept node for it splits one thing into
+        # two, listing it twice in the checklist and counting it twice in
+        # coverage. The noun is the better node because verbs attach to it.
+        if _singularize(concept_data['name']) in seen_nouns:
+            continue
+
         seen_concept_names.add(concept_data['name'])
 
         concept_node = SystemNode(
@@ -611,6 +619,65 @@ def detect_prerequisite_relationships(
     return prerequisites
 
 
+# Function words that never belong inside a concept name. Their presence means
+# the extractor captured a clause rather than a term — "user must",
+# "check if service", "projects are containers for tasks and".
+_FRAGMENT_TOKENS = frozenset({
+    'a', 'an', 'the', 'and', 'or', 'but', 'if', 'then', 'else', 'when',
+    'while', 'that', 'which', 'who', 'whom', 'whose', 'this', 'these',
+    'those', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'am',
+    'has', 'have', 'had', 'do', 'does', 'did', 'must', 'should', 'shall',
+    'can', 'could', 'will', 'would', 'may', 'might', 'to', 'from', 'into',
+    'onto', 'via', 'with', 'without', 'for', 'by', 'as', 'at', 'in', 'on',
+    'of', 'not', 'no', 'all', 'any', 'each', 'every', 'some',
+})
+
+# Bare verbs that start a description rather than name a concept.
+_LEADING_VERBS = frozenset({
+    'check', 'get', 'set', 'list', 'create', 'update', 'delete', 'remove',
+    'add', 'fetch', 'retrieve', 'return', 'returns', 'ensure', 'make',
+    'send', 'read', 'write', 'run', 'call', 'use', 'apply', 'handle',
+    'validate', 'verify', 'convert', 'parse', 'build', 'generate',
+})
+
+# A concept name is a short noun phrase. Anything longer is prose.
+_MAX_CONCEPT_WORDS = 4
+
+
+def is_concept_name_plausible(name: str) -> bool:
+    """Whether a string reads as a concept name rather than a sentence fragment.
+
+    Concept extraction works by pattern-matching definition sentences and
+    markdown headers, which reliably also captures clauses: a docstring reading
+    "Projects are containers for tasks and are owned by users" yields the
+    "concept" *Projects Are Containers For Tasks And*. Those entries pollute
+    the graph, the checklist and every export, and they never match any
+    documentation, so they show up as permanent phantom gaps.
+
+    The test is deliberately strict — a rejected real concept costs one missing
+    node, an accepted fragment costs a permanently wrong one.
+    """
+    cleaned = name.strip().lower()
+    if not cleaned:
+        return False
+
+    words = cleaned.split()
+    if len(words) > _MAX_CONCEPT_WORDS:
+        return False
+
+    if any(word in _FRAGMENT_TOKENS for word in words):
+        return False
+
+    if words[0] in _LEADING_VERBS:
+        return False
+
+    # Trailing punctuation signals a clipped sentence.
+    if cleaned[-1] in ',;:.!?-':
+        return False
+
+    return True
+
+
 def extract_concepts_from_docstrings(endpoints: list) -> list[dict]:
     """Extract concepts from endpoint docstrings using definition patterns.
 
@@ -654,6 +721,8 @@ def extract_concepts_from_docstrings(endpoints: list) -> list[dict]:
             if concept_name in skip_terms:
                 continue
             if len(concept_name) < 3:
+                continue
+            if not is_concept_name_plausible(concept_name):
                 continue
 
             if concept_name not in concepts:
@@ -733,6 +802,8 @@ def extract_concepts_from_docs(repo_path: str) -> list[dict]:
 
             if len(first_sentence) > 15:
                 name = header.lower().strip()
+                if not is_concept_name_plausible(name):
+                    continue
                 if name not in concepts:
                     line_num = content[:match.start()].count('\n') + 1
                     concepts[name] = {
@@ -752,6 +823,8 @@ def extract_concepts_from_docs(repo_path: str) -> list[dict]:
                 continue
 
             name = term.lower()
+            if not is_concept_name_plausible(name):
+                continue
             if name not in concepts and name not in skip_headers:
                 line_num = content[:match.start()].count('\n') + 1
                 concepts[name] = {
@@ -877,14 +950,11 @@ def extract_nouns_from_path(path: str) -> list[str]:
         if not (is_plural or is_before_param):
             continue
 
-        # Singularize
-        noun = segment_lower
-        if noun.endswith('ies'):
-            noun = noun[:-3] + 'y'
-        elif noun.endswith('es') and len(noun) > 3:
-            noun = noun[:-2]
-        elif noun.endswith('s') and not noun.endswith('ss'):
-            noun = noun[:-1]
+        # Singularize via the canonical helper so path nouns and type-derived
+        # nouns agree on spelling. An inline copy of these rules used to live
+        # here and drifted, producing "warehous" from /warehouses while the
+        # scanner produced "warehouse" from the Warehouse model.
+        noun = _singularize(segment_lower)
 
         # Strip db_ prefix (db_user -> user, db_post -> post)
         if noun.startswith('db_'):
@@ -966,6 +1036,82 @@ def _find_git_root(start_path: str) -> Optional[str]:
     return None
 
 
+# Files that mark the root of a distributable project. Documentation above this
+# line belongs to a different (or larger) product than the one being analyzed.
+_PROJECT_MANIFESTS = (
+    'pyproject.toml', 'setup.py', 'setup.cfg', 'package.json',
+    'go.mod', 'Cargo.toml', 'pom.xml', 'build.gradle',
+)
+
+
+def find_doc_scope_root(start_path: str) -> Optional[str]:
+    """Find the highest directory whose documentation describes this code.
+
+    Documentation legitimately sits above the code it describes — a FastAPI
+    project routinely keeps `docs/` and `README.md` at its root while the app
+    lives in `backend/app`. Walking upward is therefore correct in principle.
+
+    Walking all the way to the *git* root is not. Analyzing a subdirectory of a
+    documented monorepo then harvests markdown belonging to an unrelated
+    product: pointing DocZot at `tests/fixtures/simple_test_app` credited
+    DocZot's own `ARCHITECTURE.md` and `docs/DESIGN_V3.md` as coverage for the
+    fixture and reported 98.3% for a README that documented no endpoint at all.
+
+    A project manifest is a better boundary than `.git` because it marks the
+    unit that ships — and therefore the unit whose documentation is about this
+    code. Falls back to the git root only when no manifest is found, and to the
+    scan path itself when there is no git root either.
+    """
+    start = Path(start_path).resolve()
+    git_root = _find_git_root(str(start))
+    boundary = Path(git_root) if git_root else None
+
+    current = start
+
+    for _ in range(10):
+        # The *nearest* manifest going up, not the outermost one. In a monorepo
+        # that stops at the component being analyzed rather than sailing past it
+        # to the repo root; where code is simply nested under its own project
+        # (docs/ at the root, code in backend/app) the nearest manifest *is* the
+        # project root, so both layouts resolve correctly.
+        if any((current / manifest).exists() for manifest in _PROJECT_MANIFESTS):
+            return str(current)
+
+        if boundary is not None and current == boundary:
+            break
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+
+    return git_root
+
+
+def _cli_command_mentioned(command_name: str, text: str) -> bool:
+    """Check whether a CLI command is named verbatim in documentation text.
+
+    Namespaced commands are written both ways in practice — oclif resolves
+    ``src/commands/config/set.js`` to ``config:set`` while READMEs often show
+    ``config set`` — so both forms count.
+
+    Matching is word-bounded so ``report`` is not credited by the word
+    "reporting" in an unrelated sentence.
+    """
+    if not command_name or not text:
+        return False
+
+    haystack = text.lower()
+    variants = {command_name.lower()}
+    if ":" in command_name:
+        variants.add(command_name.lower().replace(":", " "))
+        variants.add(command_name.lower().replace(":", "-"))
+
+    for variant in variants:
+        if re.search(rf'(?<![\w:-]){re.escape(variant)}(?![\w:-])', haystack):
+            return True
+    return False
+
+
 def _match_title_to_nodes(title: str, nodes: list[SystemNode]) -> list[SystemNode]:
     """Match a doc section/file title to noun and concept nodes by name.
 
@@ -989,6 +1135,38 @@ def _match_title_to_nodes(title: str, nodes: list[SystemNode]) -> list[SystemNod
     return matched
 
 
+# Conventional documentation directory names. When drawing docs from an
+# ancestor these are included; arbitrary sibling source trees are not.
+_DOC_DIR_NAMES = ('docs', 'doc', 'documentation')
+
+
+def _ancestor_doc_files(ancestor_path: str) -> list[str]:
+    """Markdown an ancestor directory contributes to its descendants.
+
+    Only the files at the ancestor's own level plus its conventional docs
+    directories. Recursing the whole subtree would pull in every sibling
+    component's markdown — analyzing one fixture picked up a neighbouring
+    fixture's README that way — and a sibling's documentation says nothing
+    about the code under analysis.
+    """
+    ancestor = Path(ancestor_path)
+    collected: list[str] = []
+
+    try:
+        for entry in sorted(ancestor.iterdir()):
+            if entry.is_file() and entry.suffix.lower() in ('.md', '.markdown'):
+                collected.append(str(entry))
+    except OSError:
+        return collected
+
+    for doc_dir in _DOC_DIR_NAMES:
+        candidate = ancestor / doc_dir
+        if candidate.is_dir():
+            collected.extend(find_markdown_files(str(candidate)))
+
+    return collected
+
+
 def discover_content_inventory(
     repo_path: str,
     graph: SystemGraph,
@@ -996,32 +1174,53 @@ def discover_content_inventory(
     """Discover Content Inventory from existing documentation.
 
     Parses markdown files and matches content to system graph elements.
-    Searches in the scanned directory and parent directories (up to git root).
+    Searches the scanned directory in full, plus documentation sitting at each
+    ancestor level up to the enclosing project root (see find_doc_scope_root).
 
     Returns a TopicManifest with manifest_type=ACTUAL (Content Inventory).
     """
     repo_path = str(Path(repo_path).resolve())
 
-    # Find git root for expanded search
-    git_root = _find_git_root(repo_path)
+    # Determine how far up the tree documentation may be drawn from. Bounded by
+    # the enclosing project rather than the git root, so analyzing one component
+    # of a monorepo does not inherit another product's docs as coverage.
+    scope_root = find_doc_scope_root(repo_path)
 
     # Search for markdown files in:
     # 1. The scanned directory
-    # 2. Parent directories up to git root
+    # 2. Parent directories up to the doc scope root
     search_paths = [repo_path]
-    if git_root and git_root != repo_path:
+    if scope_root and scope_root != repo_path:
+        scope = Path(scope_root)
         current = Path(repo_path).parent
-        while current >= Path(git_root):
-            search_paths.append(str(current))
-            if current == Path(git_root):
+        while True:
+            # Only ascend while still inside the scope root.
+            try:
+                current.relative_to(scope)
+            except ValueError:
                 break
-            current = current.parent
+            search_paths.append(str(current))
+            if current == scope:
+                break
+            parent = current.parent
+            if parent == current:
+                break
+            current = parent
 
-    # Collect all markdown files from all search paths
+    # Collect markdown files. The scanned directory is searched in full; an
+    # ancestor contributes only the docs that sit at its own level, because
+    # recursing down from an ancestor reaches sideways into sibling components
+    # and credits their documentation to this one.
     md_files = []
     seen_files = set()
-    for search_path in search_paths:
-        for md_file in find_markdown_files(search_path):
+    for index, search_path in enumerate(search_paths):
+        is_scan_root = index == 0
+        candidates = (
+            find_markdown_files(search_path)
+            if is_scan_root
+            else _ancestor_doc_files(search_path)
+        )
+        for md_file in candidates:
             # Dedupe by absolute path
             abs_path = str(Path(md_file).resolve())
             if abs_path not in seen_files:
@@ -1135,6 +1334,34 @@ def discover_content_inventory(
                         match_detail=f"{node.http_method} {node.http_path} found in text",
                     ))
 
+        # Strategy 1b: Direct CLI command references.
+        # CLI commands have no method or path for Strategy 1 to anchor on, so
+        # they anchor on the command name appearing verbatim. Section headers
+        # are included because that is where CLI docs conventionally name the
+        # command ("### `dbtool migrate`") while the prose beneath describes it
+        # in other words ("Applies all pending migrations") — searching the
+        # body alone misses the canonical mention.
+        group_text = " ".join(
+            [c.section_header or "" for c in chunks] + [group_content]
+        )
+        for node in graph.user_facing_nodes():
+            if node.type != NodeType.VERB or node.id in covered_ids:
+                continue
+            if not node.id.startswith("verb:CLI:"):
+                continue
+            command_name = node.id[len("verb:CLI:"):]
+            if _cli_command_mentioned(command_name, group_text):
+                covered_ids.add(node.id)
+                evidence_list.append(MatchEvidence(
+                    node_id=node.id,
+                    strategy="cli_direct_reference",
+                    confidence=1.0,
+                    doc_file=file_path,
+                    doc_section=section_name,
+                    doc_snippet=group_text[:200],
+                    match_detail=f"command '{command_name}' named in text",
+                ))
+
         # Strategy 2: Section-title match to nouns/concepts (deterministic).
         # Applies regardless of content length: a short section titled
         # "Users" or "Rate Limiting" still documents that node, whereas
@@ -1164,6 +1391,17 @@ def discover_content_inventory(
             for node in graph.user_facing_nodes():
                 if node.id in covered_ids:
                     continue  # Already matched by direct reference
+
+                # Operations require referential evidence, not topical
+                # resemblance. Similarity can establish that a document is
+                # *about* workspaces; it cannot establish that
+                # DELETE /workspaces/{id} is documented. Crediting an
+                # operation because nearby prose scored above a threshold is
+                # how a gap report ends up silent about real gaps, so verbs
+                # are covered only by Strategy 1, which requires the method
+                # and path to appear together on one line.
+                if node.type == NodeType.VERB:
+                    continue
 
                 sig_parts = []
                 if node.type == NodeType.VERB:

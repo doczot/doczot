@@ -1,0 +1,52 @@
+{
+  "name": "fastapi_constraints",
+  "description": "Exercises the constraint extractor (auth via Depends, rate limit via decorator), the part_of detector (document nested under workspace), the prerequisite detector (login before protected endpoints), and concept-noise filtering. Docstrings contain ordinary prose sentences so that a fragment-slicing concept extractor produces detectable garbage.",
+  "repo_type": "python",
+
+  "endpoints": [
+    {"method": "POST", "path": "/auth/login"},
+    {"method": "GET", "path": "/workspaces"},
+    {"method": "GET", "path": "/workspaces/{workspace_id}"},
+    {"method": "GET", "path": "/workspaces/{workspace_id}/documents"},
+    {"method": "POST", "path": "/workspaces/{workspace_id}/documents"}
+  ],
+
+  "nouns": ["workspace", "document"],
+
+  "required_concepts": ["authentication", "rate limiting"],
+  "forbidden_concepts": [
+    "workspaces are shared",
+    "workspaces are shared containers that several",
+    "resolve the caller",
+    "exchange credentials",
+    "minimal stand",
+    "list every workspace",
+    "retrieve a single workspace"
+  ],
+
+  "constraints": [
+    {"method": "GET", "path": "/workspaces", "type": "rate_limit"},
+    {"method": "GET", "path": "/workspaces", "type": "auth_required"},
+    {"method": "GET", "path": "/workspaces/{workspace_id}", "type": "auth_required"},
+    {"method": "GET", "path": "/workspaces/{workspace_id}/documents", "type": "auth_required"},
+    {"method": "POST", "path": "/workspaces/{workspace_id}/documents", "type": "auth_required"}
+  ],
+
+  "edges": [
+    {"type": "part_of", "source": "noun:document", "target": "noun:workspace"}
+  ],
+
+  "documented_endpoints": [
+    {"method": "POST", "path": "/auth/login"},
+    {"method": "GET", "path": "/workspaces"}
+  ],
+  "undocumented_endpoints": [
+    {"method": "GET", "path": "/workspaces/{workspace_id}"},
+    {"method": "GET", "path": "/workspaces/{workspace_id}/documents"},
+    {"method": "POST", "path": "/workspaces/{workspace_id}/documents"}
+  ],
+
+  "coverage_percentage": {"min": 40.0, "max": 40.0},
+
+  "notes": "The README names POST /auth/login and GET /workspaces explicitly and describes their behavior, so those two count as documented. It describes the workspace and document *concepts* but never documents the three remaining endpoints — describing an entity is not documenting the operations on it, and conflating the two is the single most likely way for this tool to overstate coverage. GET /workspaces is declared as @workspace_router.get(\"\") on a router with prefix=\"/workspaces\", so the resolved path has no trailing slash."
+}

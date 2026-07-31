@@ -63,6 +63,8 @@ def cmd_analyze(args):
 
     print_analysis_summary(surface, itm, atm, gap_report)
 
+    print_coverage_provenance(atm, repo_path)
+
     # Persist the full analysis as a session so the dashboard
     # (doczot serve) picks it up, and the graph scan enables diffing.
     db_path = args.db_path or ".doczot/manifests.db"
@@ -261,6 +263,46 @@ def cmd_atm(args):
 # GAPS COMMAND
 # =============================================================================
 
+def print_coverage_provenance(atm, repo_path: str) -> None:
+    """Print which documentation files produced the coverage figure.
+
+    A coverage number nobody can trace is a number nobody should trust. Listing
+    the sources makes an implausible result self-diagnosing: credit arriving
+    from a file outside the analyzed tree, or one enormous document accounting
+    for everything, is visible at a glance instead of requiring a debugger.
+    """
+    provenance = atm.coverage_provenance()
+    if not provenance:
+        return
+
+    print("\n--- Coverage Sources ---")
+    repo_resolved = Path(repo_path).resolve()
+
+    for source, info in provenance.items():
+        strategies = ", ".join(
+            f"{name} x{count}" for name, count in info["strategies"].items()
+        )
+        label = source
+
+        # Flag credit coming from outside the analyzed tree. Documentation for
+        # a different project should never count toward this one's coverage.
+        outside = False
+        if source != "<unknown>":
+            try:
+                candidate = Path(source)
+                if not candidate.is_absolute():
+                    candidate = repo_resolved / candidate
+                candidate.resolve().relative_to(repo_resolved)
+            except (ValueError, OSError):
+                outside = True
+
+        if outside:
+            label = f"{source}  [OUTSIDE ANALYZED REPO]"
+
+        print(f"  {label}")
+        print(f"      covers {info['node_count']} node(s) via {strategies}")
+
+
 def cmd_gaps(args):
     """View the gap report between ITM and ATM."""
     repo_path = args.repo_path or "."
@@ -275,10 +317,26 @@ def cmd_gaps(args):
     print(f"{'=' * 60}")
 
     stats = gap_report.coverage_stats()
-    print(f"\nCoverage: {stats['coverage_percentage']:.1f}%")
+    print(
+        f"\nOperation coverage: {stats['operation_coverage_percentage']:.1f}%"
+        f"  ({stats['operations_covered']}/{stats['operations_total']}"
+        f" endpoints and commands documented)"
+    )
+    print(f"Topic coverage: {stats['coverage_percentage']:.1f}%")
     print(f"  Complete: {stats['complete']}")
     print(f"  Partial: {stats['partial']}")
     print(f"  Missing: {stats['missing']}")
+
+    if gap_report.uncovered_operations:
+        print("\n--- Undocumented Operations ---")
+        for node_id in gap_report.uncovered_operations:
+            node = surface.get_node(node_id)
+            if node and node.http_method:
+                print(f"  {node.http_method} {node.http_path}")
+            elif node:
+                print(f"  {node.name}")
+
+    print_coverage_provenance(atm, repo_path)
 
     if gap_report.extra_topics:
         print(f"\n--- Extra Topics (in docs but not in ITM) ---")
@@ -841,6 +899,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <script>
         const data = {graph_data_json};
 
+        // Match strategies differ in kind, not degree. A referential match means
+        // the documentation names this exact endpoint or command; a similarity
+        // match means the prose only reads as related. Labelling everything that
+        // is not 'direct_reference' as "Semantic" hid that distinction — a CLI
+        // command proven by a direct reference showed up as a guess — and the
+        // distinction is what the coverage verdict rests on.
+        const REFERENTIAL_STRATEGIES = ['direct_reference', 'cli_direct_reference'];
+
+        function isReferential(strategy) {{
+            return REFERENTIAL_STRATEGIES.indexOf(strategy) !== -1;
+        }}
+
+        function strategyClass(strategy) {{
+            return isReferential(strategy) ? 'direct' : 'semantic';
+        }}
+
+        function strategyLabel(strategy) {{
+            switch (strategy) {{
+                case 'direct_reference': return 'Direct Reference';
+                case 'cli_direct_reference': return 'Command Named';
+                case 'title_match': return 'Title Match';
+                case 'semantic': return 'Semantic Match';
+                default: return strategy;
+            }}
+        }}
+
         // Simple force-directed layout (no external dependencies)
         function initGraph() {{
             const container = document.getElementById('graph');
@@ -1155,8 +1239,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     + `<div style="margin-top:8px"><button class="drift-evidence-toggle" onclick="openReview('${{node.id.replace(/'/g, "\\\\'")}}')">Open in Review &#8599;</button></div>`;
             }} else {{
                 evContainer.innerHTML = evidence.map((ev, idx) => {{
-                    const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
-                    const stratLabel = ev.strategy === 'direct_reference' ? 'Direct Ref' : 'Semantic';
+                    const stratClass = strategyClass(ev.strategy);
+                    const stratLabel = strategyLabel(ev.strategy);
                     const confPct = Math.round(ev.confidence * 100);
                     const section = ev.doc_section ? ` > ${{ev.doc_section}}` : '';
                     const jKey = node.id + '::' + idx;
@@ -1286,8 +1370,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         function renderDriftEvidence(evidence) {{
             if (!evidence || evidence.length === 0) return '';
             return evidence.map(ev => {{
-                const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
-                const stratLabel = ev.strategy === 'direct_reference' ? 'Direct' : 'Semantic';
+                const stratClass = strategyClass(ev.strategy);
+                const stratLabel = strategyLabel(ev.strategy);
                 const confPct = Math.round(ev.confidence * 100);
                 return `<div class="evidence-card ${{stratClass}}" style="margin:4px 0;padding:8px;">
                     <div class="ev-header">
@@ -1604,8 +1688,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     : 'No documentation match found for this node.') + '</div>';
             }} else {{
                 evidence.forEach(function(ev, idx) {{
-                    const stratClass = ev.strategy === 'direct_reference' ? 'direct' : 'semantic';
-                    const stratLabel = ev.strategy === 'direct_reference' ? 'Direct Reference' : 'Semantic Match';
+                    const stratClass = strategyClass(ev.strategy);
+                    const stratLabel = strategyLabel(ev.strategy);
                     const confPct = Math.round(ev.confidence * 100);
                     const section = ev.doc_section ? ' &gt; ' + escapeHtml(ev.doc_section) : '';
                     const jKey = node.id + '::' + idx;

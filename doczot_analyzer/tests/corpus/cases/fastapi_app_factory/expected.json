@@ -1,0 +1,26 @@
+{
+  "name": "fastapi_app_factory",
+  "description": "Application-factory wiring. create_application(router: APIRouter) receives the router as a parameter and calls application.include_router(router) on it, so the app and the router it serves are connected only at the call site in src/main.py. Resolving the real URL requires following that call into the function. This is the layout benavlabs/FastAPI-boilerplate uses.",
+  "repo_type": "python",
+
+  "endpoints": [
+    {"method": "GET", "path": "/api/v1/orders/"},
+    {"method": "DELETE", "path": "/api/v1/orders/{order_id}"}
+  ],
+
+  "nouns": ["order"],
+
+  "documented_endpoints": [
+    {"method": "GET", "path": "/api/v1/orders/"}
+  ],
+  "undocumented_endpoints": [
+    {"method": "DELETE", "path": "/api/v1/orders/{order_id}"}
+  ],
+
+  "coverage_percentage": {"min": 50.0, "max": 50.0},
+
+  "known_failing": true,
+  "known_failing_reason": "build_router_prefix_map() resolves include_router chains between module-level router variables, but here the app's include_router argument is a function parameter. Linking it to root_router requires interprocedural analysis: finding calls to create_application and reading the argument bound to `router`. Endpoints are currently reported as GET /orders/ and DELETE /orders/{order_id}, omitting /api/v1, and the documented endpoint is consequently misreported as a gap.",
+
+  "notes": "Added after running against real repositories. The synthetic fixture fastapi_router_prefix used a literal prefix and no aliasing, so it passed while both full-stack-fastapi-template and FastAPI-boilerplate reported paths their services do not serve. Settings-constant prefixes and alias-imported routers are now fixed and covered by TestCrossFileRouterPrefixes; this factory pattern is not. Implementing it should make this case XPASS, at which point the flag comes off."
+}

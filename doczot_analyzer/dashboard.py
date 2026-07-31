@@ -723,6 +723,34 @@ body {
 
 <script>
 // ==========================================================================
+// MATCH STRATEGIES
+// ==========================================================================
+// Referential strategies mean the documentation names this exact endpoint or
+// command. Similarity strategies mean the prose only reads as related. Treating
+// everything that is not 'direct_reference' as the weaker kind mislabelled a
+// CLI command proven by direct reference as a guess, which is misleading in the
+// one view built for auditing coverage claims.
+const REFERENTIAL_STRATEGIES = ['direct_reference', 'cli_direct_reference'];
+
+function isReferential(strategy) {
+    return REFERENTIAL_STRATEGIES.indexOf(strategy) !== -1;
+}
+
+function strategyBadgeClass(strategy) {
+    return isReferential(strategy) ? 'badge-complete' : 'badge-partial';
+}
+
+function strategyLabel(strategy) {
+    switch (strategy) {
+        case 'direct_reference': return 'direct reference';
+        case 'cli_direct_reference': return 'command named';
+        case 'title_match': return 'title match';
+        case 'semantic': return 'semantic';
+        default: return strategy;
+    }
+}
+
+// ==========================================================================
 // STATE
 // ==========================================================================
 let currentSession = null;
@@ -1197,7 +1225,7 @@ function renderInventory(el) {
             html += `<div class="evidence-card ${judgeClass}">
                 <div style="display:flex;justify-content:space-between">
                     <span style="font-size:12px;font-weight:600">${esc(ev.node_id)}</span>
-                    <span class="badge ${ev.strategy === 'direct_reference' ? 'badge-complete' : 'badge-partial'}">${ev.strategy}</span>
+                    <span class="badge ${strategyBadgeClass(ev.strategy)}">${strategyLabel(ev.strategy)}</span>
                 </div>
                 <div style="font-size:11px;color:var(--text-muted)">${esc(ev.match_detail)}</div>
                 <div class="evidence-snippet">${esc(ev.doc_snippet || '')}</div>
@@ -1358,7 +1386,7 @@ function renderReview(el, progress) {
             html += `<div class="card">
                 <div class="card-header">
                     <span class="card-title">${esc(ev.node_id)}</span>
-                    <span class="badge ${ev.strategy === 'direct_reference' ? 'badge-complete' : 'badge-partial'}">${ev.strategy}</span>
+                    <span class="badge ${strategyBadgeClass(ev.strategy)}">${strategyLabel(ev.strategy)}</span>
                 </div>
                 <div style="font-size:12px;color:var(--text-muted)">Topic: ${esc(item.topic.name)} | ${esc(ev.match_detail)}</div>
                 <div class="evidence-snippet">${esc(ev.doc_snippet || '')}</div>

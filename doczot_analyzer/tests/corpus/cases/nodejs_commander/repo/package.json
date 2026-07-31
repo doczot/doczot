@@ -1,0 +1,9 @@
+{
+  "name": "dbtool",
+  "version": "2.1.0",
+  "description": "Database migration helper",
+  "bin": { "dbtool": "./src/cli.js" },
+  "dependencies": {
+    "commander": "^11.0.0"
+  }
+}
