@@ -48,6 +48,57 @@ from doczot_analyzer.storage import ManifestStore
 
 
 # =============================================================================
+# SESSION LOADING
+# =============================================================================
+
+def _load_or_analyze(
+    repo_path: str,
+    product_name,
+    db_path: str,
+    fresh: bool = False,
+):
+    """Load the latest saved session for a repo, or run a fresh analysis.
+
+    Subcommands like surface/itm/atm/gaps don't need to re-run the whole
+    pipeline (including the embedding model load) when a session for the
+    same repo already exists. Pass fresh=True to force re-analysis; a
+    fresh run is saved as a new session either way.
+
+    Returns:
+        Tuple of (graph, checklist, inventory, drift_report)
+    """
+    repo_path = str(Path(repo_path).resolve())
+    store = ManifestStore(db_path)
+
+    if not fresh:
+        for session_meta in store.list_sessions(product_name):
+            if session_meta.get("repo_path") != repo_path:
+                continue
+            session = store.load_session(session_meta["id"])
+            if not session or not all(
+                session.get(k) for k in ("graph_scan_id", "itm_json", "atm_json", "drift_json")
+            ):
+                continue
+            graph = store.load_system_graph(
+                session["product_name"], scan_id=session["graph_scan_id"]
+            )
+            if not graph:
+                continue
+            itm = TopicManifest.model_validate_json(session["itm_json"])
+            atm = TopicManifest.model_validate_json(session["atm_json"])
+            drift = DriftReport.model_validate_json(session["drift_json"])
+            print(f"Using saved session {session['id']} from {session['created_at']}")
+            print("(pass --fresh to re-analyze)")
+            return graph, itm, atm, drift
+
+    print(f"Analyzing: {repo_path}")
+    graph, itm, atm, drift = analyze_repository(repo_path, product_name)
+    session_id = save_analysis_session(store, repo_path, graph, itm, atm, drift)
+    print(f"Saved analysis session: {session_id}")
+    return graph, itm, atm, drift
+
+
+# =============================================================================
 # ANALYZE COMMAND
 # =============================================================================
 
@@ -103,8 +154,7 @@ def cmd_surface(args):
     repo_path = args.repo_path or "."
     repo_path = str(Path(repo_path).resolve())
 
-    print(f"Building system graph for: {repo_path}")
-    surface = build_system_graph(repo_path, args.name)
+    surface, _, _, _ = _load_or_analyze(repo_path, args.name, args.db_path, args.fresh)
 
     print(f"\n{'=' * 60}")
     print(f"SYSTEM GRAPH: {surface.product_name}")
@@ -158,17 +208,13 @@ def cmd_itm(args):
     repo_path = args.repo_path or "."
     repo_path = str(Path(repo_path).resolve())
 
-    # Build system graph first
-    surface = build_system_graph(repo_path, args.name)
+    surface, itm, _, _ = _load_or_analyze(repo_path, args.name, args.db_path, args.fresh)
 
-    # Load or generate ITM
+    # Optionally override with a checklist from file
     if args.load:
         with open(args.load) as f:
             itm = TopicManifest.model_validate(json.load(f))
         print(f"Loaded ITM from: {args.load}")
-    else:
-        itm = generate_default_itm(surface)
-        print("Generated default Coverage Checklist from system graph")
 
     print(f"\n{'=' * 60}")
     print(f"INTENDED TOPIC MANIFEST: {itm.product_name}")
@@ -217,13 +263,7 @@ def cmd_atm(args):
     repo_path = args.repo_path or "."
     repo_path = str(Path(repo_path).resolve())
 
-    print(f"Discovering documentation in: {repo_path}")
-
-    # Build system graph
-    surface = build_system_graph(repo_path, args.name)
-
-    # Discover Content Inventory
-    atm = discover_content_inventory(repo_path, surface)
+    surface, _, atm, _ = _load_or_analyze(repo_path, args.name, args.db_path, args.fresh)
 
     print(f"\n{'=' * 60}")
     print(f"ACTUAL TOPIC MANIFEST: {atm.product_name}")
@@ -308,9 +348,9 @@ def cmd_gaps(args):
     repo_path = args.repo_path or "."
     repo_path = str(Path(repo_path).resolve())
 
-    print(f"Analyzing gaps in: {repo_path}")
-
-    surface, itm, atm, gap_report = analyze_repository(repo_path, args.name)
+    surface, itm, atm, gap_report = _load_or_analyze(
+        repo_path, args.name, args.db_path, args.fresh
+    )
 
     print(f"\n{'=' * 60}")
     print(f"GAP REPORT: {gap_report.product_name}")
@@ -377,8 +417,9 @@ def cmd_visualize(args):
     repo_path = args.repo_path or "."
     repo_path = str(Path(repo_path).resolve())
 
-    print(f"Analyzing: {repo_path}")
-    surface, itm, atm, gap_report = analyze_repository(repo_path, args.name)
+    surface, itm, atm, gap_report = _load_or_analyze(
+        repo_path, args.name, args.db_path, args.fresh
+    )
 
     # Generate HTML
     html = generate_visualization_html(surface, itm, atm, gap_report)
@@ -2074,12 +2115,19 @@ def main():
     p.add_argument("--db-path", default=".doczot/manifests.db", help="Database path")
     p.set_defaults(func=cmd_analyze)
 
+    def add_session_args(p):
+        """Args for commands that reuse the latest saved session."""
+        p.add_argument("--fresh", action="store_true",
+                       help="Re-analyze instead of using the latest saved session")
+        p.add_argument("--db-path", default=".doczot/manifests.db", help="Database path")
+
     # surface (System Graph)
     p = subparsers.add_parser("surface", help="Explore System Graph (code structure)")
     p.add_argument("repo_path", nargs="?", default=".")
     p.add_argument("--name", help="Product name")
     p.add_argument("--type", choices=["all", "verbs", "nouns", "concepts", "orphans"], default="all")
     p.add_argument("--output", "-o", help="Save to JSON")
+    add_session_args(p)
     p.set_defaults(func=cmd_surface)
 
     # itm (Coverage Checklist)
@@ -2088,6 +2136,7 @@ def main():
     p.add_argument("--name", help="Product name")
     p.add_argument("--load", help="Load checklist from JSON file")
     p.add_argument("--output", "-o", help="Save to JSON")
+    add_session_args(p)
     p.set_defaults(func=cmd_itm)
 
     # atm (Content Inventory)
@@ -2095,6 +2144,7 @@ def main():
     p.add_argument("repo_path", nargs="?", default=".")
     p.add_argument("--name", help="Product name")
     p.add_argument("--output", "-o", help="Save to JSON")
+    add_session_args(p)
     p.set_defaults(func=cmd_atm)
 
     # gaps (Drift Report)
@@ -2102,6 +2152,7 @@ def main():
     p.add_argument("repo_path", nargs="?", default=".")
     p.add_argument("--name", help="Product name")
     p.add_argument("--output", "-o", help="Save to JSON")
+    add_session_args(p)
     p.set_defaults(func=cmd_gaps)
 
     # visualize
@@ -2110,6 +2161,7 @@ def main():
     p.add_argument("--name", help="Product name")
     p.add_argument("--output", "-o", default="doczot-viz.html")
     p.add_argument("--open", action="store_true", help="Open in browser")
+    add_session_args(p)
     p.set_defaults(func=cmd_visualize)
 
     # serve (dashboard)

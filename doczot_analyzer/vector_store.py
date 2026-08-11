@@ -5,7 +5,6 @@ This module handles embedding generation and similarity search.
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from doczot_analyzer.models import DocChunk
 
 class VectorStore(ABC):
@@ -35,13 +34,16 @@ class LocalVectorStore(VectorStore):
         self.embeddings: List[np.ndarray] = []
 
     @property
-    def model(self) -> SentenceTransformer:
+    def model(self):
         """Load the embedding model on first use.
 
-        Lazy so repos with no documentation don't pay the multi-second
-        model load (or a download) for nothing.
+        Lazy (including the sentence_transformers/torch import, which
+        alone takes several seconds) so commands that never embed
+        anything - cached sessions, doc-less repos - don't pay for it.
         """
         if self._model is None:
+            from sentence_transformers import SentenceTransformer
+
             print(f"Loading model: {self.model_name}")
             self._model = SentenceTransformer(self.model_name)
         return self._model
